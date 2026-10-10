@@ -127,10 +127,39 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .mtab tr.z td{color:var(--muted)}
 .sheet .mstats div{background:var(--surface);border:1px solid var(--line)}
 .mtab tr.tot td{font-weight:800;border-top:2px solid var(--ink);border-bottom:0}
+.desp{display:grid;grid-template-columns:1fr auto;gap:3px 10px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;font:inherit;color:inherit;padding:12px 4px;cursor:pointer}
+.desp:active{background:var(--bg)}
+.desp b.n{font-weight:800}.desp .t{text-align:right;font-weight:700}
+.desp small{color:var(--muted)}
+.desp .kp{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:4px 8px;font-size:.8rem;align-items:center}
+.cchip{display:inline-flex;align-items:center;gap:4px;border-radius:999px;padding:1px 8px;font-weight:700;font-size:.76rem;background:var(--bg)}
+.cchip i{width:8px;height:8px;border-radius:50%}
+.ltab td,.ltab th{padding:7px 6px;font-size:.82rem;white-space:nowrap}
+.ltab td:first-child,.ltab th:first-child{position:sticky;left:0;background:var(--bg);z-index:1}
+
+.oprow{display:grid;grid-template-columns:1fr auto;gap:3px 10px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;font:inherit;color:inherit;padding:12px 4px;cursor:pointer}
+.oprow:active{background:var(--bg)}
+.oprow b.n{font-weight:800}.oprow .t{text-align:right;font-weight:700}
+.oprow .kp{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:2px 12px;font-size:.82rem;color:var(--muted)}
+.oprow .kp span{white-space:nowrap}.oprow .kp b{color:var(--ink)}
+.tbadge{display:inline-block;font-size:.72rem;font-weight:800;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:1px;color:#fff}
+.tA{background:#2F6FA8}.tB{background:#C0652F}
+.tcmp{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
+.tcmp div{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:.84rem}
+.tcmp div b.h{display:block;font-size:.95rem;margin-bottom:4px}
+.tcmp div span{display:flex;justify-content:space-between;color:var(--muted)}
+.tcmp div span b{color:var(--ink)}
+.tcmp div span.tbadge{display:inline-block;color:#fff}
+.qgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0}
+.qgrid div{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px}
+.qgrid small{display:block;color:var(--muted);font-size:.72rem;font-weight:600}
+.qgrid b{font-size:.98rem}
+.qbar{display:flex;height:10px;border-radius:5px;overflow:hidden;margin:4px 0 2px;background:var(--line)}
+
 .sulfbox small,.sulfbox b{color:var(--cu)!important}
 
 .chart{position:relative;-webkit-user-select:none;user-select:none}
-.chart svg[data-tip]{touch-action:pan-y;cursor:crosshair}
+.chart svg[data-tip]{touch-action:pan-y;cursor:crosshair;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent}
 .ctip{position:absolute;top:4px;pointer-events:none;background:var(--ink);color:var(--bg);border-radius:10px;padding:7px 10px;font-size:.8rem;line-height:1.35;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.2);z-index:3}
 .ctip b{display:block;font-size:.84rem;margin-bottom:2px}
 .ctip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:0}
@@ -258,7 +287,8 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
     <div class="mstats" id="mStats"></div>
     <div class="chart" id="cMonth"></div>
     <div class="legend" id="mLeg"><span><i style="background:var(--cu-2)"></i>Producción del día</span><span><i class="ln" style="border-color:var(--acc)"></i>Acumulado del mes</span></div>
-    <div class="days" id="days"></div>
+    <button class="secondary" id="daysBtn" style="margin-top:12px">📋 Producción diaria</button>
+    <div class="days" id="days" hidden></div>
   </section>
   <p class="note" id="note"></p>
   </div>
@@ -340,9 +370,13 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
     </section>
     <div class="yrs" id="pYears" role="group" aria-label="Año"></div>
     <section class="card">
-      <h2 id="pcTitle">Producción por categoría</h2>
-      <p class="sub" id="pcSub"></p>
-      <div class="chart" id="cCat"></div>
+      <h2 id="ceTitle">Evolución por categoría</h2>
+      <p class="sub" id="ceSub"></p>
+      <div class="ctabs" id="ceCats" role="group" aria-label="Categoría" style="margin:0 0 10px"></div>
+      <div class="stats" id="ceKpi" style="margin:0 0 10px"></div>
+      <div class="chart" id="cCe"></div>
+      <div class="legend" id="ceLeg"><span><i id="ceSw" style="background:var(--cu-2)"></i><span id="ceL1">Pallets de la categoría</span></span><span><i class="ln" style="border-color:var(--ink)"></i>% del total producido</span></div>
+      <div class="legend" id="ceLegAll" hidden></div>
       <div class="catlist" id="catList"></div>
     </section>
     <section class="card">
@@ -357,9 +391,26 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
       <div class="catlist" id="stockList"></div>
     </section>
     <section class="card">
-      <h2>Últimos despachos</h2>
-      <p class="sub">Agrupados por fecha y camión</p>
+      <h2 id="opTitle">Operadores</h2>
+      <p class="sub" id="opSub"></p>
+      <div class="months" id="opMonths" role="group" aria-label="Mes" style="margin:2px -2px 8px"></div>
+      <div class="ctabs" id="opTurno" role="group" aria-label="Turno" style="margin:0 0 10px"><button data-t="" aria-pressed="true">Todos</button><button data-t="A" aria-pressed="false">Turno A</button><button data-t="B" aria-pressed="false">Turno B</button></div>
+      <div id="opTurnos"></div>
+      <h2 id="otTitle" style="font-size:.98rem;margin:12px 0 2px">Evolución de la producción por turno</h2>
+      <p class="sub" id="otSub" style="margin:0 0 6px"></p>
+      <div class="chart" id="cTurno"></div>
+      <div class="legend" style="margin-bottom:8px"><span><i class="ln" style="border-color:#2F6FA8"></i>Turno A</span><span><i class="ln" style="border-color:#C0652F"></i>Turno B</span><span><i style="height:0;width:18px;border-radius:0;border-top:2px dashed #2F6FA8"></i>Acum. A</span><span><i style="height:0;width:18px;border-radius:0;border-top:2px dashed #C0652F"></i>Acum. B</span></div>
+      <div class="yrs" id="opSort" style="margin:6px -2px 6px" role="group" aria-label="Ordenar"><button data-s="t" aria-pressed="true">↓ Tonelaje</button><button data-s="d" aria-pressed="false">↓ t/día</button><button data-s="c1" aria-pressed="false">↓ % Cat. 1</button></div>
+      <div id="opList"></div>
+      <p class="note" id="opNote"></p>
+    </section>
+    <section class="card">
+      <h2 id="dsTitle">Despachos</h2>
+      <p class="sub" id="dsSub"></p>
+      <div class="months" id="dsMonths" role="group" aria-label="Mes" style="margin:2px -2px 8px"></div>
+      <div class="stats" id="dsKpi" style="margin:0 0 10px"></div>
       <div id="salList"></div>
+      <p class="note" id="dsNote"></p>
     </section>
     <div class="warn" id="pWarn"></div>
     <p class="note" id="pNote"></p>
@@ -410,11 +461,12 @@ function chart({labels,bars,line,sel,fmtL,fmtR,unitL,unitR,onTap,dimFrom,dots,ti
   const W=360,H=220,L=40,R=44,T=24,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*0.62));
   const mb=niceMax(Math.max(...bars,0)),ml=niceMax(Math.max(...line.filter(v=>v!=null),0));
   const yb=v=>T+ih-(v/mb)*ih,yl=v=>T+ih-(v/ml)*ih;
-  const tipM={W,L,step,c:1,x:tipX||labels,s:[{n:tipB||unitL,v:bars.map(v=>fmtL(v)+(sufB!=null?sufB:' '+unitL)),k:'b'},{n:tipL||unitR,v:line.map(v=>v==null?'—':fmtR(v)+(sufL!=null?sufL:' '+unitR)),k:'l'}]};
+  const hasL=line.some(v=>v!=null);
+  const tipM={W,L,step,c:1,x:tipX||labels,s:[{n:tipB||unitL,v:bars.map(v=>fmtL(v)+(sufB!=null?sufB:' '+unitL)),k:'b'},{n:tipL||unitR,v:line.map(v=>v==null?'—':fmtR(v)+(sufL!=null?sufL:' '+unitR)),k:'l'}].filter(s=>s.n!=='')};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}">`;
   for(let i=0;i<=4;i++){const y=T+ih*i/4;s+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--line)"/>`;
-    s+=`<text x="${L-5}" y="${y+3}" text-anchor="end">${fmtL(mb*(1-i/4))}</text><text x="${W-R+5}" y="${y+3}" fill="var(--acc)" style="fill:var(--acc)">${fmtR(ml*(1-i/4))}</text>`}
-  s+=`<text x="${L-5}" y="10" text-anchor="end" style="font-weight:700">${unitL}</text><text x="${W-R+5}" y="10" style="fill:var(--acc);font-weight:700">${unitR}</text>`;
+    s+=`<text x="${L-5}" y="${y+3}" text-anchor="end">${fmtL(mb*(1-i/4))}</text>${hasL?`<text x="${W-R+5}" y="${y+3}" fill="var(--acc)" style="fill:var(--acc)">${fmtR(ml*(1-i/4))}</text>`:''}`}
+  s+=`<text x="${L-5}" y="10" text-anchor="end" style="font-weight:700">${unitL}</text>${hasL?`<text x="${W-R+5}" y="10" style="fill:var(--acc);font-weight:700">${unitR}</text>`:''}`;
   bars.forEach((v,i)=>{const x=L+step*i+(step-bw)/2,h=ih-(yb(v)-T);const dim=dimFrom!=null&&i>=dimFrom;
     s+=`<rect x="${x}" y="${yb(v)}" width="${bw}" height="${Math.max(0,h)}" rx="2" fill="${i===sel?'var(--cu)':'var(--cu-2)'}" opacity="${dim?.35:1}"/>`});
   const pts=line.map((v,i)=>v==null?null:[L+step*i+step/2,yl(v)]).filter(Boolean);
@@ -452,7 +504,7 @@ function renderAllYears(){
   $('#months').hidden=true;$('#mLeg').hidden=true;
   $('#mTitle').textContent='Resumen por año';$('#mSub').textContent='Toneladas, días con producción y variación respecto al año anterior';$('#mStats').innerHTML='';
   $('#cMonth').innerHTML=`<div style="overflow-x:auto"><table class="mtab"><thead><tr><th>Año</th><th>Toneladas</th><th>Sacos</th><th>Días prod.</th><th>Prom. día</th><th>Var.</th></tr></thead><tbody>${ys.map((y,i)=>{const v=vals[i],p=i?vals[i-1]:0;return `<tr><td>${y}</td><td>${ton(v)}</td><td>${nf(v/KG())}</td><td>${pd[y]||0}</td><td>${pd[y]?nf(v/pd[y])+' kg':'—'}</td><td>${p?`<span class="${v>=p?'up':'dn'}">${v>=p?'+':'−'}${nf(Math.abs(v-p)/p*100,1)}%</span>`:'—'}</td></tr>`}).join('')}<tr class="tot"><td>Total</td><td>${ton(tot)}</td><td>${nf(tot/KG())}</td><td>${pdays}</td><td>${pdays?nf(tot/pdays)+' kg':'—'}</td><td></td></tr></tbody></table></div><p class="note" style="margin:6px 2px 0">${new Date().getFullYear()===ys[ys.length-1]?ys[ys.length-1]+' está en curso, por eso su variación se compara con un año incompleto.':''}</p>`;
-  $('#days').innerHTML='';
+  $('#days').innerHTML='';$('#daysBtn').hidden=true;
   $('#note').textContent='Datos de los Excel RECUPERACION '+ys[0]+'–'+ys[ys.length-1]+'.';
 }
 function render(){
@@ -505,9 +557,13 @@ function renderMonth(m,D){
     const v=D[k],kg=kgOf(v),dw=DOW[new Date(k+'T12:00:00').getDay()];
     rows.push(`<button class="day${kg?'':' zero'}" data-k="${k}"><span class="d"><b>${d}</b><small>${dw}${EDIT[k]?' · ✎':''}</small></span><span class="bar"><i style="width:${kg/mx*100}%"></i></span><span class="v">${nf(kg)} kg<small>${nf(+v[0]||0)}${+v[1]?' + '+nf(+v[1]):''} sacos</small></span></button>`)}
   $('#days').innerHTML=rows.join('')||'<p class="note">No hay días registrados en este mes. Toca + para agregar.</p>';
+  $('#daysBtn').hidden=false;$('#days').hidden=!SHOWD;
+  $('#daysBtn').textContent=SHOWD?'▲ Ocultar producción diaria':'📋 Producción diaria ('+rows.length+' días)';
 }
 
 /* ---------- interactions ---------- */
+let SHOWD=false;
+$('#daysBtn').onclick=()=>{SHOWD=!SHOWD;render();if(SHOWD)setTimeout(()=>$('#daysBtn').scrollIntoView({behavior:'smooth',block:'start'}),50)};
 $('#pdYears').onclick=e=>{const b=e.target.closest('[data-y]');if(!b)return;YEAR=+b.dataset.y;const ks=Object.keys(DIAS()).filter(k=>+k.slice(0,4)===YEAR).sort();MON=ks.length?+ks[ks.length-1].slice(5,7)-1:0;render()};
 $('#months').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.disabled)return;MON=+b.dataset.m;render();setTimeout(()=>$('#mCard').scrollIntoView({behavior:'smooth',block:'start'}),50)};
 $('#cYear').onclick=e=>{const r=e.target.closest('[data-i]');if(!r)return;if(YEAR===0){const ys=[...new Set(Object.keys(DIAS()).map(k=>+k.slice(0,4)))].sort();YEAR=ys[+r.dataset.i];const ks=Object.keys(DIAS()).filter(k=>+k.slice(0,4)===YEAR).sort();MON=ks.length?+ks[ks.length-1].slice(5,7)-1:0;render();return}const {m}=agg(),i=+r.dataset.i;if(!m[i].dias)return;MON=i;render();setTimeout(()=>$('#mCard').scrollIntoView({behavior:'smooth',block:'start'}),50)};
@@ -580,11 +636,8 @@ function palRender(){
   const cats=[1,2,3,4,0];
   const st=keys.map(k=>{const o={};cats.forEach(c=>o[c]=0);return o});
   LY.forEach(l=>{const i=keys.indexOf(keyOf(l[1]));if(i>=0)st[i][l[2]in st[i]?l[2]:0]++});
-  $('#pcTitle').textContent='Producción por categoría '+(PY||'2022–'+years[years.length-1]);
-  $('#pcSub').textContent=nf(LY.length)+' pallets producidos · '+nf(LY.length*tp,1)+' t';
-  $('#cCat').innerHTML=stacked(lab,st,cats);
-  const tc={};cats.forEach(c=>tc[c]=LY.filter(l=>(l[2]||0)===c).length);
-  $('#catList').innerHTML=cats.filter(c=>tc[c]).map(c=>`<div class="catrow c${c}"><span class="sw"></span><b>${CATN[c]}</b><span class="v">${nf(tc[c])} <small>pallets · ${nf(tc[c]/Math.max(1,LY.length)*100,1)}%</small></span><span class="bar"><i style="width:${tc[c]/Math.max(1,LY.length)*100}%"></i></span></div>`).join('');
+  ceRender(LY,keys,lab,keyOf,tp,st,cats);
+  opRender(LY,tp);
   // movement chart with stock line (global running balance)
   const pm=keys.map(()=>0),om=keys.map(()=>0);
   LY.forEach(l=>{const i=keys.indexOf(keyOf(l[1]));if(i>=0)pm[i]++});SY.forEach(s=>{const i=keys.indexOf(keyOf(s[1]));if(i>=0)om[i]++});
@@ -596,9 +649,7 @@ function palRender(){
   // stock by category (ALMACENADO)
   const sc={};cats.forEach(c=>sc[c]=0);L.forEach(l=>{if(l[3])sc[cats.includes(l[2])?l[2]:0]++});const stot=Object.values(sc).reduce((a,b)=>a+b,0);
   $('#stockList').innerHTML=cats.filter(c=>sc[c]).map(c=>`<div class="catrow c${c}"><span class="sw"></span><b>${CATN[c]}</b><span class="v">${nf(sc[c])} <small>pallets</small></span><span class="bar"><i style="width:${sc[c]/Math.max(1,stot)*100}%"></i></span></div>`).join('')+`<p class="note" style="margin:6px 0 0">Total almacenado según el Excel: <b>${nf(stot)}</b> pallets.</p>`;
-  // last dispatches
-  const g={};S.forEach(s=>{const k=s[1]+'|'+s[2];g[k]=(g[k]||0)+1});
-  $('#salList').innerHTML=Object.keys(g).sort().reverse().slice(0,8).map(k=>{const[d,c]=k.split('|');return `<div class="sal"><b>${d.split('-').reverse().join('/')}</b><span class="v">${nf(g[k])} pallets</span><small>Camión ${esc(c||'—')}</small><small style="text-align:right">${nf(g[k]*tp,2)} t</small></div>`}).join('');
+  dsRender(S,tp);
   // data quality notes
   const sinLote=S.filter(s=>!s[0]).length,seen={};let dup=0;S.forEach(s=>{if(s[0]){if(seen[s[0]])dup++;seen[s[0]]=1}});
   $('#pWarn').innerHTML=`<b>Por qué los números no coinciden:</b> el Excel tiene <b>${nf(stot)}</b> lotes como ALMACENADO, pero al restar los despachos quedan <b>${nf(left)}</b>. La diferencia se debe a ${nf(sinLote)} despachos registrados como "SIN LOTE" (no se sabe qué lote salió, así que ese lote sigue figurando como almacenado)${dup?` y ${nf(dup)} lotes que aparecen despachados más de una vez`:''}. El conteo de bodega usa la resta simple: producidos − despachados.`;
@@ -609,7 +660,7 @@ function stacked(labels,st,cats){
   const mx=niceMax(Math.max(1,...st.map(o=>cats.reduce((a,c)=>a+o[c],0))));const y=v=>T+ih-(v/mx)*ih;
   const tipM={W,L,step,c:1,x:labels,s:cats.filter(c=>st.some(o=>o[c])).map(c=>({n:CATN[c],v:st.map(o=>nf(o[c])+' pallets'),col:CATC[c]})).concat([{n:'Total',v:st.map(o=>nf(cats.reduce((a,c)=>a+o[c],0))+' pallets')}])};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">pallets</text>`;
-  const dv=Number.isInteger(mx/4)?4:5;for(let i=0;i<=dv;i++){const yy=T+ih*i/dv;s+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${L-5}" y="${yy+3}" text-anchor="end">${nf(mx*(1-i/dv))}</text>`}
+  const dv=mx<=5&&Number.isInteger(mx)?Math.max(1,mx):Number.isInteger(mx/4)?4:5;for(let i=0;i<=dv;i++){const yy=T+ih*i/dv;s+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${L-5}" y="${yy+3}" text-anchor="end">${nf(mx*(1-i/dv))}</text>`}
   st.forEach((o,i)=>{let acc=0;const x=L+step*i+(step-bw)/2;cats.forEach(c=>{if(!o[c])return;const y0=y(acc),y1=y(acc+o[c]);s+=`<rect x="${x}" y="${y1}" width="${bw}" height="${y0-y1}" fill="${CATC[c]}"/>`;acc+=o[c]});
     if(acc)s+=`<text x="${x+bw/2}" y="${y(acc)-3}" text-anchor="middle" style="font-size:9px">${acc}</text>`});
   labels.forEach((t,i)=>s+=`<text x="${L+step*i+step/2}" y="${H-7}" text-anchor="middle">${t}</text>`);
@@ -967,6 +1018,265 @@ $('#tarMonths').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.disabl
 $('#tarLine').onclick=e=>{const b=e.target.closest('[data-t]');if(!b)return;TLINE=b.dataset.t;$('#tarLine').querySelectorAll('button').forEach(o=>o.setAttribute('aria-pressed',o===b));tarRender()};
 $('#pilMonths').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.disabled)return;PILM=+b.dataset.m;pilRender()};
 $('#pilList').onclick=e=>{const b=e.target.closest('[data-p]');if(b)pilaDetail(b.dataset.p)};
+
+/* ---------- evolución por categoría ---------- */
+let CECAT=0;
+function ceRender(LY,keys,lab,keyOf,tp,st,allc){
+  const cats=[1,2,3,4].filter(c=>PAL.lotes.some(l=>l[2]===c));
+  if(CECAT!==0&&!cats.includes(CECAT))CECAT=0;
+  const isAll=CECAT===0;
+  $('#ceLeg').hidden=isAll;$('#ceLegAll').hidden=true;
+  const tc={};allc.forEach(c=>tc[c]=LY.filter(l=>(l[2]||0)===c).length);
+  $('#catList').innerHTML=isAll?allc.filter(c=>tc[c]).map(c=>`<div class="catrow c${c}"><span class="sw"></span><b>${CATN[c]}</b><span class="v">${nf(tc[c])} <small>pallets · ${nf(tc[c]/Math.max(1,LY.length)*100,1)}%</small></span><span class="bar"><i style="width:${tc[c]/Math.max(1,LY.length)*100}%"></i></span></div>`).join(''):'';
+  $('#ceCats').innerHTML=`<button data-c="0" aria-pressed="${isAll}">Todas</button>`+cats.map(c=>`<button data-c="${c}" aria-pressed="${c===CECAT}" style="${c===CECAT?'color:'+CATC[c]:''}">Cat. ${c}</button>`).join('');
+  const n=keys.length,cnt=Array(n).fill(0),tot=Array(n).fill(0);
+  LY.forEach(l=>{const i=keys.indexOf(keyOf(l[1]));if(i<0)return;tot[i]++;if(l[2]===CECAT)cnt[i]++});
+  if(isAll){
+    const T=LY.length,tt=st.map(o=>allc.reduce((a,c)=>a+o[c],0)),bi=tt.indexOf(Math.max(...tt));
+    $('#ceTitle').textContent='Análisis de todas las categorías '+(PY||'por año');
+    $('#ceSub').textContent='Pallets producidos cada '+(PY?'mes':'año')+', separados por categoría';
+    $('#ceKpi').innerHTML=`<div><small>Pallets</small><b>${nf(T)}</b></div><div><small>Tonelaje</small><b>${nf(T*tp,1)} t</b></div><div><small>${PY?'Mejor mes':'Mejor año'}</small><b>${T?lab[bi]+' · '+tt[bi]:'—'}</b></div>`;
+    $('#ceLegAll').innerHTML=allc.filter(c=>tc[c]).map(c=>`<span><i style="background:${CATC[c]}"></i>${CATN[c]}</span>`).join('');
+    $('#cCe').innerHTML=stacked(lab,st,allc);
+    return;
+  }
+  const pct=tot.map((t,i)=>t?cnt[i]/t*100:null);
+  const C=cnt.reduce((a,b)=>a+b,0),T=tot.reduce((a,b)=>a+b,0),act=cnt.filter(v=>v>0).length;
+  const bi=cnt.indexOf(Math.max(...cnt));
+  $('#ceTitle').textContent='Evolución '+CATN[CECAT].toLowerCase()+' '+(PY||'por año');
+  $('#ceSub').textContent='Pallets de '+CATN[CECAT].toLowerCase()+' producidos cada '+(PY?'mes':'año')+' y qué % del total representan';
+  $('#ceKpi').innerHTML=`<div><small>Pallets</small><b style="color:${CATC[CECAT]}">${nf(C)}</b></div><div><small>% del total</small><b>${T?nf(C/T*100,1)+'%':'—'}</b></div><div><small>${PY?'Mejor mes':'Mejor año'}</small><b>${C?lab[bi]+' · '+cnt[bi]:'—'}</b></div>`;
+  $('#ceSw').style.background=CATC[CECAT];$('#ceL1').textContent='Pallets '+CATN[CECAT].toLowerCase();
+  // reuse grouped-like chart: bars colored by category
+  $('#cCe').innerHTML=catChart(lab,cnt,pct,CATC[CECAT],PY?keys.map((k,i)=>MES[i]+' '+PY):lab);
+}
+function catChart(labels,bars,line,col,tipx){
+  const W=360,H=210,L=34,R=40,T=22,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(4,Math.min(22,step*.6));
+  const mb=niceMax(Math.max(1,...bars)),yb=v=>T+ih-(v/mb)*ih,yl=v=>T+ih-(v/100)*ih;
+  const tipM={W,L,step,c:1,x:tipx,s:[{n:'Pallets',v:bars.map(v=>nf(v)),col},{n:'% del total',v:line.map(v=>v==null?'—':nf(v,1)+'%'),col:'var(--ink)'}]};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">pallets</text><text x="${W-R+5}" y="10" style="font-weight:700;fill:var(--ink)">% total</text>`;
+  const dv=mb<=5&&Number.isInteger(mb)?Math.max(1,mb):Number.isInteger(mb/4)?4:5;
+  for(let i=0;i<=dv;i++){const yy=T+ih*i/dv;s+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${L-5}" y="${yy+3}" text-anchor="end">${nf(mb*(1-i/dv))}</text><text x="${W-R+5}" y="${yy+3}" style="fill:var(--ink)">${nf(100*(1-i/dv))}%</text>`}
+  bars.forEach((v,i)=>{const x=L+step*i+(step-bw)/2;s+=`<rect x="${x}" y="${yb(v)}" width="${bw}" height="${T+ih-yb(v)}" rx="2" fill="${col}"/>`;if(v)s+=`<text x="${x+bw/2}" y="${yb(v)-3}" text-anchor="middle" style="font-size:9px">${v}</text>`});
+  const pts=line.map((v,i)=>v==null?null:[L+step*i+step/2,yl(v)]).filter(Boolean);
+  if(pts.length){s+=`<polyline fill="none" stroke="var(--ink)" stroke-width="1.8" stroke-dasharray="1 0" points="${pts.map(p=>p.join(',')).join(' ')}"/>`;pts.forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="2.5" fill="var(--ink)"/>`)}
+  labels.forEach((t,i)=>s+=`<text x="${L+step*i+step/2}" y="${H-7}" text-anchor="middle">${t}</text>`);
+  return s+'</svg>';
+}
+$('#ceCats').onclick=e=>{const b=e.target.closest('[data-c]');if(!b)return;CECAT=+b.dataset.c;palRender()};
+
+/* ---------- operadores ---------- */
+let OPT='',OPS='t',OPM=-1;
+const QOK=l=>({ph:l[4],ac:l[5],ins:l[6],cu:l[7]!=null&&l[7]<=30?l[7]:null,hum:l[8],pu:l[9]!=null&&l[9]>=50?l[9]:null});
+function opAgg(LY){
+  const O=PAL.ops||[],g={};
+  LY.forEach(l=>{if(l.length<15)return;const k=O[l[13]]||'SIN DATO';const o=g[k]=g[k]||{n:0,dias:new Set(),tA:0,tB:0,c:{1:0,2:0,3:0,4:0,0:0},s:{ph:[0,0],ac:[0,0],ins:[0,0],cu:[0,0],hum:[0,0],pu:[0,0],lav:[0,0],sec:[0,0]},asp0:0,olor0:0,flot0:0,f0:'9',f1:'',m:{}};
+    o.n++;o.dias.add(l[1]);if(l[14]==='A')o.tA++;else if(l[14]==='B')o.tB++;o.c[l[2]in o.c?l[2]:0]++;
+    const q=QOK(l);for(const kk in q){if(q[kk]!=null){o.s[kk][0]+=q[kk];o.s[kk][1]++}}
+    if(l[15]!=null){o.s.lav[0]+=l[15];o.s.lav[1]++}if(l[16]!=null){o.s.sec[0]+=l[16];o.s.sec[1]++}
+    if((PAL.asp||[])[l[10]]==='NO PRESENTA')o.asp0++;if((PAL.olor||[])[l[11]]==='NO PRESENTA')o.olor0++;if((PAL.flot||[])[l[12]]==='NO PRESENTA')o.flot0++;
+    if(l[1]<o.f0)o.f0=l[1];if(l[1]>o.f1)o.f1=l[1];const mk=l[1].slice(0,7);o.m[mk]=(o.m[mk]||0)+1});
+  Object.values(g).forEach(o=>{o.turno=o.tA>=o.tB?'A':'B';o.tp=Math.max(o.tA,o.tB)/Math.max(1,o.tA+o.tB);o.nd=o.dias.size});
+  return g;
+}
+const av=(o,k,d)=>o.s[k][1]?nf(o.s[k][0]/o.s[k][1],d):'—';
+
+function turnoChart(labels,a,b,tipx,unit,ca,cb){
+  const W=360,H=210,L=34,R=40,T=20,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*.36));
+  const mb=niceMax(Math.max(1,...a.filter(v=>v!=null),...b.filter(v=>v!=null))),y=v=>T+ih-(v/mb)*ih;
+  const mc=niceMax(Math.max(1,...ca.filter(v=>v!=null),...cb.filter(v=>v!=null))),yc=v=>T+ih-(v/mc)*ih;
+  const tipM={W,L,step,c:1,x:tipx,s:[{n:'Turno A',v:a.map(v=>v==null?'—':nf(v)+' '+unit),col:'#2F6FA8'},{n:'Turno B',v:b.map(v=>v==null?'—':nf(v)+' '+unit),col:'#C0652F'},{n:'Acumulado A',v:ca.map(v=>v==null?'—':nf(v)+' '+unit),col:'#2F6FA8'},{n:'Acumulado B',v:cb.map(v=>v==null?'—':nf(v)+' '+unit),col:'#C0652F'},{n:'Diferencia acum. A−B',v:ca.map((v,i)=>v==null?'—':(v-cb[i]>0?'+':'')+nf(v-cb[i])),col:'var(--muted)'}]};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">${unit}</text><text x="${W-R+5}" y="10" style="font-weight:700">acum.</text>`;
+  const dv=mb<=5&&Number.isInteger(mb)?Math.max(1,mb):Number.isInteger(mb/4)?4:5;
+  for(let i=0;i<=dv;i++){const yy=T+ih*i/dv;s+=`<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${L-5}" y="${yy+3}" text-anchor="end">${nf(mb*(1-i/dv))}</text><text x="${W-R+5}" y="${yy+3}">${nf(mc*(1-i/dv))}</text>`}
+  const X=i=>L+step*i+step/2,dot=n>20?1.8:3;
+  [[ca,'#2F6FA8'],[cb,'#C0652F']].forEach(([arr,col])=>{s+=`<polyline fill="none" stroke="${col}" stroke-width="1.8" stroke-dasharray="5 4" opacity=".8" points="${arr.map((v,i)=>v==null?null:X(i)+','+yc(v)).filter(Boolean).join(' ')}"/>`});
+  [[a,'#2F6FA8'],[b,'#C0652F']].forEach(([arr,col])=>{s+=`<polyline fill="none" stroke="${col}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" points="${arr.map((v,i)=>v==null?null:X(i)+','+y(v)).filter(Boolean).join(' ')}"/>`;arr.forEach((v,i)=>{if(v!=null)s+=`<circle cx="${X(i)}" cy="${y(v)}" r="${dot}" fill="${col}"/>`})});
+  const every=n>16?Math.ceil(n/8):1;
+  labels.forEach((t,i)=>{if(i%every&&i!==n-1)return;s+=`<text x="${L+step*i+step/2}" y="${H-7}" text-anchor="middle">${t}</text>`});
+  return s+'</svg>';
+}
+function turnoRender(LY0){
+  // período: Todos -> por año; año -> por mes; mes -> por día
+  let keys,labs,tipx,keyOf;
+  if(PY===0){keys=[...new Set(PAL.lotes.map(l=>l[1].slice(0,4)))].sort();labs=keys;tipx=keys;keyOf=d=>d.slice(0,4)}
+  else if(OPM<0){keys=MES.map((_,i)=>String(i+1).padStart(2,'0'));labs=MES.map(m=>m.slice(0,3));tipx=MES.map(m=>m+' '+PY);keyOf=d=>d.slice(5,7)}
+  else{const nd=new Date(PY,OPM+1,0).getDate();keys=Array.from({length:nd},(_,i)=>String(i+1).padStart(2,'0'));labs=keys.map(k=>String(+k));tipx=keys.map(k=>+k+' '+MES[OPM].toLowerCase()+' '+PY);keyOf=d=>d.slice(8,10)}
+  const LY=OPM<0?LY0:LY0.filter(l=>+l[1].slice(5,7)-1===OPM);
+  const a=keys.map(()=>0),b=keys.map(()=>0);
+  LY.forEach(l=>{const i=keys.indexOf(keyOf(l[1]));if(i<0)return;if(l[14]==='A')a[i]++;else if(l[14]==='B')b[i]++});
+  const A=a.reduce((x,y)=>x+y,0),Bt=b.reduce((x,y)=>x+y,0);
+  // cortar la línea después del último dato registrado (meses o días que aún no ocurren)
+  const lastD=PAL.actualizado||'';const lastI=keys.reduce((m,k,i)=>{const full=PY===0?k:OPM<0?PY+'-'+k:PY+'-'+String(OPM+1).padStart(2,'0')+'-'+k;return full<=lastD.slice(0,full.length)?i:m},-1);
+  for(let i=lastI+1;i<keys.length;i++){a[i]=null;b[i]=null}
+  let sa=0,sb=0;const ca=a.map(v=>v==null?null:(sa+=v)),cb=b.map(v=>v==null?null:(sb+=v));
+  $('#otSub').textContent='Pallets producidos por cada turno '+(PY===0?'cada año':OPM<0?'cada mes de '+PY:'cada día de '+MES[OPM].toLowerCase()+' '+PY)+` · A: ${nf(A)} · B: ${nf(Bt)}`;
+  $('#cTurno').innerHTML=turnoChart(labs,a,b,tipx,'pallets',ca,cb);
+}
+function opRender(LY0,tp){
+  const ms=[...new Set(LY0.map(l=>+l[1].slice(5,7)-1))];
+  if(PY===0)OPM=-1;else if(OPM>=0&&!ms.includes(OPM))OPM=-1;
+  $('#opMonths').hidden=PY===0;
+  $('#opMonths').innerHTML=`<button data-m="-1" aria-pressed="${OPM<0}">Año</button>`+MES.map((m,i)=>`<button data-m="${i}" aria-pressed="${i===OPM}" ${ms.includes(i)?'':'disabled'}>${m.slice(0,3)}</button>`).join('');
+  {const c=$('#opMonths'),s=c.querySelector('[aria-pressed="true"]');if(s&&OPM>=0)c.scrollLeft=s.offsetLeft-c.clientWidth/2+s.clientWidth/2;else c.scrollLeft=0}
+  const LY=OPM<0?LY0:LY0.filter(l=>+l[1].slice(5,7)-1===OPM);
+  turnoRender(LY0);
+  const G=opAgg(LY),all=Object.entries(G);
+  $('#opTitle').textContent='Operadores '+(PY===0?'2022–'+new Date().getFullYear():(OPM<0?PY:MES[OPM]+' '+PY));
+  $('#opSub').textContent='Promedios de calidad, producción y turno de cada operador · toca uno para ver su detalle';
+  $('#opTurno').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.t===OPT));
+  // turno comparison
+  const tz={A:{n:0,dias:new Set(),s:{ph:[0,0],cu:[0,0],pu:[0,0],ins:[0,0]},c1:0},B:{n:0,dias:new Set(),s:{ph:[0,0],cu:[0,0],pu:[0,0],ins:[0,0]},c1:0}};
+  LY.forEach(l=>{const z=tz[l[14]];if(!z)return;z.n++;z.dias.add(l[1]);if(l[2]===1)z.c1++;const q=QOK(l);['ph','cu','pu','ins'].forEach(k=>{if(q[k]!=null){z.s[k][0]+=q[k];z.s[k][1]++}})});
+  const za=k=>(z,d)=>z.s[k][1]?nf(z.s[k][0]/z.s[k][1],d):'—';
+  $('#opTurnos').innerHTML=`<div class="tcmp">${['A','B'].map(t=>{const z=tz[t];return `<div><b class="h">Turno ${t} <span class="tbadge t${t}">${t}</span></b><span>Pallets <b>${nf(z.n)}</b></span><span>Tonelaje <b>${nf(z.n*tp,1)} t</b></span><span>t/día <b>${z.dias.size?nf(z.n*tp/z.dias.size,2):'—'}</b></span><span>pH <b>${za('ph')(z,2)}</b></span><span>% Cu <b>${za('cu')(z,2)}</b></span><span>Pureza <b>${za('pu')(z,2)}%</b></span><span>Cat. 1 <b>${z.n?nf(z.c1/z.n*100,0)+'%':'—'}</b></span></div>`}).join('')}</div>`;
+  let rows=all.filter(([k,o])=>!OPT||o.turno===OPT);
+  const val=o=>OPS==='t'?o.n:OPS==='d'?o.n/Math.max(1,o.nd):o.c[1]/Math.max(1,o.n);
+  rows.sort((a,b)=>val(b[1])-val(a[1]));
+  $('#opSort').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.s===OPS));
+  $('#opList').innerHTML=rows.map(([k,o])=>`<button class="oprow" data-op="${esc(k)}"><b class="n">${esc(title(k))}<span class="tbadge t${o.turno}">${o.turno}</span>${o.tp<0.9?'<small style="color:var(--muted);font-weight:600"> mixto</small>':''} <span style="color:var(--muted);font-weight:600">›</span></b><span class="t">${nf(o.n*tp,1)} t</span>
+    <span class="kp"><span><b>${nf(o.n)}</b> pallets</span><span><b>${nf(o.n*tp/Math.max(1,o.nd),2)}</b> t/día</span><span>${o.nd} días</span><span>Cat.1 <b>${nf(o.c[1]/o.n*100,0)}%</b></span></span>
+    <span class="kp"><span>pH <b>${av(o,'ph',2)}</b></span><span>Cu <b>${av(o,'cu',2)}%</b></span><span>Insol. <b>${av(o,'ins',3)}%</b></span><span>Hum. <b>${av(o,'hum',2)}%</b></span><span>Pureza <b>${av(o,'pu',2)}%</b></span></span></button>`).join('')||'<p class="note">Sin operadores en este filtro.</p>';
+  $('#opNote').textContent='t/día = tonelaje ÷ días en que el operador registró producción. El turno es el que más registra; "mixto" = trabajó en ambos turnos. En los promedios se omiten valores imposibles por error de digitación (% de cobre mayor a 30 o pureza menor a 50).';
+}
+function opDetail(k){
+  const L=PAL.lotes.filter(l=>l.length>=15&&(PAL.ops||[])[l[13]]===k&&(PY===0||+l[1].slice(0,4)===PY)&&(OPM<0||+l[1].slice(5,7)-1===OPM)),tp=+PAL.tonPallet||1.25;
+  const o=opAgg(L)[k];if(!o)return;
+  const cats=[1,2,3,4,0].filter(c=>o.c[c]);
+  const pc=(x)=>nf(x/o.n*100,0)+'%';
+  const byDay=PY&&OPM>=0,nd=byDay?new Date(PY,OPM+1,0).getDate():0;
+  const keys=byDay?Array.from({length:nd},(_,i)=>PY+'-'+String(OPM+1).padStart(2,'0')+'-'+String(i+1).padStart(2,'0')):PY?MES.map((_,i)=>PY+'-'+String(i+1).padStart(2,'0')):[...new Set(L.map(l=>l[1].slice(0,4)))].sort();
+  const bars=byDay?keys.map(kk=>L.filter(l=>l[1]===kk).length):keys.map(kk=>PY?(o.m[kk]||0):Object.entries(o.m).filter(([m])=>m.startsWith(kk)).reduce((a,[,v])=>a+v,0));
+  open(`<h3>${esc(title(k))} <span class="tbadge t${o.turno}">Turno ${o.turno}</span></h3>
+    <p class="note" style="margin:0 0 10px">${PY?(OPM>=0?MES[OPM]+' '+PY:PY):'Todos los años'} · ${o.nd} días con producción · del ${fdm(o.f0)}/${o.f0.slice(0,4)} al ${fdm(o.f1)}/${o.f1.slice(0,4)}${o.tp<0.9?` · turno A ${o.tA} y B ${o.tB} pallets`:''}</p>
+    <div class="mstats">
+      <div><small>Tonelaje producido</small><b>${nf(o.n*tp,2)} t</b><small>${nf(o.n)} pallets</small></div>
+      <div><small>Tonelaje diario</small><b>${nf(o.n*tp/Math.max(1,o.nd),2)} t/día</b></div>
+    </div>
+    <h2 style="font-size:.98rem;margin:6px 0 0">Promedios de calidad</h2>
+    <div class="qgrid">
+      <div><small>pH</small><b>${av(o,'ph',2)}</b></div><div><small>% Cobre</small><b>${av(o,'cu',2)}%</b></div><div><small>% Insoluble</small><b>${av(o,'ins',3)}%</b></div>
+      <div><small>% Humedad</small><b>${av(o,'hum',2)}%</b></div><div><small>Pureza</small><b>${av(o,'pu',2)}%</b></div><div><small>Acidez libre</small><b>${av(o,'ac',2)}</b></div>
+      ${o.s.lav[1]?`<div><small>Lavado</small><b>${av(o,'lav',1)}</b></div>`:''}${o.s.sec[1]?`<div><small>Secado</small><b>${av(o,'sec',1)}</b></div>`:''}
+    </div>
+    <h2 style="font-size:.98rem;margin:10px 0 2px">Categorías</h2>
+    <div class="qbar">${cats.map(c=>`<i style="width:${o.c[c]/o.n*100}%;background:${CATC[c]}"></i>`).join('')}</div>
+    <div class="dleg" style="margin-top:6px">${cats.map(c=>`<div><i style="background:${CATC[c]}"></i><span>${CATN[c]}</span><b>${nf(o.c[c])} · ${pc(o.c[c])}</b></div>`).join('')}</div>
+    <h2 style="font-size:.98rem;margin:12px 0 2px">Inspección visual (sin defectos)</h2>
+    <div class="qgrid"><div><small>Sin manchas</small><b>${pc(o.asp0)}</b></div><div><small>Sin olor</small><b>${pc(o.olor0)}</b></div><div><small>Sin flotación</small><b>${pc(o.flot0)}</b></div></div>
+    <div class="card" style="margin:8px 0 0;padding:12px 8px 8px"><h2 style="font-size:.98rem">Pallets producidos por ${byDay?'día':PY?'mes':'año'}</h2>
+      <div class="chart">${chart({labels:byDay?keys.map(k=>String(+k.slice(8))):PY?MES.map(x=>x.slice(0,3)):keys,bars,line:bars.map(()=>null),sel:-1,fmtL:v=>nf(v),fmtR:v=>nf(v),unitL:'pallets',unitR:'',tipB:'Pallets',tipL:'',sufB:'',sufL:'',tipX:byDay?keys.map(k=>+k.slice(8)+' '+MES[OPM].toLowerCase()):PY?MES.map(m=>m+' '+PY):keys})}</div></div>
+    <button class="secondary" id="odClose">Cerrar</button>`,()=>{$('#odClose').onclick=close});
+}
+$('#opMonths').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.disabled)return;OPM=+b.dataset.m;palRender()};
+$('#opTurno').onclick=e=>{const b=e.target.closest('[data-t]');if(!b)return;OPT=b.dataset.t;palRender()};
+$('#opSort').onclick=e=>{const b=e.target.closest('[data-s]');if(!b)return;OPS=b.dataset.s;palRender()};
+$('#opList').onclick=e=>{const b=e.target.closest('[data-op]');if(b)opDetail(b.dataset.op)};
+
+/* ---------- despachos ---------- */
+let DSM=-1;
+function dsGroups(S){const g={};S.forEach(s=>{const k=s[1]+'|'+s[2];const o=g[k]=g[k]||{f:s[1],cam:s[2],cond:s[3]||'',l:[],ton:0};o.l.push(s);o.ton+=+s[4]||+PAL.tonPallet||1.25;if(!o.cond&&s[3])o.cond=s[3]});return Object.values(g).sort((a,b)=>b.f.localeCompare(a.f)||a.cam.localeCompare(b.cam))}
+function dsRender(S,tp){
+  const SY=S.filter(s=>PY===0||+s[1].slice(0,4)===PY);
+  const ms=[...new Set(SY.map(s=>+s[1].slice(5,7)-1))];
+  if(PY===0)DSM=-1;else if(DSM>=0&&!ms.includes(DSM))DSM=-1;
+  $('#dsMonths').hidden=PY===0;
+  $('#dsMonths').innerHTML=`<button data-m="-1" aria-pressed="${DSM<0}">Año</button>`+MES.map((m,i)=>`<button data-m="${i}" aria-pressed="${i===DSM}" ${ms.includes(i)?'':'disabled'}>${m.slice(0,3)}</button>`).join('');
+  {const c=$('#dsMonths'),s=c.querySelector('[aria-pressed="true"]');if(s&&DSM>=0)c.scrollLeft=s.offsetLeft-c.clientWidth/2+s.clientWidth/2;else c.scrollLeft=0}
+  const SM=DSM<0?SY:SY.filter(s=>+s[1].slice(5,7)-1===DSM);
+  const G=dsGroups(SM),LT=lotMap(),sl=SM.filter(s=>!s[0]).length;
+  $('#dsTitle').textContent='Despachos '+(PY===0?'2022–'+new Date().getFullYear():(DSM<0?PY:MES[DSM]+' '+PY));
+  $('#dsSub').textContent='Cada despacho agrupa los pallets que salieron el mismo día en el mismo camión · toca uno para ver sus lotes';
+  $('#dsKpi').innerHTML=`<div><small>Despachos</small><b>${nf(G.length)}</b></div><div><small>Pallets</small><b>${nf(SM.length)}</b></div><div><small>Toneladas</small><b>${nf(G.reduce((a,o)=>a+o.ton,0),1)} t</b></div>`;
+  const show=PY===0?G.slice(0,60):G;
+  $('#salList').innerHTML=show.map((o,idx)=>{const cc={};let sn=0;o.l.forEach(s=>{const L=LT.get(s[0]);if(!L){sn++;return}cc[L[2]]=(cc[L[2]]||0)+1});
+    return `<button class="desp" data-k="${esc(o.f+'|'+o.cam)}"><b class="n">${o.f.split('-').reverse().join('/')} <span style="color:var(--muted);font-weight:600">›</span></b><span class="t">${nf(o.l.length)} pallets</span>
+    <small>Camión <b style="color:var(--ink)">${esc(o.cam||'—')}</b>${o.cond?' · '+esc(title(o.cond)):''}</small><small style="text-align:right">${nf(o.ton,2)} t</small>
+    <span class="kp">${[1,2,3,4,0].filter(c=>cc[c]).map(c=>`<span class="cchip"><i style="background:${CATC[c]}"></i>Cat.${c||'?'} ${cc[c]}</span>`).join('')}${sn?`<span class="cchip" style="color:var(--down)">${sn} sin lote</span>`:''}</span></button>`}).join('')||'<p class="note">No hay despachos en este período.</p>';
+  $('#dsNote').textContent=(PY===0&&G.length>60?'Se muestran los 60 despachos más recientes; elige un año para ver todos. ':'')+(sl?`${sl} pallets de este período salieron como "SIN LOTE", por eso no se conocen sus características. `:'')+'Datos de la hoja BDS del Excel de calidad.';
+}
+let _LT=null;function lotMap(){if(!_LT){_LT=new Map();PAL.lotes.forEach(l=>_LT.set(l[0],l))}return _LT}
+function dsDetail(key){
+  const [f,cam]=key.split('|'),S=PAL.salidas.filter(s=>s[1]===f&&s[2]===cam),LT=lotMap(),O=PAL.ops||[],tp=+PAL.tonPallet||1.25;
+  const rows=S.map(s=>({s,l:LT.get(s[0])})).sort((a,b)=>(a.s[0]||1e9)-(b.s[0]||1e9));
+  const withL=rows.filter(r=>r.l&&r.l.length>=15),q={ph:[0,0],ac:[0,0],ins:[0,0],cu:[0,0],hum:[0,0],pu:[0,0]},cc={},dd=[];
+  withL.forEach(({s,l})=>{const v=QOK(l);for(const k in q)if(v[k]!=null){q[k][0]+=v[k];q[k][1]++}cc[l[2]]=(cc[l[2]]||0)+1;if(s[5]!=null)dd.push(s[5])});
+  const A=(k,d)=>q[k][1]?nf(q[k][0]/q[k][1],d):'—',ton=S.reduce((a,s)=>a+(+s[4]||tp),0),sn=rows.length-withL.length;
+  const cats=[1,2,3,4,0].filter(c=>cc[c]);
+  const fx=v=>v==null?'—':nf(v,2);
+  const trs=rows.map(({s,l})=>!l?`<tr><td><b>sin lote</b></td><td colspan="11" style="text-align:left;color:var(--muted)">Pallet despachado sin número de lote: no se conocen sus características</td></tr>`
+    :`<tr><td><b>${l[0]}</b></td><td>${fdm(l[1])}/${l[1].slice(2,4)}</td><td><span class="cchip"><i style="background:${CATC[l[2]]||CATC[0]}"></i>${l[2]||'?'}</span></td><td>${fx(l[4])}</td><td>${fx(l[7])}${l[7]>30?'⚠️':''}</td><td>${l[6]==null?'—':nf(l[6],3)}</td><td>${fx(l[8])}</td><td>${fx(l[9])}${l[9]!=null&&l[9]<50?'⚠️':''}</td><td>${fx(l[5])}</td><td style="text-align:left">${esc(title((PAL.asp||[])[l[10]]||''))}</td><td style="text-align:left">${esc(title((PAL.olor||[])[l[11]]||''))}</td><td style="text-align:left">${esc(title((PAL.flot||[])[l[12]]||''))}</td><td style="text-align:left">${esc(title(O[l[13]]||''))} <span class="tbadge t${l[14]}">${l[14]||''}</span></td><td>${s[5]??'—'}</td></tr>`).join('');
+  open(`<h3>Despacho ${f.split('-').reverse().join('/')}</h3>
+    <p class="note" style="margin:0 0 10px">Camión <b>${esc(cam||'—')}</b>${S[0]&&S[0][3]?' · Conductor '+esc(title(S[0][3])):''}</p>
+    <div class="mstats">
+      <div><small>Pallets</small><b>${nf(S.length)}</b></div>
+      <div><small>Toneladas</small><b>${nf(ton,2)} t</b></div>
+      <div><small>Días en bodega (prom.)</small><b>${dd.length?nf(dd.reduce((a,b)=>a+b,0)/dd.length,0)+' días':'—'}</b></div>
+      <div><small>Lotes identificados</small><b>${withL.length} de ${S.length}</b></div>
+    </div>
+    ${cats.length?`<h2 style="font-size:.98rem;margin:6px 0 2px">Categorías</h2><div class="qbar">${cats.map(c=>`<i style="width:${cc[c]/withL.length*100}%;background:${CATC[c]}"></i>`).join('')}</div>
+    <div class="dleg" style="margin-top:6px">${cats.map(c=>`<div><i style="background:${CATC[c]}"></i><span>${CATN[c]}</span><b>${cc[c]} · ${nf(cc[c]/withL.length*100,0)}%</b></div>`).join('')}</div>`:''}
+    ${withL.length?`<h2 style="font-size:.98rem;margin:12px 0 0">Promedio del despacho</h2>
+    <div class="qgrid"><div><small>pH</small><b>${A('ph',2)}</b></div><div><small>% Cobre</small><b>${A('cu',2)}%</b></div><div><small>% Insoluble</small><b>${A('ins',3)}%</b></div>
+      <div><small>% Humedad</small><b>${A('hum',2)}%</b></div><div><small>Pureza</small><b>${A('pu',2)}%</b></div><div><small>Acidez libre</small><b>${A('ac',2)}</b></div></div>`:''}
+    ${sn?`<p class="note" style="margin:4px 0 0;color:var(--down)">${sn} ${sn===1?'pallet salió':'pallets salieron'} como "SIN LOTE".</p>`:''}
+    <h2 style="font-size:.98rem;margin:14px 0 0">Lotes del despacho</h2>
+    <div style="overflow-x:auto;margin:0 -4px"><table class="mtab ltab"><thead><tr><th>Lote</th><th>Prod.</th><th>Cat</th><th>pH</th><th>% Cu</th><th>Insol.</th><th>Hum.</th><th>Pureza</th><th>Acidez</th><th style="text-align:left">Aspecto</th><th style="text-align:left">Olor</th><th style="text-align:left">Flotación</th><th style="text-align:left">Operador</th><th>Días</th></tr></thead><tbody>${trs}</tbody></table></div>
+    <p class="note" style="margin:6px 2px 0">Desliza la tabla hacia los lados para ver todas las columnas. Prod. = fecha de producción del lote; Días = días que estuvo en bodega. ⚠️ = valor con probable error de digitación (no se usa en los promedios).</p>
+    <button class="primary" id="dsPdf">📄 Generar PDF</button>
+    <button class="secondary" id="dsClose">Cerrar</button>`,()=>{$('#dsClose').onclick=close;pdfPrep();$('#dsPdf').onclick=()=>dsPDF(key)});
+}
+
+/* ---------- PDF de despacho ---------- */
+const PDF_LIBS=[['https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'],
+  ['https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js']];
+let _pdfP=null,_logo=null;
+function loadScript(src){return new Promise((ok,ko)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=ko;document.head.appendChild(s)})}
+function pdfPrep(){
+  if(!_pdfP)_pdfP=(async()=>{for(const alts of PDF_LIBS){let done=false;for(const u of alts){try{await loadScript(u);done=true;break}catch(e){}}if(!done)throw new Error('lib')}})().catch(e=>{_pdfP=null;throw e});
+  if(!_logo){const img=document.querySelector('.logo');if(img){const draw=()=>{try{const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;c.getContext('2d').drawImage(img,0,0);_logo={d:c.toDataURL('image/png'),w:img.naturalWidth,h:img.naturalHeight}}catch(e){}};img.complete?draw():img.addEventListener('load',draw,{once:true})}}
+  return _pdfP;
+}
+function dsPDF(key){
+  const btn=$('#dsPdf');
+  if(!window.jspdf||!window.jspdf.jsPDF){btn.textContent='Preparando PDF…';pdfPrep().then(()=>{btn.textContent='📄 Generar PDF';toast('Listo, toca de nuevo para generar el PDF')}).catch(()=>{btn.textContent='📄 Generar PDF';toast('No se pudo cargar el generador de PDF. Revisa tu conexión.')});return}
+  const [f,cam]=key.split('|'),S=PAL.salidas.filter(s=>s[1]===f&&s[2]===cam),LT=lotMap(),O=PAL.ops||[],tp=+PAL.tonPallet||1.25;
+  const rows=S.map(s=>({s,l:LT.get(s[0])})).sort((a,b)=>(a.s[0]||1e9)-(b.s[0]||1e9));
+  const withL=rows.filter(r=>r.l&&r.l.length>=15),q={ph:[0,0],ac:[0,0],ins:[0,0],cu:[0,0],hum:[0,0],pu:[0,0]},cc={},dd=[];
+  withL.forEach(({s,l})=>{const v=QOK(l);for(const k in q)if(v[k]!=null){q[k][0]+=v[k];q[k][1]++}cc[l[2]]=(cc[l[2]]||0)+1;if(s[5]!=null)dd.push(s[5])});
+  const A=(k,d)=>q[k][1]?nf(q[k][0]/q[k][1],d):'—',ton=S.reduce((a,s)=>a+(+s[4]||tp),0),fd=f.split('-').reverse().join('/');
+  const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'}),W=297;
+  let y=12;
+  if(_logo){const lh=14,lw=lh*_logo.w/_logo.h;doc.addImage(_logo.d,'PNG',12,y-2,lw,lh)}
+  doc.setFont('helvetica','bold');doc.setFontSize(16);doc.setTextColor(20,33,45);doc.text('Despacho de sulfato de cobre',W-12,y+3,{align:'right'});
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(94,107,119);doc.text('Minera Anita SpA',W-12,y+9,{align:'right'});
+  y+=18;doc.setDrawColor(215,222,228);doc.line(12,y,W-12,y);y+=7;
+  const info=[['Fecha de despacho',fd],['Camión',cam||'—'],['Conductor',S[0]&&S[0][3]?title(S[0][3]):'—'],['Pallets',nf(S.length)],['Toneladas',nf(ton,2)+' t'],['Días en bodega (prom.)',dd.length?nf(dd.reduce((a,b)=>a+b,0)/dd.length,0)+' días':'—']];
+  const cw=(W-24)/info.length;info.forEach(([k,v],i)=>{doc.setFontSize(8);doc.setTextColor(94,107,119);doc.text(k,12+cw*i,y);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(20,33,45);doc.text(String(v),12+cw*i,y+5.5);doc.setFont('helvetica','normal')});
+  y+=13;
+  const cats=[1,2,3,4,0].filter(c=>cc[c]),qs=[['pH',A('ph',2)],['% Cobre',A('cu',2)+'%'],['% Insoluble',A('ins',3)+'%'],['% Humedad',A('hum',2)+'%'],['Pureza',A('pu',2)+'%'],['Acidez libre',A('ac',2)]];
+  doc.setFontSize(9);doc.setTextColor(20,33,45);doc.setFont('helvetica','bold');doc.text('Promedio del despacho:',12,y);doc.setFont('helvetica','normal');
+  doc.text(qs.map(([k,v])=>k+' '+v).join('   ·   '),52,y);y+=5.5;
+  doc.setFont('helvetica','bold');doc.text('Categorías:',12,y);doc.setFont('helvetica','normal');
+  doc.text((cats.map(c=>CATN[c]+': '+cc[c]+' ('+nf(cc[c]/Math.max(1,withL.length)*100,0)+'%)').join('   ·   ')||'—')+(rows.length>withL.length?`   ·   Sin lote: ${rows.length-withL.length}`:''),52,y);y+=5;
+  const fx=v=>v==null?'—':nf(v,2);
+  const body=rows.map(({s,l})=>!l?[{content:'sin lote',styles:{fontStyle:'bold'}},{content:'Pallet despachado sin número de lote',colSpan:13,styles:{textColor:[150,60,40]}}]
+    :[String(l[0]),l[1].split('-').reverse().join('/'),String(l[2]||'?'),fx(l[4]),fx(l[7])+(l[7]>30?' *':''),l[6]==null?'—':nf(l[6],3),fx(l[8]),fx(l[9])+(l[9]!=null&&l[9]<50?' *':''),fx(l[5]),title((PAL.asp||[])[l[10]]||''),title((PAL.olor||[])[l[11]]||''),title((PAL.flot||[])[l[12]]||''),title(O[l[13]]||'')+(l[14]?' ('+l[14]+')':''),s[5]==null?'—':String(s[5])]);
+  doc.autoTable({startY:y+2,head:[['Lote','Producción','Cat.','pH','% Cu','Insol.','Hum.','Pureza','Acidez','Aspecto','Olor','Flotación','Operador (turno)','Días bod.']],body,
+    styles:{fontSize:7.5,cellPadding:1.6,textColor:[20,33,45],lineColor:[215,222,228],lineWidth:.1},headStyles:{fillColor:[30,111,168],textColor:255,fontStyle:'bold'},
+    alternateRowStyles:{fillColor:[243,246,249]},columnStyles:{0:{fontStyle:'bold'},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'},6:{halign:'right'},7:{halign:'right'},8:{halign:'right'},13:{halign:'right'}},margin:{left:12,right:12},
+    didDrawPage:()=>{const ph=doc.internal.pageSize.getHeight();doc.setFontSize(7.5);doc.setTextColor(120);doc.text('Generado el '+new Date().toLocaleDateString('es-CL')+' · App Producción de Sulfato · Diseñado por BG IA Solutions',12,ph-7);doc.text('Página '+doc.internal.getNumberOfPages(),W-12,ph-7,{align:'right'})}});
+  if(body.some(r=>r.some(c=>typeof c==='string'&&c.endsWith(' *')))){doc.setFontSize(7.5);doc.setTextColor(120);doc.text('* Valor con probable error de digitación en el Excel (no se usa en los promedios).',12,doc.lastAutoTable.finalY+5)}
+  const name=`Despacho_${f}_${(cam||'camion').replace(/[^A-Za-z0-9]/g,'')}.pdf`,blob=doc.output('blob');
+  sharePDF(blob,name,`Despacho ${fd} · Camión ${cam} · ${S.length} pallets`);
+}
+async function sharePDF(blob,name,text){
+  const file=new File([blob],name,{type:'application/pdf'});
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name,text});return}}catch(e){if(e&&e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();toast('PDF descargado: '+name);
+}
+$('#dsMonths').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.disabled)return;DSM=+b.dataset.m;palRender()};
+$('#salList').onclick=e=>{const b=e.target.closest('[data-k]');if(b)dsDetail(b.dataset.k)};
 $('#pYears').onclick=e=>{const b=e.target.closest('[data-y]');if(!b)return;PY=+b.dataset.y;palRender()};
 document.querySelector('.tabs2').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;const v=b.dataset.v;
   document.querySelectorAll('.tabs2 button').forEach(o=>o.setAttribute('aria-pressed',o===b));
@@ -977,20 +1287,40 @@ document.querySelector('.tabs2').onclick=e=>{const b=e.target.closest('[data-v]'
 (function(){
   let act=null;
   function meta(svg){if(!svg._tm){try{svg._tm=JSON.parse(svg.getAttribute('data-tip'))}catch(e){svg._tm=null}}return svg._tm}
-  function show(svg,ev){
-    const m=meta(svg);if(!m)return;const r=svg.getBoundingClientRect(),x=(ev.clientX-r.left)/r.width*m.W,n=m.x.length;
+  function show(svg,cxClient){
+    const m=meta(svg);if(!m)return;const r=svg.getBoundingClientRect(),x=(cxClient-r.left)/r.width*m.W,n=m.x.length;
     let i=m.c?Math.floor((x-m.L)/m.step):Math.round((x-m.L)/m.step);i=Math.max(0,Math.min(n-1,i));
     const cx=m.c?m.L+m.step*i+m.step/2:m.L+m.step*i;
     let g=svg.querySelector('g.tipg');if(!g){g=document.createElementNS('http://www.w3.org/2000/svg','g');g.setAttribute('class','tipg');svg.appendChild(g)}
-    const vb=svg.viewBox.baseVal;g.innerHTML=`<line x1="${cx}" x2="${cx}" y1="4" y2="${vb.height-20}" stroke="var(--ink)" stroke-width="1.2" stroke-dasharray="4 3"/>`;
+    const vb=svg.viewBox.baseVal;g.innerHTML=`<line x1="${cx}" x2="${cx}" y1="4" y2="${vb.height-20}" stroke="var(--ink)" stroke-width="1.4" stroke-dasharray="4 3"/>`;
     const box=svg.parentNode;let tip=box.querySelector('.ctip');if(!tip){tip=document.createElement('div');tip.className='ctip';box.appendChild(tip)}
     tip.innerHTML=`<b>${m.x[i]}</b>`+m.s.map(s=>`<div><i style="background:${s.col||(s.k==='l'?'var(--acc)':'var(--cu-2)')}"></i>${s.n}: <b style="display:inline;font-size:inherit">${s.v[i]}</b></div>`).join('');
     const px=cx/m.W*r.width,bw=box.clientWidth,tw=tip.offsetWidth;let left=px+12;if(left+tw>bw)left=px-tw-12;tip.style.left=Math.max(0,left)+'px';
   }
-  function hide(svg){const g=svg&&svg.querySelector('g.tipg');if(g)g.remove();const t=svg&&svg.parentNode.querySelector('.ctip');if(t)t.remove()}
-  document.addEventListener('pointerdown',e=>{const svg=e.target.closest&&e.target.closest('svg[data-tip]');
-    if(act&&act!==svg)hide(act);if(!svg){act=null;return}act=svg;svg._tm=null;show(svg,e)});
-  document.addEventListener('pointermove',e=>{if(!act||!(e.buttons||e.pointerType==='touch'))return;const r=act.getBoundingClientRect();if(e.clientY<r.top-40||e.clientY>r.bottom+40)return;show(act,e)});
+  function hide(svg){if(!svg)return;const g=svg.querySelector('g.tipg');if(g)g.remove();const t=svg.parentNode&&svg.parentNode.querySelector('.ctip');if(t)t.remove()}
+  const svgOf=t=>t&&t.closest?t.closest('svg[data-tip]'):null;
+
+  // Mouse / lápiz
+  document.addEventListener('pointerdown',e=>{if(e.pointerType==='touch')return;const svg=svgOf(e.target);
+    if(act&&act!==svg)hide(act);act=svg;if(!svg)return;svg._tm=null;show(svg,e.clientX)});
+  document.addEventListener('pointermove',e=>{if(e.pointerType==='touch'||!act||!e.buttons)return;show(act,e.clientX)});
+
+  // Táctil (iPhone): al tocar aparece la barra; al deslizar hacia los lados se bloquea el scroll y la barra sigue el dedo.
+  let t0=null,lock=false,hold=null;
+  document.addEventListener('touchstart',e=>{
+    const svg=svgOf(e.target);if(act&&act!==svg)hide(act);
+    if(!svg){act=null;t0=null;return}
+    act=svg;svg._tm=null;const p=e.touches[0];t0={x:p.clientX,y:p.clientY};lock=false;
+    show(svg,p.clientX);
+    clearTimeout(hold);hold=setTimeout(()=>{lock=true},180);   // mantener presionado = modo barra
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!act||!t0)return;const p=e.touches[0],dx=p.clientX-t0.x,dy=p.clientY-t0.y;
+    if(!lock){if(Math.abs(dx)>6&&Math.abs(dx)>Math.abs(dy))lock=true;else if(Math.abs(dy)>8){clearTimeout(hold);t0=null;return}}
+    if(lock){e.preventDefault();show(act,p.clientX)}
+  },{passive:false});
+  document.addEventListener('touchend',()=>{clearTimeout(hold);t0=null;lock=false},{passive:true});
+  document.addEventListener('touchcancel',()=>{clearTimeout(hold);t0=null;lock=false},{passive:true});
 })();
 
 /* ---------- start ---------- */
