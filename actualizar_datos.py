@@ -42,10 +42,19 @@ def leer(contenido):
     return dias
 
 def main():
-    dias = leer(descargar(URL))
-    if len(dias) < 10:
-        sys.exit(f"Muy pocos días leídos ({len(dias)}): no se actualiza para no borrar datos.")
-    datos = {"kgSaco": KG_SACO, "actualizado": max(dias), "dias": dict(sorted(dias.items()))}
+    nuevos = leer(descargar(URL))
+    if len(nuevos) < 10:
+        sys.exit(f"Muy pocos días leídos ({len(nuevos)}): no se actualiza para no borrar datos.")
+    # El Excel de Dropbox es el del año en curso. Se reemplazan solo los días de ese año
+    # y se conservan los años anteriores que ya están en datos.json (2022-2025, etc.).
+    from collections import Counter
+    anio = Counter(k[:4] for k in nuevos).most_common(1)[0][0]
+    previos = json.load(open(SALIDA, encoding="utf-8"))["dias"] if os.path.exists(SALIDA) else {}
+    dias = {k: v for k, v in previos.items() if not k.startswith(anio)}
+    for k, v in nuevos.items():
+        if k.startswith(anio) or k not in dias:
+            dias[k] = v
+    datos = {"kgSaco": KG_SACO, "actualizado": max(k for k in nuevos if k.startswith(anio)), "dias": dict(sorted(dias.items()))}
     nuevo = json.dumps(datos, separators=(",", ":"), ensure_ascii=False)
     viejo = open(SALIDA, encoding="utf-8").read() if os.path.exists(SALIDA) else ""
     if nuevo == viejo:
@@ -53,7 +62,7 @@ def main():
         return
     open(SALIDA, "w", encoding="utf-8").write(nuevo)
     total = sum((a + b) * KG_SACO for a, b in dias.values())
-    print(f"datos.json actualizado: {len(dias)} días, {total:,} kg, último día {max(dias)}")
+    print(f"datos.json actualizado: {len(dias)} días en total; año {anio}: último día {datos['actualizado']}")
 
 if __name__ == "__main__":
     main()
