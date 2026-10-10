@@ -219,7 +219,7 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
     <h1>Producción de Sulfato<small id="sub">Minera Anita SpA</small></h1>
     <button class="pill" id="menuBtn" aria-label="Opciones">⋯</button>
   </header>
-  <nav class="tabs2" role="group" aria-label="Sección"><button data-v="min" aria-pressed="false">Mineral</button><button data-v="prod" aria-pressed="true">Producción</button><button data-v="pal" aria-pressed="false">Pallets</button></nav>
+  <nav class="tabs2" role="group" aria-label="Sección"><button data-v="min" aria-pressed="false">Mineral</button><button data-v="prod" aria-pressed="true">Producción</button><button data-v="pal" aria-pressed="false">Bodega</button></nav>
   <div id="vProd">
   <div class="yrs" id="pdYears" role="group" aria-label="Año" style="margin:0 -2px 12px"></div>
 
@@ -232,6 +232,15 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
       <div><small id="sBestL">Mejor mes</small><b id="sBest">—</b></div>
       <div><small id="sProjL">Proyección año</small><b id="sProj">—</b></div>
     </div>
+  </section>
+
+  <section class="card" id="recCard">
+    <h2 id="rcT">Recuperación</h2>
+    <p class="sub" id="rcS"></p>
+    <div id="rcBox"></div>
+    <div class="chart" id="cRec" style="margin-top:12px"></div>
+    <div class="legend" id="rcLeg"><span><i style="background:var(--cu-2)"></i>Sulfato producido del mes</span><span><i class="ln" style="border-color:var(--acc)"></i>Recuperación acumulada</span></div>
+    <p class="note" id="rcNote"></p>
   </section>
 
   <section class="card">
@@ -447,6 +456,7 @@ function renderAllYears(){
   $('#note').textContent='Datos de los Excel RECUPERACION '+ys[0]+'–'+ys[ys.length-1]+'.';
 }
 function render(){
+  recProdRender();
   if(YEAR===0)return renderAllYears();
   $('#months').hidden=false;$('#mLeg').hidden=false;$('#sBestL').textContent='Mejor mes';
   $('#cyT').textContent='Acumulado del año';$('#cyS').textContent='Producción de cada mes y cómo se va sumando en el año';$('#cyL1').textContent='Producción del mes';$('#cyL2').textContent='Acumulado del año';
@@ -676,6 +686,38 @@ function minRender(){
 function title(s){return String(s).toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase())}
 
 let MLINE='ley';
+/* ---------- recuperación en Producción ---------- */
+function dispMes(yr){const cu=Array(12).fill(0);if(!MIN)return cu;MIN.lotes.forEach(l=>{if(+l[1].slice(0,4)===yr&&l[4]>0)cu[+l[1].slice(5,7)-1]+=l[2]*l[4]/100*SULF});return cu}
+function prodMes(yr){const D=DIAS(),p=Array(12).fill(0);Object.keys(D).forEach(k=>{if(+k.slice(0,4)===yr)p[+k.slice(5,7)-1]+=kgOf(D[k])/1000});return p}
+function recProdRender(){
+  if(!MIN){$('#recCard').hidden=true;return}$('#recCard').hidden=false;
+  const D=DIAS();
+  if(YEAR===0){
+    const ys=[...new Set(Object.keys(D).map(k=>+k.slice(0,4)))].sort();
+    let TD=0,TP=0,TR=0,TRT=0;
+    const rows=ys.map(y=>{const d=dispMes(y).reduce((a,b)=>a+b,0),p=prodMes(y).reduce((a,b)=>a+b,0),rp=RIPIO[y],rs=rp?rp.t*rp.ley/100*SULF:0,dt=d+rs*REC_RIPIO;
+      TD+=d;TP+=p;TR+=rs*REC_RIPIO;TRT+=rs;const r=dt?p/dt*100:null;
+      return `<tr><td>${y}</td><td>${nf(dt,1)}${rs?'*':''}</td><td>${nf(p,1)}</td><td><b class="${r>100?'dn':''}">${r==null?'—':nf(r,1)+'%'}</b></td></tr>`}).join('');
+    $('#rcT').textContent='Recuperación '+ys[0]+'–'+ys[ys.length-1];
+    $('#rcS').textContent='Sulfato producido ÷ sulfato disponible del mineral ingresado cada año';
+    $('#rcBox').innerHTML=`<div style="overflow-x:auto"><table class="mtab"><thead><tr><th>Año</th><th>Disponible (t)</th><th>Producido (t)</th><th>Recuperación</th></tr></thead><tbody>${rows}
+      <tr class="tot"><td>Total</td><td>${nf(TD+TR,1)}</td><td>${nf(TP,1)}</td><td>${TD+TR?nf(TP/(TD+TR)*100,1)+'%':'—'}</td></tr></tbody></table></div>`;
+    $('#cRec').innerHTML='';$('#rcLeg').hidden=true;
+    $('#rcNote').textContent='* Incluye ripio al '+nf(REC_RIPIO*100,0)+'%. Disponible = tonelaje × ley × '+nf(SULF,2)+' del mineral con análisis. Una recuperación sobre 100% indica que se procesó mineral de años anteriores o que falta mineral sin análisis/ripio en el disponible.';
+    return;
+  }
+  const dm=dispMes(YEAR),pm=prodMes(YEAR),rp=RIPIO[YEAR],rs=rp?rp.t*rp.ley/100*SULF:0;
+  const dmin=dm.reduce((a,b)=>a+b,0);
+  $('#rcT').textContent='Recuperación '+YEAR;
+  $('#rcS').textContent='Sulfato producido ÷ sulfato disponible del mineral ingresado en el año';
+  $('#rcBox').innerHTML=recBox(dmin,rs*REC_RIPIO,rs,[YEAR]);
+  const last=Object.keys(D).filter(k=>+k.slice(0,4)===YEAR).sort().pop();const lm=last?+last.slice(5,7)-1:-1;
+  let ad=0,ap=0;const rr=rs*REC_RIPIO;const line=dm.map((d,i)=>{ad+=d;ap+=pm[i];const dt=ad+(lm>=0?rr*(i+1)/(lm+1):0);return i<=lm&&dt?ap/dt*100:null});
+  $('#cRec').innerHTML=lm<0?'':chart({labels:MES.map(x=>x.slice(0,3)),bars:pm,line,sel:MON,fmtL:v=>nf(v,v<10?1:0),fmtR:v=>nf(v,0)+'%',unitL:'t sulfato',unitR:'recup.',dimFrom:lm+1,dots:true,tipB:'Producido',tipL:'Recup. acumulada',sufB:' t',sufL:'',tipX:MES.map(m=>m+' '+YEAR)});
+  $('#rcLeg').hidden=lm<0;
+  $('#rcNote').textContent='La curva muestra la recuperación acumulada mes a mes (producido acumulado ÷ disponible acumulado), así que en el último mes coincide con la recuperación global.'+(rs?' El ripio se reparte en partes iguales entre los meses del año.':'')+' Los primeros meses pueden salir altos porque se produce con mineral que llegó el año anterior, y los últimos porque hay mineral aún sin análisis.';
+}
+
 let MALL=false;
 $('#miScope').onclick=e=>{const b=e.target.closest('[data-s]');if(!b)return;MALL=b.dataset.s==='all';minRender()};
 function ingresoTodos(L){
