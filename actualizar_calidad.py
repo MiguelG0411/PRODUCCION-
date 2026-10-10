@@ -26,6 +26,16 @@ def leer(contenido):
         if h not in wb.sheetnames: sys.exit(f"No se encontró la hoja {h}.")
     # BD: fila 5 encabezados. A lote, B fecha, F %Cu, G %humedad, L categoría, T estado
     lotes = []
+    dic = {"ops": [], "asp": [], "olor": [], "flot": []}
+    def ix(k, v):
+        v = " ".join(str(v or "").upper().split()) or "SIN DATO"
+        if v not in dic[k]: dic[k].append(v)
+        return dic[k].index(v)
+    def nf(v):
+        try: return round(float(v), 4)
+        except (TypeError, ValueError): return None
+    # BD: A lote, B fecha, C pH, D acidez libre, E % insoluble, F % cobre, G % humedad, H pureza,
+    #     I aspecto físico, J olor, K flotación, L categoría, M responsable, N lavado, O secado, P turno, T estado
     for f in wb["BD"].iter_rows(min_row=6, max_col=20, values_only=True):
         lote, fch = f[0], fecha(f[1])
         if lote is None or fch is None: continue
@@ -34,24 +44,31 @@ def leer(contenido):
         try: cat = int(f[11])
         except (TypeError, ValueError): cat = 0
         est = 1 if str(f[19] or "").strip().upper() == "ALMACENADO" else 0
-        lotes.append([lote, fch, cat, est])
+        turno = str(f[15] or "").strip().upper()[:1]
+        lotes.append([lote, fch, cat, est, nf(f[2]), nf(f[3]), nf(f[4]), nf(f[5]), nf(f[6]), nf(f[7]),
+                      ix("asp", f[8]), ix("olor", f[9]), ix("flot", f[10]), ix("ops", f[12]), turno, nf(f[13]), nf(f[14])])
     # BDS: fila 3 encabezados. C lote, D fecha salida, E camión
     salidas = []
-    for f in wb["BDS"].iter_rows(min_row=4, min_col=3, max_col=5, values_only=True):
-        lote, fch, cam = f
+    # BDS: C lote, D fecha salida, E camión, F conductor, G fecha ingreso, H tonelaje, I días de almacenamiento
+    for f in wb["BDS"].iter_rows(min_row=4, min_col=3, max_col=9, values_only=True):
+        lote, fch, cam, cond, fing, ton, dias = f
         fch = fecha(fch)
         if fch is None: continue
         try: lote = int(lote)
         except (TypeError, ValueError): lote = 0  # SIN LOTE
-        salidas.append([lote, fch, str(cam or "").strip()])
-    return lotes, salidas
+        try: ton = round(float(ton), 3)
+        except (TypeError, ValueError): ton = None
+        try: dias = int(dias)
+        except (TypeError, ValueError): dias = None
+        salidas.append([lote, fch, str(cam or "").strip().upper(), " ".join(str(cond or "").upper().split()), ton, dias])
+    return lotes, salidas, dic
 
 def main(contenido=None):
-    lotes, salidas = leer(contenido or descargar(URL))
+    lotes, salidas, dic = leer(contenido or descargar(URL))
     if len(lotes) < 50:
         sys.exit(f"Muy pocos lotes ({len(lotes)}): no se actualiza.")
     lotes.sort(key=lambda x: (x[1], x[0])); salidas.sort(key=lambda x: x[1])
-    datos = {"tonPallet": 1.25, "actualizado": max(l[1] for l in lotes), "lotes": lotes, "salidas": salidas}
+    datos = {"tonPallet": 1.25, "actualizado": max(l[1] for l in lotes), "lotes": lotes, "salidas": salidas, **dic}
     nuevo = json.dumps(datos, separators=(",", ":"), ensure_ascii=False)
     viejo = open(SALIDA, encoding="utf-8").read() if os.path.exists(SALIDA) else ""
     if nuevo == viejo:

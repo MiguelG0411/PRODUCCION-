@@ -1114,6 +1114,7 @@ function turnoRender(LY0){
   $('#cTurno').innerHTML=turnoChart(labs,a,b,tipx,'pallets',ca,cb);
 }
 function opRender(LY0,tp){
+  if(!PAL.lotes.length||PAL.lotes[PAL.lotes.length-1].length<15){['#opMonths','#opTurnos','#opList','#cTurno'].forEach(s=>$(s).innerHTML='');$('#otSub').textContent='';$('#opSub').textContent='';$('#opNote').innerHTML='<b style="color:var(--down)">Falta actualizar el archivo pallets.json en GitHub.</b> La versión que está publicada no trae los datos de operadores, turnos ni calidad. Sube el pallets.json nuevo y vuelve a abrir la app.';return}
   const ms=[...new Set(LY0.map(l=>+l[1].slice(5,7)-1))];
   if(PY===0)OPM=-1;else if(OPM>=0&&!ms.includes(OPM))OPM=-1;
   $('#opMonths').hidden=PY===0;
