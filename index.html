@@ -127,6 +127,28 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .mtab tr.z td{color:var(--muted)}
 .sheet .mstats div{background:var(--surface);border:1px solid var(--line)}
 .mtab tr.tot td{font-weight:800;border-top:2px solid var(--ink);border-bottom:0}
+:root{--pl:#1E6FA8;--ex:#C0652F;--ca:#1F8A5B}
+.split{display:flex;height:12px;border-radius:6px;overflow:hidden;margin:14px 0 8px;background:var(--line)}
+.split i{display:block;height:100%}
+.sleg{display:flex;justify-content:space-between;gap:10px;font-size:.85rem;color:var(--muted)}
+.sleg b{display:block;color:var(--ink);font-size:1rem}
+.lrow{display:grid;grid-template-columns:1fr auto;gap:3px 10px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;font:inherit;color:inherit;padding:11px 4px;cursor:pointer}
+.lrow:active{background:var(--bg)}
+.lrow b.n{font-weight:700}.lrow .t{text-align:right;font-weight:700}
+.lrow .bar{grid-column:1/-1;height:7px;border-radius:4px;background:var(--bg);overflow:hidden}
+.lrow .bar i{display:block;height:100%;border-radius:4px}
+.lrow .kp{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:2px 12px;font-size:.82rem;color:var(--muted)}
+.lrow .kp b{color:var(--ink)}
+.dtag{display:inline-block;font-size:.7rem;font-weight:800;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:1px;color:#fff}
+.dP{background:var(--pl)}.dE{background:var(--ex)}
+.daynav{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center;margin-bottom:10px}
+.daynav button{height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-size:1.2rem}
+.daynav input{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font:inherit;text-align:center}
+.more{width:100%;margin-top:8px;padding:11px;border-radius:12px;border:1px dashed var(--line);background:none;font-weight:700;color:var(--cu)}
+
+.tkrow{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:center;padding:10px 4px;border-top:1px solid var(--line)}
+.tkrow b.n{font-weight:800}.tkrow .lv{height:12px;border-radius:6px;background:var(--bg);overflow:hidden}.tkrow .lv i{display:block;height:100%;background:#8E5BB5;border-radius:6px}
+.tkrow .kp{grid-column:1/-1;font-size:.82rem;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap}.tkrow .kp b{color:var(--ink)}
 .desp{display:grid;grid-template-columns:1fr auto;gap:3px 10px;width:100%;text-align:left;border:0;border-top:1px solid var(--line);background:none;font:inherit;color:inherit;padding:12px 4px;cursor:pointer}
 .desp:active{background:var(--bg)}
 .desp b.n{font-weight:800}.desp .t{text-align:right;font-weight:700}
@@ -248,7 +270,7 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
     <h1>Producción de Sulfato<small id="sub">Minera Anita SpA</small></h1>
     <button class="pill" id="menuBtn" aria-label="Opciones">⋯</button>
   </header>
-  <nav class="tabs2" role="group" aria-label="Sección"><button data-v="min" aria-pressed="false">Mineral</button><button data-v="prod" aria-pressed="true">Producción</button><button data-v="pal" aria-pressed="false">Bodega</button></nav>
+  <nav class="tabs2" role="group" aria-label="Sección"><button data-v="min" aria-pressed="false">Mineral</button><button data-v="prod" aria-pressed="true">Producción</button><button data-v="pal" aria-pressed="false">Bodega</button><button data-v="ins" aria-pressed="false">Insumos</button></nav>
   <div id="vProd">
   <div class="yrs" id="pdYears" role="group" aria-label="Año" style="margin:0 -2px 12px"></div>
 
@@ -415,6 +437,130 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
     <div class="warn" id="pWarn"></div>
     <p class="note" id="pNote"></p>
   </div>
+  <div id="vIns" hidden>
+    <div class="ctabs" id="insTabs" role="group" aria-label="Insumo" style="margin:0 0 12px"><button data-i="pe" aria-pressed="true">⛽ Petróleo</button><button data-i="ac" aria-pressed="false">🧪 Ácido</button><button data-i="ch" aria-pressed="false">⚙️ Chancado</button></div>
+    <div id="insPe">
+  <div class="yrs" id="pe_yrs" role="group" aria-label="Año" style="margin:0 -2px 6px"></div>
+  <div class="months" id="pe_mos" role="group" aria-label="Mes" style="margin:0 -2px 12px"></div>
+
+  <section class="hero">
+    <div class="lbl" id="pe_hLbl">Petróleo entregado</div>
+    <div class="big" id="pe_hTot">0<span>L</span></div>
+    <div class="lbl" id="pe_hSub"></div>
+    <div class="split"><i id="pe_spP" style="background:var(--pl)"></i><i id="pe_spE" style="background:var(--ex)"></i></div>
+    <div class="sleg"><div><span class="dot" style="background:var(--pl)"></span>Planta<b id="pe_lgP">0 L</b></div><div style="text-align:right"><span class="dot" style="background:var(--ex)"></span>Externos<b id="pe_lgE">0 L</b></div></div>
+    <div class="stats" id="pe_hStats"></div>
+  </section>
+
+  <section class="card">
+    <h2 id="pe_cTitle">Consumo</h2>
+    <p class="sub" id="pe_cSub"></p>
+    <div class="chart" id="pe_cMain"></div>
+    <div class="legend"><span><i style="background:var(--pl)"></i>Planta</span><span><i style="background:var(--ex)"></i>Externos</span><span><i class="ln" style="border-color:var(--ca)"></i>Cargas al estanque</span></div>
+  </section>
+
+  <section class="card">
+    <h2 id="pe_dTitle">¿Dónde va el petróleo?</h2>
+    <p class="sub" id="pe_dSub"></p>
+    <div class="ctabs" id="pe_dTabs" role="group"><button data-d="0" aria-pressed="true">Planta</button><button data-d="1" aria-pressed="false">Externos</button></div>
+    <div id="pe_dList"></div>
+  </section>
+
+  <section class="card">
+    <h2 id="pe_mTitle">Máquinas</h2>
+    <p class="sub" id="pe_mSub"></p>
+    <div class="ctabs" id="pe_mTabs" role="group"><button data-d="" aria-pressed="true">Todas</button><button data-d="0" aria-pressed="false">Planta</button><button data-d="1" aria-pressed="false">Externos</button></div>
+    <div id="pe_mList"></div>
+    <button class="more" id="pe_mMore" hidden></button>
+  </section>
+
+  <section class="card" id="pe_repCard">
+    <h2>📋 Reporte diario</h2>
+    <p class="sub">Elige un día para ver todo el petróleo entregado y su destino, y genera el PDF para enviarlo</p>
+    <div class="daynav"><button id="pe_dPrev" aria-label="Día anterior">‹</button><input type="date" id="pe_dDay"><button id="pe_dNext" aria-label="Día siguiente">›</button></div>
+    <div class="mstats" id="pe_rStats"></div>
+    <div id="pe_rBody"></div>
+    <button class="primary" id="pe_rPdf">📄 Generar PDF del día</button>
+  </section>
+
+  <section class="card">
+    <h2 id="pe_kTitle">Cargas al estanque</h2>
+    <p class="sub" id="pe_kSub"></p>
+    <div id="pe_kList"></div>
+  </section>
+  <p class="note" id="pe_note"></p>
+    </div>
+
+    <div id="insCh" hidden>
+      <div class="yrs" id="chYrs" role="group" aria-label="Año" style="margin:0 -2px 6px"></div>
+      <div class="months" id="chMos" role="group" aria-label="Mes" style="margin:0 -2px 12px"></div>
+      <section class="hero">
+        <div class="lbl" id="chLbl">Días de chancado</div>
+        <div class="big" id="chTot">0<span>t</span></div>
+        <div class="lbl" id="chSub"></div>
+        <div class="split"><i id="chSpA" style="background:#1E6FA8"></i><i id="chSpB" style="background:#A7B4C0"></i></div>
+        <div class="sleg"><div><span class="dot" style="background:#1E6FA8"></span>Con chancado<b id="chDA">0 días</b></div><div style="text-align:right"><span class="dot" style="background:#A7B4C0"></span>Sin chancado<b id="chDB">0 días</b></div></div>
+      </section>
+      <section class="card">
+        <h2>🧪 Ácido: con chancado vs sin chancado</h2>
+        <p class="sub" id="chAS"></p>
+        <div class="tcmp" id="chAC"></div>
+        <div class="mstats" id="chAK" style="margin-top:8px"></div>
+        <div class="chart" id="chAChart"></div>
+        <div class="legend"><span><i style="background:#1E6FA8"></i>Días con chancado</span><span><i style="background:#A7B4C0"></i>Días sin chancado</span></div>
+      </section>
+      <section class="card">
+        <h2 id="chKT">🧪 Ácido por tonelada de mineral</h2>
+        <p class="sub" id="chKS"></p>
+        <div class="mstats" id="chKK"></div>
+        <div class="chart" id="chKChart"></div>
+        <div class="legend"><span><i style="background:#8E5BB5"></i>Consumo real (kg/t chancada)</span><span><i class="ln" style="border-color:var(--acc)"></i>Consumo del mineral según análisis</span></div>
+        <p class="note" id="chKN" style="margin:8px 2px 0"></p>
+      </section>
+      <section class="card">
+        <h2>⛽ Petróleo de planta: con chancado vs sin chancado</h2>
+        <p class="sub" id="chPS"></p>
+        <div class="tcmp" id="chPC"></div>
+        <div class="mstats" id="chPK" style="margin-top:8px"></div>
+        <div class="chart" id="chPChart"></div>
+        <div class="legend"><span><i style="background:#1E6FA8"></i>Días con chancado</span><span><i style="background:#A7B4C0"></i>Días sin chancado</span></div>
+      </section>
+      <p class="note" id="chNote"></p>
+    </div>
+    <div id="insAc" hidden>
+    <div class="yrs" id="acYrs" role="group" aria-label="Año" style="margin:0 -2px 6px"></div>
+    <div class="months" id="acMos" role="group" aria-label="Mes" style="margin:0 -2px 12px"></div>
+    <section class="hero">
+      <div class="lbl" id="acLbl">Ácido consumido</div>
+      <div class="big" id="acTot">0<span>t</span></div>
+      <div class="lbl" id="acSub"></div>
+      <div class="stats" id="acStats"></div>
+    </section>
+    <section class="card">
+      <h2 id="acCT">Consumo de ácido</h2>
+      <p class="sub" id="acCS"></p>
+      <div class="chart" id="acChart"></div>
+      <div class="legend"><span><i style="background:#8E5BB5"></i>Consumo de ácido</span><span><i class="ln" style="border-color:var(--acc)"></i>Acumulado</span></div>
+    </section>
+    <section class="card" id="acBalCard">
+      <h2 id="acBalT">Balance de ácido</h2>
+      <p class="sub">Stock al inicio + ácido recibido − stock al final = consumo del período</p>
+      <div id="acBal"></div>
+    </section>
+    <section class="card">
+      <h2>Estanques de ácido (TK)</h2>
+      <p class="sub" id="acTkS"></p>
+      <div id="acTk"></div>
+    </section>
+    <section class="card">
+      <h2 id="acDT">Consumo diario</h2>
+      <p class="sub">Toneladas consumidas cada día por estanque. Los días en que llegó un camión aparecen como recepción.</p>
+      <button class="secondary" id="acDBtn">📋 Ver consumo diario</button>
+      <div id="acDays" hidden></div>
+    </section>
+    <p class="note" id="acNote"></p>
+    </div>
+  </div>
   <footer class="credit">Diseñado por <b>BG IA Solutions</b><br><a href="tel:+56955374077">📞 +56 9 5537 4077</a><br><a href="tel:+56957220849">📞 +56 9 5722 0849</a><br><a href="https://bgiasolutions.cl/" target="_blank" rel="noopener">🌐 bgiasolutions.cl</a></footer>
 </div>
 
@@ -457,9 +603,9 @@ function agg(yr){
 
 /* ---------- charts (SVG) ---------- */
 function niceMax(v){if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
-function chart({labels,bars,line,sel,fmtL,fmtR,unitL,unitR,onTap,dimFrom,dots,tipB,tipL,sufB,sufL,tipX}){
+function chart({labels,bars,line,sel,fmtL,fmtR,unitL,unitR,onTap,dimFrom,dots,tipB,tipL,sufB,sufL,tipX,same}){
   const W=360,H=220,L=40,R=44,T=24,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*0.62));
-  const mb=niceMax(Math.max(...bars,0)),ml=niceMax(Math.max(...line.filter(v=>v!=null),0));
+  let mb=niceMax(Math.max(...bars,0)),ml=niceMax(Math.max(...line.filter(v=>v!=null),0));if(same){mb=ml=Math.max(mb,ml)};
   const yb=v=>T+ih-(v/mb)*ih,yl=v=>T+ih-(v/ml)*ih;
   const hasL=line.some(v=>v!=null);
   const tipM={W,L,step,c:1,x:tipX||labels,s:[{n:tipB||unitL,v:bars.map(v=>fmtL(v)+(sufB!=null?sufB:' '+unitL)),k:'b'},{n:tipL||unitR,v:line.map(v=>v==null?'—':fmtR(v)+(sufL!=null?sufL:' '+unitR)),k:'l'}].filter(s=>s.n!=='')};
@@ -1225,7 +1371,7 @@ function dsDetail(key){
     <div style="overflow-x:auto;margin:0 -4px"><table class="mtab ltab"><thead><tr><th>Lote</th><th>Prod.</th><th>Cat</th><th>pH</th><th>% Cu</th><th>Insol.</th><th>Hum.</th><th>Pureza</th><th>Acidez</th><th style="text-align:left">Aspecto</th><th style="text-align:left">Olor</th><th style="text-align:left">Flotación</th><th style="text-align:left">Operador</th><th>Días</th></tr></thead><tbody>${trs}</tbody></table></div>
     <p class="note" style="margin:6px 2px 0">Desliza la tabla hacia los lados para ver todas las columnas. Prod. = fecha de producción del lote; Días = días que estuvo en bodega. ⚠️ = valor con probable error de digitación (no se usa en los promedios).</p>
     <button class="primary" id="dsPdf">📄 Generar PDF</button>
-    <button class="secondary" id="dsClose">Cerrar</button>`,()=>{$('#dsClose').onclick=close;pdfPrep();$('#dsPdf').onclick=()=>dsPDF(key)});
+    <button class="secondary" id="dsClose">Cerrar</button>`,()=>{$('#dsClose').onclick=close;pdfPrep().catch(()=>{});$('#dsPdf').onclick=()=>dsPDF(key)});
 }
 
 /* ---------- PDF de despacho ---------- */
@@ -1281,7 +1427,7 @@ $('#salList').onclick=e=>{const b=e.target.closest('[data-k]');if(b)dsDetail(b.d
 $('#pYears').onclick=e=>{const b=e.target.closest('[data-y]');if(!b)return;PY=+b.dataset.y;palRender()};
 document.querySelector('.tabs2').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;const v=b.dataset.v;
   document.querySelectorAll('.tabs2 button').forEach(o=>o.setAttribute('aria-pressed',o===b));
-  $('#vProd').hidden=v!=='prod';$('#vPal').hidden=v!=='pal';$('#vMin').hidden=v!=='min';$('#addBtn').hidden=v!=='prod';if(v==='pal')palRender();if(v==='min')minRender();window.scrollTo(0,0)};
+  $('#vProd').hidden=v!=='prod';$('#vPal').hidden=v!=='pal';$('#vMin').hidden=v!=='min';$('#vIns').hidden=v!=='ins';$('#addBtn').hidden=v!=='prod';if(v==='pal')palRender();if(v==='min')minRender();if(v==='ins')insRender();window.scrollTo(0,0)};
 
 
 /* ---------- barra deslizable sobre los gráficos ---------- */
@@ -1324,6 +1470,203 @@ document.querySelector('.tabs2').onclick=e=>{const b=e.target.closest('[data-v]'
   document.addEventListener('touchcancel',()=>{clearTimeout(hold);t0=null;lock=false},{passive:true});
 })();
 
+
+
+/* ---------- chancado vs sin chancado ---------- */
+let _CHM=null,CHY=null,CHMO=-1;
+function chMap(){if(_CHM)return _CHM;_CHM={};if(MIN&&MIN.pilas)MIN.pilas.forEach(r=>{_CHM[r[1]]=(_CHM[r[1]]||0)+r[4]});return _CHM}
+function daysBetween(a,b){const out=[];let d=new Date(a+'T12:00:00');const e=new Date(b+'T12:00:00');while(d<=e){out.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1)}return out}
+function cmpChart(labels,a,b,tipx,unit,cnt){
+  const W=360,H=200,Lm=40,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*.36));
+  const mb=niceMax(Math.max(1e-9,...a.filter(v=>v!=null),...b.filter(v=>v!=null))),y=v=>T+ih-((v||0)/mb)*ih;
+  const tipM={W,L:Lm,step,c:1,x:tipx,s:[{n:'Con chancado',v:a.map((v,i)=>v==null?'—':nf(v,unit==='t/día'?2:0)+' '+unit+(cnt?' ('+cnt[i][0]+' d)':'')),col:'#1E6FA8'},{n:'Sin chancado',v:b.map((v,i)=>v==null?'—':nf(v,unit==='t/día'?2:0)+' '+unit+(cnt?' ('+cnt[i][1]+' d)':'')),col:'#A7B4C0'}]};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">${unit}</text>`;
+  for(let i=0;i<=4;i++){const yy=T+ih*i/4;s+=`<line x1="${Lm}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${Lm-5}" y="${yy+3}" text-anchor="end">${nf(mb*(1-i/4),Number.isInteger(mb/4)?0:mb<4?2:1)}</text>`}
+  a.forEach((v,i)=>{const cx=Lm+step*i+step/2;if(v!=null)s+=`<rect x="${cx-bw-0.5}" y="${y(v)}" width="${bw}" height="${T+ih-y(v)}" rx="1.5" fill="#1E6FA8"/>`;if(b[i]!=null)s+=`<rect x="${cx+0.5}" y="${y(b[i])}" width="${bw}" height="${T+ih-y(b[i])}" rx="1.5" fill="#A7B4C0"/>`});
+  const every=n>16?Math.ceil(n/8):1;labels.forEach((t,i)=>{if(i%every&&i!==n-1)return;s+=`<text x="${Lm+step*i+step/2}" y="${H-7}" text-anchor="middle">${t}</text>`});
+  return s+'</svg>';
+}
+function dayBars(labels,v,flag,tipx,unit){
+  const W=360,H=200,Lm=40,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(14,step*.62));
+  const mb=niceMax(Math.max(1e-9,...v.filter(x=>x!=null))),y=x=>T+ih-((x||0)/mb)*ih;
+  const tipM={W,L:Lm,step,c:1,x:tipx,s:[{n:'Consumo',v:v.map(x=>x==null?'—':nf(x,unit==='t'?2:0)+' '+unit),col:'var(--ink)'},{n:'Día',v:flag.map(f=>f==null?'—':f?'con chancado':'sin chancado'),col:'var(--muted)'}]};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">${unit}</text>`;
+  for(let i=0;i<=4;i++){const yy=T+ih*i/4;s+=`<line x1="${Lm}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${Lm-5}" y="${yy+3}" text-anchor="end">${nf(mb*(1-i/4),Number.isInteger(mb/4)?0:mb<4?2:1)}</text>`}
+  v.forEach((x,i)=>{if(x==null)return;const X=Lm+step*i+(step-bw)/2;s+=`<rect x="${X}" y="${y(x)}" width="${bw}" height="${T+ih-y(x)}" rx="1.5" fill="${flag[i]?'#1E6FA8':'#A7B4C0'}"/>`});
+  const every=n>16?Math.ceil(n/8):1;labels.forEach((t,i)=>{if(i%every&&i!==n-1)return;s+=`<text x="${Lm+step*i+step/2}" y="${H-7}" text-anchor="middle">${t}</text>`});
+  return s+'</svg>';
+}
+function chRender(){
+  const CHM=chMap(),PE=window.peRaw?window.peRaw():null;
+  if(!AC||!PE||!Object.keys(CHM).length){$('#chNote').textContent='Faltan datos para comparar (ácido, petróleo o chancado).';return}
+  // rango común: desde el inicio de los datos de ácido/petróleo hasta el último día con datos de chancado
+  const lastCh=Object.keys(CHM).sort().pop();
+  const acMap={};AC.dias.forEach(d=>{acMap[d[0]]=(acMap[d[0]]||0)+d[1]});
+  // Solo petróleo de PLANTA: se descuenta lo entregado a externos
+  const peMap={};PE.entregas.forEach(e=>{if(!e[5])peMap[e[0]]=(peMap[e[0]]||0)+e[3]});
+  const acStart=AC.dias[0][0],peStart=PE.entregas[0][0],acEnd=[AC.actualizado,lastCh].sort()[0],peEnd=[PE.actualizado,lastCh].sort()[0];
+  const ys=[...new Set(Object.keys(acMap).concat(Object.keys(peMap)).map(k=>+k.slice(0,4)))].filter(y=>y>=+peStart.slice(0,4)||y>=+acStart.slice(0,4)).sort();
+  if(CHY==null)CHY=ys[ys.length-1];
+  $('#chYrs').innerHTML=ys.map(y=>`<button data-y="${y}" aria-pressed="${y===CHY}">${y}</button>`).join('')+`<button data-y="0" aria-pressed="${CHY===0}">Todos</button>`;
+  {const c=$('#chYrs'),s=c.querySelector('[aria-pressed="true"]');if(s)c.scrollLeft=s.offsetLeft-c.clientWidth/2+s.clientWidth/2}
+  const lastAll=[acEnd,peEnd].sort().pop();
+  const msAv=MES.map((_,i)=>i).filter(i=>CHY&&(CHY+'-'+String(i+1).padStart(2,'0'))<=lastAll.slice(0,7));
+  if(CHY===0||(CHMO>=0&&!msAv.includes(CHMO)))CHMO=-1;
+  $('#chMos').hidden=CHY===0;
+  $('#chMos').innerHTML=`<button data-m="-1" aria-pressed="${CHMO<0}">Año</button>`+MES.map((m,i)=>`<button data-m="${i}" aria-pressed="${i===CHMO}" ${msAv.includes(i)?'':'disabled'}>${m.slice(0,3)}</button>`).join('');
+  {const c=$('#chMos'),s=c.querySelector('[aria-pressed="true"]');if(s&&CHMO>=0)c.scrollLeft=s.offsetLeft-c.clientWidth/2+s.clientWidth/2;else c.scrollLeft=0}
+  const inP=f=>(CHY===0||+f.slice(0,4)===CHY)&&(CHMO<0||+f.slice(5,7)-1===CHMO);
+  const per=CHY===0?ys[0]+'–'+ys[ys.length-1]:(CHMO<0?String(CHY):MES[CHMO]+' '+CHY);
+  const acDays=daysBetween(acStart,acEnd).filter(inP).filter(d=>d in acMap);       // días con lectura de ácido
+  const peDays=daysBetween(peStart,peEnd).filter(inP);                              // días calendario (sin entrega = 0 L)
+  const allDays=[...new Set(acDays.concat(peDays))].sort();
+  const isC=d=>(CHM[d]||0)>0;
+  const nC=allDays.filter(isC).length,nN=allDays.length-nC,tCh=allDays.reduce((a,d)=>a+(CHM[d]||0),0);
+  $('#chLbl').textContent='Mineral chancado '+per;
+  $('#chTot').innerHTML=nf(tCh,0)+'<span>t</span>';
+  $('#chSub').textContent=allDays.length+' días analizados · '+(nC?nf(tCh/nC,1)+' t por día de chancado':'sin chancado');
+  $('#chSpA').style.width=(allDays.length?nC/allDays.length*100:0)+'%';$('#chSpB').style.width=(allDays.length?nN/allDays.length*100:0)+'%';
+  $('#chDA').textContent=nC+' días · '+nf(allDays.length?nC/allDays.length*100:0,0)+'%';$('#chDB').textContent=nN+' días · '+nf(allDays.length?nN/allDays.length*100:0,0)+'%';
+  function block(days,map,unit,dec,extraMap){
+    const c=days.filter(isC),n=days.filter(d=>!isC(d));
+    const sc=c.reduce((a,d)=>a+(map[d]||0),0),sn=n.reduce((a,d)=>a+(map[d]||0),0);
+    const ac=c.length?sc/c.length:0,an=n.length?sn/n.length:0;
+    const ex=extraMap?{c:c.reduce((a,d)=>a+(extraMap[d]||0),0),n:n.reduce((a,d)=>a+(extraMap[d]||0),0)}:null;
+    return {c,n,sc,sn,ac,an,ex,tch:c.reduce((a,d)=>a+(CHM[d]||0),0)};
+  }
+  const A=block(acDays,acMap),Pt=block(peDays,peMap);
+  const dif=(a,b)=>b?((a-b)/b*100):null;
+  const box=(t,cls,days,tot,avg,unit,dec,extra)=>`<div><b class="h">${t}</b><span>Días <b>${days}</b></span><span>Total <b>${nf(tot,dec)} ${unit}</b></span><span>Promedio por día <b>${nf(avg,dec===0?0:2)} ${unit}</b></span>${extra||''}</div>`;
+  $('#chAS').textContent='Toneladas de ácido consumidas en días con y sin chancado · '+per;
+  $('#chAC').innerHTML=box('Con chancado','',A.c.length,A.sc,A.ac,'t',1)+box('Sin chancado','',A.n.length,A.sn,A.an,'t',1);
+  const dA=dif(A.ac,A.an);
+  $('#chAK').innerHTML=`<div><small>Ácido por t de mineral chancado</small><b>${tCh?nf((A.sc+A.sn)/tCh*1000,1)+' kg/t':'—'}</b><small>total del período ÷ t chancadas</small></div><div><small>Día con chancado vs sin</small><b>${dA==null?'—':(dA>=0?'+':'−')+nf(Math.abs(dA),0)+'%'}</b><small>consumo promedio diario</small></div>`;
+  $('#chPS').textContent='Litros de petróleo de planta (sin externos) en días con y sin chancado · '+per;
+  $('#chPC').innerHTML=box('Con chancado','',Pt.c.length,Pt.sc,Pt.ac,'L',0)+box('Sin chancado','',Pt.n.length,Pt.sn,Pt.an,'L',0);
+  const dP=dif(Pt.ac,Pt.an);
+  $('#chPK').innerHTML=`<div><small>Petróleo de planta por t chancada</small><b>${tCh?nf((Pt.sc+Pt.sn)/tCh,1)+' L/t':'—'}</b><small>total del período ÷ t chancadas</small></div><div><small>Día con chancado vs sin</small><b>${dP==null?'—':(dP>=0?'+':'−')+nf(Math.abs(dP),0)+'%'}</b><small>litros promedio por día</small></div>`;
+
+  // ---- kg de ácido por t de mineral (real vs análisis del mineral chancado)
+  {
+    const lab={};MIN.pilas.forEach(r=>{if(!inP(r[1])||r[1]>acEnd)return;const o=lab[r[1]]=lab[r[1]]||[0,0,0];o[0]+=r[4];if(r[5]>0&&r[6]>0){o[1]+=r[4];o[2]+=r[4]*r[5]*r[6]*10}});
+    // toneladas chancadas en todos los días del período hasta la última lectura de ácido (un día sin lectura se refleja en la lectura siguiente)
+    const chDaysP=Object.keys(CHM).filter(d=>inP(d)&&d>=acStart&&d<=acEnd);
+    const tChA=chDaysP.reduce((a,d)=>a+CHM[d],0),acA=acDays.reduce((a,d)=>a+(acMap[d]||0),0);
+    let pa=0,ka=0;Object.values(lab).forEach(o=>{pa+=o[1];ka+=o[2]});
+    const real=tChA?acA*1000/tChA:null,ana=pa?ka/pa:null,cob=Object.values(lab).reduce((a,o)=>a+o[0],0);
+    $('#chKT').textContent='🧪 Ácido por tonelada de mineral · '+per;
+    $('#chKS').textContent='Consumo real de ácido por tonelada chancada, comparado con el consumo de ácido que indica el análisis del mineral chancado';
+    $('#chKK').innerHTML=`<div><small>Consumo real</small><b style="color:#8E5BB5">${real==null?'—':nf(real,1)+' kg/t'}</b><small>ácido del período ÷ t chancadas</small></div><div><small>Consumo promedio del mineral</small><b style="color:var(--acc)">${ana==null?'—':nf(ana,1)+' kg/t'}</b><small>según análisis (${cob?nf(pa/cob*100,0):0}% del chancado con análisis)</small></div><div><small>Real vs mineral</small><b>${real!=null&&ana?(real>=ana?'+':'−')+nf(Math.abs(real-ana)/ana*100,0)+'%':'—'}</b><small>${real!=null&&ana?(real>=ana?'se usa más ácido que lo que pide el mineral':'se usa menos ácido que lo que pide el mineral'):''}</small></div><div><small>Mineral chancado</small><b>${nf(tChA,0)} t</b><small>${chDaysP.length} días con chancado</small></div>`;
+    let keys,labs,tx,kf;
+    if(CHY===0){keys=ys.map(String);labs=keys;tx=keys;kf=d=>d.slice(0,4)}
+    else{keys=MES.map((_,i)=>CHY+'-'+String(i+1).padStart(2,'0'));labs=MES.map(m=>m.slice(0,3));tx=MES.map(m=>m+' '+CHY);kf=d=>d.slice(0,7)}
+    const ac=keys.map(()=>0),tc=keys.map(()=>0),pp=keys.map(()=>0),kk=keys.map(()=>0);
+    acDays.forEach(d=>{const i=keys.indexOf(kf(d));if(i<0)return;ac[i]+=acMap[d]||0});chDaysP.forEach(d=>{const i=keys.indexOf(kf(d));if(i>=0)tc[i]+=CHM[d]});
+    Object.entries(lab).forEach(([d,o])=>{const i=keys.indexOf(kf(d));if(i<0)return;pp[i]+=o[1];kk[i]+=o[2]});
+    const rv=keys.map((_,i)=>tc[i]?ac[i]*1000/tc[i]:0),av=keys.map((_,i)=>pp[i]?kk[i]/pp[i]:null);
+    const lastI=keys.reduce((m,k,i)=>k<=acEnd.slice(0,k.length)?i:m,-1);
+    $('#chKChart').innerHTML=chart({labels:labs,bars:rv,line:av.map((v,i)=>i<=lastI?v:null),sel:-1,fmtL:v=>nf(v),fmtR:v=>nf(v),unitL:'kg/t',unitR:'kg/t',dimFrom:lastI+1,dots:true,same:true,tipB:'Real',tipL:'Mineral (análisis)',sufB:' kg/t',sufL:' kg/t',tipX:tx}).replace(/fill="var\(--cu-2\)"/g,'fill="#8E5BB5"').replace(/fill="var\(--cu\)"/g,'fill="#8E5BB5"');
+    $('#chKN').textContent='Consumo real = ácido consumido ÷ toneladas chancadas en el mismo '+(CHY===0?'año':'mes')+'. Consumo del mineral = promedio ponderado por peso del consumo de ácido de cada lote chancado (ley × consumo H+/Cu × 10), solo lotes con análisis. Los meses sin chancado no tienen consumo real por tonelada.';
+  }
+  // gráficos
+  if(CHY!==0&&CHMO>=0){
+    const nd=new Date(CHY,CHMO+1,0).getDate(),ks=Array.from({length:nd},(_,i)=>CHY+'-'+String(CHMO+1).padStart(2,'0')+'-'+String(i+1).padStart(2,'0'));
+    const labs=ks.map(k=>String(+k.slice(8))),tx=ks.map(k=>+k.slice(8)+' '+MES[CHMO].toLowerCase());
+    $('#chAChart').innerHTML=dayBars(labs,ks.map(k=>acDays.includes(k)?acMap[k]||0:null),ks.map(k=>acDays.includes(k)?isC(k):null),tx,'t');
+    $('#chPChart').innerHTML=dayBars(labs,ks.map(k=>peDays.includes(k)?peMap[k]||0:null),ks.map(k=>peDays.includes(k)?isC(k):null),tx,'L');
+  }else{
+    const keys=CHY===0?ys.map(String):MES.map((_,i)=>CHY+'-'+String(i+1).padStart(2,'0')),labs=CHY===0?keys:MES.map(m=>m.slice(0,3)),tx=CHY===0?keys:MES.map(m=>m+' '+CHY);
+    const agg=(days,map)=>{const a=keys.map(()=>[0,0]),b=keys.map(()=>[0,0]);days.forEach(d=>{const i=keys.indexOf(CHY===0?d.slice(0,4):d.slice(0,7));if(i<0)return;const o=isC(d)?a:b;o[i][0]+=map[d]||0;o[i][1]++});return [a.map(x=>x[1]?x[0]/x[1]:null),b.map(x=>x[1]?x[0]/x[1]:null),keys.map((_,i)=>[a[i][1],b[i][1]])]};
+    const [aa,ab,ac]=agg(acDays,acMap),[pa,pb,pc]=agg(peDays,peMap);
+    $('#chAChart').innerHTML=cmpChart(labs,aa,ab,tx,'t/día',ac);
+    $('#chPChart').innerHTML=cmpChart(labs,pa,pb,tx,'L/día',pc);
+  }
+  $('#chNote').textContent='Día con chancado = día en que hay lotes chancados en la hoja BDCH. Ácido: se comparan los días con lectura en el Excel de control de ácido. Petróleo: solo lo entregado a la planta (se descuentan los externos) y se cuentan todos los días del calendario (un día sin entregas suma 0 L). Datos hasta el '+fdmY([acEnd,peEnd].sort().pop())+'.';
+}
+$('#chYrs').onclick=e=>{const b=e.target.closest('[data-y]');if(!b)return;CHY=+b.dataset.y;chRender()};
+$('#chMos').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.disabled)return;CHMO=+b.dataset.m;chRender()};
+
+/* ---------- insumos: petróleo y ácido ---------- */
+let INS='pe',AC=null,ACY=null,ACM=-1,ACD=false;
+$('#insTabs').onclick=e=>{const b=e.target.closest('[data-i]');if(!b)return;INS=b.dataset.i;insRender()};
+async function insRender(){
+  $('#insTabs').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.i===INS));
+  $('#insPe').hidden=INS!=='pe';$('#insAc').hidden=INS!=='ac';$('#insCh').hidden=INS!=='ch';
+  if(INS==='pe'){if(window.peInit)window.peInit();return}
+  if(INS==='ch'){if(!AC){try{const r=await fetch('acido.json',{cache:'no-cache'});AC=await r.json()}catch(e){}}if(window.peData)await window.peData();chRender();return}
+  if(!AC){try{const r=await fetch('acido.json',{cache:'no-cache'});AC=await r.json()}catch(e){}}
+  if(!AC){$('#acNote').textContent='No se pudieron cargar los datos de ácido.';return}
+  acRender();
+}
+function acRender(){
+  const D=AC.dias,ys=[...new Set(D.map(d=>+d[0].slice(0,4)))].sort();
+  if(ACY==null)ACY=ys[ys.length-1];
+  $('#acYrs').innerHTML=ys.map(y=>`<button data-y="${y}" aria-pressed="${y===ACY}">${y}</button>`).join('')+`<button data-y="0" aria-pressed="${ACY===0}">Todos</button>`;
+  {const c=$('#acYrs'),s=c.querySelector('[aria-pressed="true"]');if(s)c.scrollLeft=s.offsetLeft-c.clientWidth/2+s.clientWidth/2}
+  const msAv=[...new Set(D.filter(d=>+d[0].slice(0,4)===ACY).map(d=>+d[0].slice(5,7)-1))];
+  if(ACY===0||(ACM>=0&&!msAv.includes(ACM)))ACM=-1;
+  $('#acMos').hidden=ACY===0;
+  $('#acMos').innerHTML=`<button data-m="-1" aria-pressed="${ACM<0}">Año</button>`+MES.map((m,i)=>`<button data-m="${i}" aria-pressed="${i===ACM}" ${msAv.includes(i)?'':'disabled'}>${m.slice(0,3)}</button>`).join('');
+  {const c=$('#acMos'),s=c.querySelector('[aria-pressed="true"]');if(s&&ACM>=0)c.scrollLeft=s.offsetLeft-c.clientWidth/2+s.clientWidth/2;else c.scrollLeft=0}
+  const inP=f=>(ACY===0||+f.slice(0,4)===ACY)&&(ACM<0||+f.slice(5,7)-1===ACM);
+  const per=ACY===0?ys[0]+'–'+ys[ys.length-1]:(ACM<0?String(ACY):MES[ACM]+' '+ACY);
+  const X=D.filter(d=>inP(d[0])),tot=X.reduce((a,d)=>a+d[1],0),rec=X.reduce((a,d)=>a+d[3],0),dc=X.filter(d=>d[1]>0).length,nr=X.filter(d=>d[3]>0).length;
+  // sulfato producido en el mismo período
+  const PD=DIAS(),prodT=Object.keys(PD).filter(k=>inP(k)).reduce((a,k)=>a+kgOf(PD[k]),0)/1000;
+  const CHM=chMap(),chT=Object.keys(CHM).filter(k=>inP(k)).reduce((a,k)=>a+CHM[k],0),trT=X.reduce((a,d)=>a+(d[5]||0),0);
+  $('#acLbl').textContent='Ácido consumido '+per;
+  $('#acTot').innerHTML=nf(tot,1)+'<span>t</span>';
+  $('#acSub').textContent=X.length+' lecturas · '+dc+' días con consumo · promedio '+nf(dc?tot/dc:0,2)+' t por día';
+  $('#acStats').innerHTML=`<div><small>Ácido recibido${(ACY&&ACM<0&&ACIDO_RECIBIDO[ACY]!=null)?'':' (aprox.)'}</small><b>${nf((ACY&&ACM<0&&ACIDO_RECIBIDO[ACY]!=null)?ACIDO_RECIBIDO[ACY]:rec+X.reduce((a,d)=>a+(d[6]||0),0),1)} t</b><small>${nr} llegadas de camión</small></div><div><small>Ácido por t de sulfato</small><b>${prodT?nf(tot/prodT,2)+' t':'—'}</b><small>${prodT?nf(prodT,1)+' t producidas':'sin producción'}</small></div><div><small>Ácido por t de mineral chancado</small><b>${chT?nf(tot/chT*1000,1)+' kg/t':'—'}</b><small>${chT?nf(chT,0)+' t chancadas':'sin chancado'}</small></div>`;
+  // chart
+  let keys,labs,tipx,kf,u;
+  if(ACY===0){keys=ys.map(String);labs=keys;tipx=keys;kf=f=>f.slice(0,4);u='año'}
+  else if(ACM<0){keys=MES.map((_,i)=>String(i+1).padStart(2,'0'));labs=MES.map(m=>m.slice(0,3));tipx=MES.map(m=>m+' '+ACY);kf=f=>f.slice(5,7);u='mes'}
+  else{const nd=new Date(ACY,ACM+1,0).getDate();keys=Array.from({length:nd},(_,i)=>String(i+1).padStart(2,'0'));labs=keys.map(k=>String(+k));tipx=keys.map(k=>+k+' '+MES[ACM].toLowerCase());kf=f=>f.slice(8,10);u='día'}
+  const v=keys.map(()=>0);X.forEach(d=>{const i=keys.indexOf(kf(d[0]));if(i>=0)v[i]+=d[1]});
+  const last=AC.actualizado,lastI=keys.reduce((m,k,i)=>{const full=ACY===0?k:ACM<0?ACY+'-'+k:ACY+'-'+String(ACM+1).padStart(2,'0')+'-'+k;return full<=last.slice(0,full.length)?i:m},-1);
+  let a=0;const cum=v.map((x,i)=>i<=lastI?(a+=x):null);
+  $('#acCT').textContent='Consumo de ácido '+per;$('#acCS').textContent='Toneladas consumidas cada '+u+' y acumulado del período';
+  $('#acChart').innerHTML=chart({labels:labs,bars:v,line:cum,sel:-1,fmtL:x=>nf(x,x<10?1:0),fmtR:x=>nf(x),unitL:'t',unitR:'t acum.',dimFrom:lastI+1,tipB:'Consumo',tipL:'Acumulado',sufB:' t',sufL:' t',tipX:tipx}).replace(/fill="var\(--cu-2\)"/g,'fill="#8E5BB5"').replace(/fill="var\(--cu\)"/g,'fill="#8E5BB5"');
+  // estanques
+  const lastR=D[D.length-1],tkc=[0,0,0,0,0];X.forEach(d=>d[2].forEach((c,j)=>tkc[j]+=c));
+  const mxL=Math.max(1,...lastR[4].map(x=>x||0));
+  $('#acTkS').textContent='Nivel en la última lectura ('+fdmY(lastR[0])+') y consumo de cada estanque en '+per;
+  $('#acTk').innerHTML=[0,1,2,3,4].map(j=>{const lv=lastR[4][j];return `<div class="tkrow"><b class="n">TK${j+1}</b><span class="lv"><i style="width:${(lv||0)/mxL*100}%"></i></span><b>${lv==null?'—':nf(lv,1)+' t'}</b><span class="kp"><span>Consumo del período <b>${nf(tkc[j],1)} t</b></span><span>${tot?nf(tkc[j]/tot*100,0):0}% del total</span><span>Factor ×${j===2&&lastR[0]>AC.cambioTK3?'20':'11,2'}</span></span></div>`}).join('')+`<p class="note" style="margin:8px 4px 0">Nivel total en estanques: <b>${nf(lastR[4].reduce((a2,x)=>a2+(x||0),0),1)} t</b></p>`;
+  // balance
+  $('#acBalCard').hidden=X.length<2;
+  if(X.length>=2){
+    const r0=X[0],r1=X[X.length-1],s0=stockUtil(r0),s1=stockUtil(r1),est=X.reduce((a,d)=>a+(d[6]||0),0);
+    const recReal=(ACY&&ACM<0)?ACIDO_RECIBIDO[ACY]:null,recLect=rec+est;
+    const recU=recReal!=null?recReal:recLect,bal=s0+recU-s1;
+    $('#acBalT').textContent='Balance de ácido '+per;
+    $('#acBal').innerHTML=`<div class="rec">
+      <div class="rr sm"><span>Stock útil al ${fdmY(r0[0])}</span><b>${nf(s0,2)} t</b></div>
+      <div class="rr sm"><span>+ Ácido recibido ${recReal!=null?'(informado)':'(estimado de lecturas)'}</span><b>${nf(recU,2)} t</b></div>
+      <div class="rr sm"><span>− Stock útil al ${fdmY(r1[0])}</span><b>${nf(s1,2)} t</b></div>
+      <div class="rr big"><span>Consumo por balance</span><b>${nf(bal,2)} t</b></div>
+      <div class="rr sm"><span>Consumo por lecturas diarias</span><b>${nf(tot,1)} t</b></div>
+      <div class="rr sm"><span>Diferencia</span><b>${nf(Math.abs(bal-tot)<0.05?0:bal-tot,1)} t (${nf(bal?Math.abs(bal-tot)/bal*100:0,1)}%)</b></div>
+      <p class="note" style="margin:6px 0 0">El stock útil no considera el fondo de los estanques (lecturas de 0,1). ${recReal==null?'Para un balance exacto se necesita el ácido recibido real del período.':'El consumo por lecturas estima los días de llegada de camión; la diferencia corresponde a esa estimación.'}</p></div>`;
+  }
+  // diario
+  $('#acDays').hidden=!ACD;$('#acDBtn').textContent=ACD?'▲ Ocultar consumo diario':'📋 Ver consumo diario ('+X.length+' días)';
+  $('#acDT').textContent='Consumo diario '+per;
+  if(ACD){const rows=X.slice().reverse().slice(0,ACY===0?60:400);const mx=Math.max(1,...rows.map(d=>d[1]));
+    $('#acDays').innerHTML=rows.map(d=>`<div class="tkrow" style="grid-template-columns:70px 1fr auto"><b class="n">${fdmY(d[0])}</b><span class="lv"><i style="width:${d[1]/mx*100}%"></i></span><b>${nf(d[1],2)} t</b><span class="kp">${d[2].map((c,j)=>c?`<span>TK${j+1} <b>${nf(c,2)}</b></span>`:'').join('')}${d[3]?`<span style="color:var(--ok)">🚚 Recepción ≈ <b style="color:var(--ok)">${nf(d[3],1)} t</b></span>`:''}${d[5]?`<span>🔁 Traspaso TK4→TK3 <b>${nf(d[5],1)} t</b></span>`:''}${d[6]?`<span>≈ incluye <b>${nf(d[6],2)} t</b> estimadas</span>`:''}${!d[1]&&!d[3]?'<span>Sin consumo</span>':''}</span></div>`).join('')}
+  const av=AC.avisos||{};
+  $('#acNote').textContent='Datos del Excel CONTROL DE ÁCIDO hasta el '+fdmY(AC.actualizado)+'. Toneladas = lectura × 11,2 (TK3 desde el 27/02/2026: × 20). Consumo = baja de la lectura respecto del día anterior; si la lectura sube se considera llegada de camión y no consumo. Desde el 27/02/2026, si el mismo día baja el TK4 y sube el TK3 se considera traspaso y no consumo. En los días con llegada de camión, el consumo se estima con el promedio de los 3 días anteriores y 3 posteriores.'+((av.comas||[]).length?' Lecturas corregidas por coma faltante: '+av.comas.map(c=>'fila '+c[0]+' TK'+c[1]+' '+String(c[2]).replace('.',',')+'→'+String(c[2]/100).replace('.',',')).join('; ')+'.':'')+((av.fechas||[]).length?' Fecha corregida en fila '+av.fechas.join(', ')+'.':'');
+}
+const fdmY=s=>s.slice(8)+'/'+s.slice(5,7)+'/'+s.slice(2,4);
+// Ácido recibido real por año (informado por la planta). Si existe, el balance usa este valor.
+const ACIDO_RECIBIDO={2026:668.5};
+const acFac=(j,f)=>j===2&&f>AC.cambioTK3?20:11.2;
+// stock útil: no cuenta el fondo del estanque (lectura de 0,1 o menos)
+const stockUtil=r=>r[4].reduce((a,lv,j)=>a+(lv!=null&&lv/acFac(j,r[0])>0.1001?lv:0),0);
+
+$('#acYrs').onclick=e=>{const b=e.target.closest('[data-y]');if(!b)return;ACY=+b.dataset.y;acRender()};
+$('#acMos').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.disabled)return;ACM=+b.dataset.m;acRender()};
+$('#acDBtn').onclick=()=>{ACD=!ACD;acRender()};
 /* ---------- start ---------- */
 (async()=>{
   try{const r=await fetch('datos.json',{cache:'no-cache'});BASE=await r.json()}catch(e){}
@@ -1334,6 +1677,237 @@ document.querySelector('.tabs2').onclick=e=>{const b=e.target.closest('[data-v]'
   render();
   if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
+})();
+</script>
+<script>
+(function(){
+const $=s=>document.querySelector(s);
+const MES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DOW=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+const nf=(n,d=0)=>Number(n||0).toLocaleString('es-CL',{minimumFractionDigits:d,maximumFractionDigits:d});
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const title=s=>String(s).split(' ').map(w=>/\d/.test(w)?w.toUpperCase():w.charAt(0).toUpperCase()+w.slice(1).toLowerCase()).join(' ');
+const L=v=>nf(v)+' L';
+const fdate=s=>s.split('-').reverse().join('/');
+let tt;function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>e.classList.remove('show'),2400)}
+function open(html,bind){$('#sheetBody').innerHTML=html;bind&&bind();$('#bg').classList.add('open');$('#sheet').classList.add('open')}
+function close(){$('#bg').classList.remove('open');$('#sheet').classList.remove('open')}
+$('#bg').onclick=close;
+function niceMax(v){if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
+function chart({labels,bars,line,sel,fmtL,fmtR,unitL,unitR,onTap,dimFrom,dots,tipB,tipL,sufB,sufL,tipX}){
+  const W=360,H=220,L=40,R=44,T=24,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*0.62));
+  const mb=niceMax(Math.max(...bars,0)),ml=niceMax(Math.max(...line.filter(v=>v!=null),0));
+  const yb=v=>T+ih-(v/mb)*ih,yl=v=>T+ih-(v/ml)*ih;
+  const hasL=line.some(v=>v!=null);
+  const tipM={W,L,step,c:1,x:tipX||labels,s:[{n:tipB||unitL,v:bars.map(v=>fmtL(v)+(sufB!=null?sufB:' '+unitL)),k:'b'},{n:tipL||unitR,v:line.map(v=>v==null?'—':fmtR(v)+(sufL!=null?sufL:' '+unitR)),k:'l'}].filter(s=>s.n!=='')};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}">`;
+  for(let i=0;i<=4;i++){const y=T+ih*i/4;s+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="var(--line)"/>`;
+    s+=`<text x="${L-5}" y="${y+3}" text-anchor="end">${fmtL(mb*(1-i/4))}</text>${hasL?`<text x="${W-R+5}" y="${y+3}" fill="var(--acc)" style="fill:var(--acc)">${fmtR(ml*(1-i/4))}</text>`:''}`}
+  s+=`<text x="${L-5}" y="10" text-anchor="end" style="font-weight:700">${unitL}</text>${hasL?`<text x="${W-R+5}" y="10" style="fill:var(--acc);font-weight:700">${unitR}</text>`:''}`;
+  bars.forEach((v,i)=>{const x=L+step*i+(step-bw)/2,h=ih-(yb(v)-T);const dim=dimFrom!=null&&i>=dimFrom;
+    s+=`<rect x="${x}" y="${yb(v)}" width="${bw}" height="${Math.max(0,h)}" rx="2" fill="${i===sel?'var(--cu)':'var(--cu-2)'}" opacity="${dim?.35:1}"/>`});
+  const pts=line.map((v,i)=>v==null?null:[L+step*i+step/2,yl(v)]).filter(Boolean);
+  if(pts.length){s+=`<polyline fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linejoin="round" points="${pts.map(p=>p.join(',')).join(' ')}"/>`;
+    if(dots)pts.forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="3" fill="var(--acc)"/>`);else{const lp=pts[pts.length-1];s+=`<circle cx="${lp[0]}" cy="${lp[1]}" r="4" fill="var(--acc)"/>`}}
+  const every=n>16?Math.ceil(n/8):1;
+  labels.forEach((t,i)=>{if(i%every&&i!==n-1)return;s+=`<text x="${L+step*i+step/2}" y="${H-7}" text-anchor="middle" ${i===sel?'style="fill:var(--ink);font-weight:700"':''}>${t}</text>`});
+  if(onTap)labels.forEach((t,i)=>{s+=`<rect data-i="${i}" x="${L+step*i}" y="${T}" width="${step}" height="${ih+B}" fill="transparent" style="cursor:pointer"/>`});
+  return s+'</svg>';
+}
+
+let P=null,YR=null,MO=-1,DD=0,MD='',MALL=false,DAY=null;
+const DN=['Planta','Externos'];
+
+/* ---------- filtros ---------- */
+function inP(f){return (YR===0||+f.slice(0,4)===YR)&&(MO<0||+f.slice(5,7)-1===MO)}
+function periodo(){return YR===0?'2023–'+P.actualizado.slice(0,4):(MO<0?String(YR):MES[MO]+' '+YR)}
+function keysOf(){
+  if(YR===0){const ys=[...new Set(P.entregas.map(e=>e[0].slice(0,4)))].sort();return {keys:ys,labs:ys,tipx:ys,kf:f=>f.slice(0,4),u:'año'}}
+  if(MO<0)return {keys:MES.map((_,i)=>String(i+1).padStart(2,'0')),labs:MES.map(m=>m.slice(0,3)),tipx:MES.map(m=>m+' '+YR),kf:f=>f.slice(5,7),u:'mes'};
+  const nd=new Date(YR,MO+1,0).getDate(),ks=Array.from({length:nd},(_,i)=>String(i+1).padStart(2,'0'));
+  return {keys:ks,labs:ks.map(k=>String(+k)),tipx:ks.map(k=>+k+' '+MES[MO].toLowerCase()),kf:f=>f.slice(8,10),u:'día'};
+}
+
+/* ---------- gráfico consumo ---------- */
+function mainChart(labels,pl,ex,ca,tipx){
+  const W=360,H=220,Lm=42,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*.62));
+  const tot=pl.map((v,i)=>v+ex[i]);const mb=niceMax(Math.max(1,...tot,...ca.filter(v=>v!=null))),y=v=>T+ih-(v/mb)*ih;
+  const tipM={W,L:Lm,step,c:1,x:tipx,s:[{n:'Planta',v:pl.map(L),col:'#1E6FA8'},{n:'Externos',v:ex.map(L),col:'#C0652F'},{n:'Total',v:tot.map(L),col:'var(--ink)'},{n:'Cargas',v:ca.map(v=>v==null?'—':L(v)),col:'#1F8A5B'}]};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">litros</text>`;
+  for(let i=0;i<=4;i++){const yy=T+ih*i/4;s+=`<line x1="${Lm}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${Lm-5}" y="${yy+3}" text-anchor="end">${nf(mb*(1-i/4))}</text>`}
+  pl.forEach((v,i)=>{const x=Lm+step*i+(step-bw)/2;s+=`<rect x="${x}" y="${y(v)}" width="${bw}" height="${T+ih-y(v)}" fill="#1E6FA8"/><rect x="${x}" y="${y(v+ex[i])}" width="${bw}" height="${y(v)-y(v+ex[i])}" fill="#C0652F"/>`});
+  const pts=ca.map((v,i)=>v==null?null:[Lm+step*i+step/2,y(v)]).filter(Boolean);
+  if(pts.length){s+=`<polyline fill="none" stroke="#1F8A5B" stroke-width="2" points="${pts.map(p=>p.join(',')).join(' ')}"/>`;pts.forEach(p=>s+=`<circle cx="${p[0]}" cy="${p[1]}" r="2.6" fill="#1F8A5B"/>`)}
+  const every=n>16?Math.ceil(n/8):1;
+  labels.forEach((t,i)=>{if(i%every&&i!==n-1)return;s+=`<text x="${Lm+step*i+step/2}" y="${H-7}" text-anchor="middle">${t}</text>`});
+  return s+'</svg>';
+}
+
+/* ---------- render ---------- */
+function render(){
+  const ys=[...new Set(P.entregas.map(e=>+e[0].slice(0,4)))].sort();
+  if(YR==null)YR=ys[ys.length-1];
+  $('#pe_yrs').innerHTML=ys.map(y=>`<button data-y="${y}" aria-pressed="${y===YR}">${y}</button>`).join('')+`<button data-y="0" aria-pressed="${YR===0}">Todos</button>`;
+  {const c=$('#pe_yrs'),s=c.querySelector('[aria-pressed="true"]');if(s)c.scrollLeft=s.offsetLeft-c.clientWidth/2+s.clientWidth/2}
+  const msAv=[...new Set(P.entregas.filter(e=>+e[0].slice(0,4)===YR).map(e=>+e[0].slice(5,7)-1))];
+  if(YR===0||(MO>=0&&!msAv.includes(MO)))MO=-1;
+  $('#pe_mos').hidden=YR===0;
+  $('#pe_mos').innerHTML=`<button data-m="-1" aria-pressed="${MO<0}">Año</button>`+MES.map((m,i)=>`<button data-m="${i}" aria-pressed="${i===MO}" ${msAv.includes(i)?'':'disabled'}>${m.slice(0,3)}</button>`).join('');
+  {const c=$('#pe_mos'),s=c.querySelector('[aria-pressed="true"]');if(s&&MO>=0)c.scrollLeft=s.offsetLeft-c.clientWidth/2+s.clientWidth/2;else c.scrollLeft=0}
+  const E=P.entregas.filter(e=>inP(e[0])),C=P.cargas.filter(c=>inP(c[0]));
+  const tot=E.reduce((a,e)=>a+e[3],0),tp=E.filter(e=>!e[5]).reduce((a,e)=>a+e[3],0),te=tot-tp,tc=C.reduce((a,c)=>a+c[1],0);
+  const days=new Set(E.map(e=>e[0])).size;
+  $('#pe_hLbl').textContent='Petróleo entregado '+periodo();
+  $('#pe_hTot').innerHTML=nf(tot)+'<span>L</span>';
+  $('#pe_hSub').textContent=nf(E.length)+' entregas · '+days+' días con movimiento · promedio '+L(days?tot/days:0)+' por día';
+  $('#pe_spP').style.width=(tot?tp/tot*100:0)+'%';$('#pe_spE').style.width=(tot?te/tot*100:0)+'%';
+  $('#pe_lgP').textContent=L(tp)+' · '+nf(tot?tp/tot*100:0,0)+'%';$('#pe_lgE').textContent=L(te)+' · '+nf(tot?te/tot*100:0,0)+'%';
+  const nm=new Set(E.map(e=>e[1])).size;
+  $('#pe_hStats').innerHTML=`<div><small>Cargas al estanque</small><b>${L(tc)}</b></div><div><small>Cargas − entregas</small><b class="${tc-tot>=0?'up':'dn'}">${(tc-tot>=0?'+':'−')+L(Math.abs(tc-tot))}</b></div><div><small>Máquinas</small><b>${nm}</b></div>`;
+  // chart
+  const K=keysOf(),pl=K.keys.map(()=>0),ex=K.keys.map(()=>0),ca=K.keys.map(()=>0);
+  E.forEach(e=>{const i=K.keys.indexOf(K.kf(e[0]));if(i<0)return;if(e[5])ex[i]+=e[3];else pl[i]+=e[3]});
+  C.forEach(c=>{const i=K.keys.indexOf(K.kf(c[0]));if(i>=0)ca[i]+=c[1]});
+  const last=P.actualizado,lastI=K.keys.reduce((m,k,i)=>{const full=YR===0?k:MO<0?YR+'-'+k:YR+'-'+String(MO+1).padStart(2,'0')+'-'+k;return full<=last.slice(0,full.length)?i:m},-1);
+  const caL=ca.map((v,i)=>i<=lastI?v:null);
+  $('#pe_cTitle').textContent='Consumo de petróleo '+periodo();
+  $('#pe_cSub').textContent='Litros entregados cada '+K.u+' a la planta y a externos, y litros cargados al estanque';
+  $('#pe_cMain').innerHTML=mainChart(K.labs,pl,ex,caL,K.tipx);
+  renderDest(E);renderMaq(E);renderCargas(C);
+  if(!DAY)DAY=P.actualizado;renderDay();
+  $('#pe_note').textContent='Datos del Excel ENTREGA_DE_PETROLEO hasta el '+fdate(P.actualizado)+'.'+(P.corregidas&&P.corregidas.length?' Fila con fecha mal escrita en el Excel (se usó la fecha del registro anterior): '+P.corregidas.join(', ')+'.':'');
+}
+function renderDest(E){
+  const Ed=E.filter(e=>e[5]===DD),tot=Ed.reduce((a,e)=>a+e[3],0),g={};
+  Ed.forEach(e=>{const o=g[e[4]]=g[e[4]]||{l:0,n:0,m:new Set()};o.l+=e[3];o.n++;o.m.add(e[1])});
+  const ks=Object.keys(g).sort((a,b)=>g[b].l-g[a].l),mx=Math.max(1,...ks.map(k=>g[k].l));
+  $('#pe_dTabs').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.d===DD));
+  $('#pe_dTitle').textContent='¿Dónde va el petróleo? '+periodo();
+  $('#pe_dSub').textContent=DN[DD]+': '+L(tot)+' en '+ks.length+' centros de costo · toca uno para ver sus máquinas';
+  const col=DD?'var(--ex)':'var(--pl)';
+  $('#pe_dList').innerHTML=ks.map(k=>{const o=g[k];return `<button class="lrow" data-cc="${k}"><b class="n">${esc(title(P.cc[k]))} <span style="color:var(--muted)">›</span></b><span class="t">${L(o.l)}</span><span class="bar"><i style="width:${o.l/mx*100}%;background:${col}"></i></span><span class="kp"><span><b>${nf(tot?o.l/tot*100:0,1)}%</b> del total ${DN[DD].toLowerCase()}</span><span>${nf(o.n)} entregas</span><span>${o.m.size} ${o.m.size===1?'máquina':'máquinas'}</span></span></button>`}).join('')||'<p class="note">Sin entregas en este período.</p>';
+}
+function renderMaq(E){
+  const Em=MD===''?E:E.filter(e=>e[5]===+MD),tot=Em.reduce((a,e)=>a+e[3],0),g={};
+  Em.forEach(e=>{const o=g[e[1]]=g[e[1]]||{l:0,n:0,cc:{},d:[0,0]};o.l+=e[3];o.n++;o.cc[e[4]]=(o.cc[e[4]]||0)+e[3];o.d[e[5]]+=e[3]});
+  const ks=Object.keys(g).sort((a,b)=>g[b].l-g[a].l),mx=Math.max(1,...ks.map(k=>g[k].l));
+  $('#pe_mTabs').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.d===MD));
+  $('#pe_mTitle').textContent='Máquinas '+periodo();
+  $('#pe_mSub').textContent=ks.length+' máquinas · '+L(tot)+' · toca una para ver su detalle';
+  const show=MALL?ks:ks.slice(0,12);
+  $('#pe_mList').innerHTML=show.map((k,i)=>{const o=g[k],cc=Object.keys(o.cc).sort((a,b)=>o.cc[b]-o.cc[a])[0],isE=o.d[1]>o.d[0];
+    return `<button class="lrow" data-maq="${k}"><b class="n">${i+1}. ${esc(title(P.maq[k]))}<span class="dtag ${isE?'dE':'dP'}">${isE?'Externo':'Planta'}</span></b><span class="t">${L(o.l)}</span><span class="bar"><i style="width:${o.l/mx*100}%;background:${isE?'var(--ex)':'var(--pl)'}"></i></span><span class="kp"><span>${nf(o.n)} entregas</span><span>prom. <b>${L(o.l/o.n)}</b></span><span>${esc(title(P.cc[cc]))}</span><span>${nf(tot?o.l/tot*100:0,1)}%</span></span></button>`}).join('')||'<p class="note">Sin entregas en este período.</p>';
+  $('#pe_mMore').hidden=ks.length<=12;$('#pe_mMore').textContent=MALL?'Ver menos':'Ver las '+ks.length+' máquinas';
+}
+function renderCargas(C){
+  const tot=C.reduce((a,c)=>a+c[1],0);
+  $('#pe_kTitle').textContent='Cargas al estanque '+periodo();
+  $('#pe_kSub').textContent=C.length+' cargas · '+L(tot)+(C.length?' · promedio '+L(tot/C.length)+' por carga':'');
+  const list=C.slice().reverse(),show=YR===0?list.slice(0,40):list;
+  $('#pe_kList').innerHTML=show.map(c=>`<div class="lrow" style="cursor:default"><b class="n">${fdate(c[0])}</b><span class="t" style="color:var(--ca)">+${L(c[1])}</span><span class="kp"><span>${esc(title(P.sol[c[2]]))}</span></span></div>`).join('')||'<p class="note">Sin cargas en este período.</p>';
+}
+
+/* ---------- detalle ---------- */
+function seriesFor(E){const K=keysOf(),v=K.keys.map(()=>0);E.forEach(e=>{const i=K.keys.indexOf(K.kf(e[0]));if(i>=0)v[i]+=e[3]});return {K,v}}
+function ccDetail(k){
+  const E=P.entregas.filter(e=>inP(e[0])&&e[4]===+k),tot=E.reduce((a,e)=>a+e[3],0),g={};
+  E.forEach(e=>{const o=g[e[1]]=g[e[1]]||{l:0,n:0};o.l+=e[3];o.n++});
+  const ks=Object.keys(g).sort((a,b)=>g[b].l-g[a].l),{K,v}=seriesFor(E),isE=E.length&&E[0][5];
+  open(`<h3>${esc(title(P.cc[k]))}<span class="dtag ${isE?'dE':'dP'}">${isE?'Externo':'Planta'}</span></h3><p class="note" style="margin:0 0 10px">${periodo()}</p>
+    <div class="mstats"><div><small>Litros</small><b>${L(tot)}</b></div><div><small>Entregas</small><b>${nf(E.length)}</b></div></div>
+    <div class="card" style="margin:8px 0 0;padding:12px 8px 8px"><h2 style="font-size:.98rem">Litros por ${K.u}</h2><div class="chart">${chart({labels:K.labs,bars:v,line:v.map(()=>null),sel:-1,fmtL:x=>nf(x),fmtR:x=>nf(x),unitL:'litros',unitR:'',tipB:'Litros',tipL:'',sufB:' L',sufL:'',tipX:K.tipx})}</div></div>
+    <h2 style="font-size:.98rem;margin:14px 0 0">Máquinas</h2>
+    <table class="mtab"><thead><tr><th>Máquina</th><th>Entregas</th><th>Litros</th><th>%</th></tr></thead><tbody>${ks.map(m=>`<tr><td style="text-align:left">${esc(title(P.maq[m]))}</td><td>${g[m].n}</td><td>${nf(g[m].l)}</td><td>${nf(tot?g[m].l/tot*100:0,1)}%</td></tr>`).join('')}</tbody></table>
+    <button class="secondary" id="xC">Cerrar</button>`,()=>{$('#xC').onclick=close});
+}
+function maqDetail(k){
+  const E=P.entregas.filter(e=>inP(e[0])&&e[1]===+k),tot=E.reduce((a,e)=>a+e[3],0),{K,v}=seriesFor(E),so={},cc={};
+  E.forEach(e=>{so[e[2]]=(so[e[2]]||0)+1;cc[e[4]]=(cc[e[4]]||0)+e[3]});
+  const last=E.slice().reverse().slice(0,15);
+  open(`<h3>${esc(title(P.maq[k]))}</h3><p class="note" style="margin:0 0 10px">${periodo()} · ${Object.keys(cc).map(c=>esc(title(P.cc[c]))).join(', ')}</p>
+    <div class="mstats"><div><small>Litros</small><b>${L(tot)}</b></div><div><small>Entregas</small><b>${nf(E.length)}</b></div><div><small>Promedio por entrega</small><b>${L(E.length?tot/E.length:0)}</b></div><div><small>Solicitante principal</small><b style="font-size:.95rem">${E.length?esc(title(P.sol[Object.keys(so).sort((a,b)=>so[b]-so[a])[0]])):'—'}</b></div></div>
+    <div class="card" style="margin:8px 0 0;padding:12px 8px 8px"><h2 style="font-size:.98rem">Litros por ${K.u}</h2><div class="chart">${chart({labels:K.labs,bars:v,line:v.map(()=>null),sel:-1,fmtL:x=>nf(x),fmtR:x=>nf(x),unitL:'litros',unitR:'',tipB:'Litros',tipL:'',sufB:' L',sufL:'',tipX:K.tipx})}</div></div>
+    <h2 style="font-size:.98rem;margin:14px 0 0">Últimas entregas</h2>
+    <table class="mtab"><thead><tr><th>Fecha</th><th style="text-align:left">Solicitante</th><th>Litros</th></tr></thead><tbody>${last.map(e=>`<tr><td>${fdate(e[0])}</td><td style="text-align:left">${esc(title(P.sol[e[2]]))}</td><td>${nf(e[3])}</td></tr>`).join('')}</tbody></table>
+    <button class="secondary" id="xM">Cerrar</button>`,()=>{$('#xM').onclick=close});
+}
+
+/* ---------- reporte diario ---------- */
+function dayData(d){const E=P.entregas.filter(e=>e[0]===d),C=P.cargas.filter(c=>c[0]===d);const tot=E.reduce((a,e)=>a+e[3],0),tp=E.filter(e=>!e[5]).reduce((a,e)=>a+e[3],0);return {E,C,tot,tp,te:tot-tp,tc:C.reduce((a,c)=>a+c[1],0)}}
+function renderDay(){
+  $('#pe_dDay').value=DAY;$('#pe_dDay').min=P.entregas[0][0];$('#pe_dDay').max=P.actualizado;
+  const D=dayData(DAY),dw=DOW[new Date(DAY+'T12:00:00').getDay()];
+  $('#pe_rStats').innerHTML=`<div><small>Total entregado · ${dw}</small><b>${L(D.tot)}</b></div><div><small>Entregas</small><b>${D.E.length}</b></div><div><small>Planta</small><b style="color:var(--pl)">${L(D.tp)}</b></div><div><small>Externos</small><b style="color:var(--ex)">${L(D.te)}</b></div>`;
+  if(!D.E.length&&!D.C.length){$('#pe_rBody').innerHTML='<p class="note">No hay movimientos registrados este día.</p>';$('#pe_rPdf').hidden=true;return}
+  $('#pe_rPdf').hidden=false;
+  const g={};D.E.forEach(e=>{const k=e[5]+'|'+e[4];g[k]=(g[k]||0)+e[3]});
+  const byCC=Object.entries(g).sort((a,b)=>a[0].localeCompare(b[0])||b[1]-a[1]);
+  $('#pe_rBody').innerHTML=`<h2 style="font-size:.95rem;margin:4px 0 0">Por destino</h2><table class="mtab"><tbody>${byCC.map(([k,v])=>{const[d,c]=k.split('|');return `<tr><td style="text-align:left"><span class="dtag ${+d?'dE':'dP'}" style="margin:0 6px 0 0">${+d?'E':'P'}</span>${esc(title(P.cc[c]))}</td><td>${L(v)}</td></tr>`}).join('')}</tbody></table>
+    <h2 style="font-size:.95rem;margin:12px 0 0">Detalle de entregas</h2>
+    <div style="overflow-x:auto"><table class="mtab"><thead><tr><th style="text-align:left">Máquina</th><th style="text-align:left">Solicitante</th><th style="text-align:left">Centro de costo</th><th>Litros</th></tr></thead><tbody>${D.E.map(e=>`<tr><td style="text-align:left"><span class="dtag ${e[5]?'dE':'dP'}" style="margin:0 6px 0 0">${e[5]?'E':'P'}</span>${esc(title(P.maq[e[1]]))}</td><td style="text-align:left">${esc(title(P.sol[e[2]]))}</td><td style="text-align:left">${esc(title(P.cc[e[4]]))}</td><td>${nf(e[3])}</td></tr>`).join('')}<tr class="tot"><td colspan="3">Total</td><td>${nf(D.tot)}</td></tr></tbody></table></div>
+    ${D.C.length?`<p class="note" style="color:var(--ca);font-weight:700">Carga al estanque este día: +${L(D.tc)} (${D.C.map(c=>esc(title(P.sol[c[2]]))).join(', ')})</p>`:''}`;
+  pdfPrep().catch(()=>{});
+}
+function shiftDay(n){const ds=[...new Set(P.entregas.map(e=>e[0]))].sort();let i=ds.indexOf(DAY);if(i<0){i=ds.findIndex(d=>d>DAY);if(n<0)i--; }else i+=n;if(i>=0&&i<ds.length){DAY=ds[i];renderDay()}}
+/* ---------- PDF ---------- */
+const PDF_LIBS=[['https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'],
+  ['https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js']];
+let _pdfP=null,_logo=null;
+function loadScript(src){return new Promise((ok,ko)=>{const s=document.createElement('script');s.src=src;s.onload=ok;s.onerror=ko;document.head.appendChild(s)})}
+function pdfPrep(){
+  if(!_pdfP)_pdfP=(async()=>{if(window.jspdf&&window.jspdf.jsPDF&&window.jspdf.jsPDF.API&&window.jspdf.jsPDF.API.autoTable)return;for(const alts of PDF_LIBS){let done=false;for(const u of alts){try{await loadScript(u);done=true;break}catch(e){}}if(!done)throw new Error('lib')}})().catch(e=>{_pdfP=null;throw e});
+  if(!_logo){const img=document.querySelector('.logo');if(img){const draw=()=>{try{const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;c.getContext('2d').drawImage(img,0,0);_logo={d:c.toDataURL('image/png'),w:img.naturalWidth,h:img.naturalHeight}}catch(e){}};img.complete?draw():img.addEventListener('load',draw,{once:true})}}
+  return _pdfP;
+}
+async function sharePDF(blob,name,text){
+  const file=new File([blob],name,{type:'application/pdf'});
+  try{if(navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:name,text});return}}catch(e){if(e&&e.name==='AbortError')return}
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();toast('PDF descargado: '+name);
+}
+
+function dayPDF(){
+  const btn=$('#pe_rPdf');
+  if(!window.jspdf||!window.jspdf.jsPDF){btn.textContent='Preparando PDF…';pdfPrep().then(()=>{btn.textContent='📄 Generar PDF del día';toast('Listo, toca de nuevo para generar el PDF')}).catch(()=>{btn.textContent='📄 Generar PDF del día';toast('No se pudo cargar el generador de PDF. Revisa tu conexión.')});return}
+  const D=dayData(DAY),fd=fdate(DAY),dw=DOW[new Date(DAY+'T12:00:00').getDay()];
+  const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'}),W=210;let y=12;
+  if(_logo){const lh=13,lw=lh*_logo.w/_logo.h;doc.addImage(_logo.d,'PNG',12,y-2,lw,lh)}
+  doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(20,33,45);doc.text('Reporte diario de petróleo',W-12,y+3,{align:'right'});
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(94,107,119);doc.text('Minera Anita SpA · '+title(dw)+' '+fd,W-12,y+9,{align:'right'});
+  y+=17;doc.setDrawColor(215,222,228);doc.line(12,y,W-12,y);y+=7;
+  const info=[['Total entregado',L(D.tot)],['Planta',L(D.tp)],['Externos',L(D.te)],['Entregas',String(D.E.length)],['Carga al estanque',D.tc?'+'+L(D.tc):'—']];
+  const cw=(W-24)/info.length;info.forEach(([k,v],i)=>{doc.setFontSize(8);doc.setTextColor(94,107,119);doc.text(k,12+cw*i,y);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(20,33,45);doc.text(v,12+cw*i,y+5.5);doc.setFont('helvetica','normal')});
+  y+=12;
+  const g={};D.E.forEach(e=>{const k=e[5]+'|'+e[4];g[k]=(g[k]||0)+e[3]});
+  const byCC=Object.entries(g).sort((a,b)=>a[0].localeCompare(b[0])||b[1]-a[1]).map(([k,v])=>{const[d,c]=k.split('|');return [DN[+d],title(P.cc[c]),nf(v),nf(D.tot?v/D.tot*100:0,1)+'%']});
+  doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(20,33,45);doc.text('Destino del petróleo',12,y);
+  const boldRow=r=>r.map(c=>({content:c,styles:{fontStyle:'bold',fillColor:[238,242,245]}}));
+  doc.autoTable({startY:y+2,head:[['Destino','Centro de costo','Litros','%']],body:byCC.concat([boldRow(['','Total',nf(D.tot),'100%'])]),styles:{fontSize:8.5,cellPadding:1.8,textColor:[20,33,45]},headStyles:{fillColor:[30,111,168],textColor:255},footStyles:{fillColor:[238,242,245],textColor:[20,33,45],fontStyle:'bold'},columnStyles:{2:{halign:'right'},3:{halign:'right'}},margin:{left:12,right:12}});
+  y=doc.lastAutoTable.finalY+8;doc.text('Detalle de entregas',12,y);
+  doc.autoTable({startY:y+2,head:[['#','Máquina','Solicitante','Centro de costo','Destino','Litros']],body:D.E.map((e,i)=>[String(i+1),title(P.maq[e[1]]),title(P.sol[e[2]]),title(P.cc[e[4]]),DN[e[5]],nf(e[3])]).concat([boldRow(['','','','','Total',nf(D.tot)])]),
+    styles:{fontSize:8,cellPadding:1.6,textColor:[20,33,45]},headStyles:{fillColor:[30,111,168],textColor:255},footStyles:{fillColor:[238,242,245],textColor:[20,33,45],fontStyle:'bold'},alternateRowStyles:{fillColor:[245,247,249]},columnStyles:{5:{halign:'right'}},margin:{left:12,right:12},
+    didDrawPage:()=>{const ph=doc.internal.pageSize.getHeight();doc.setFontSize(7.5);doc.setTextColor(120);doc.text('Generado el '+new Date().toLocaleDateString('es-CL')+' · App Consumo de Petróleo · Diseñado por BG IA Solutions',12,ph-7);doc.text('Página '+doc.internal.getNumberOfPages(),W-12,ph-7,{align:'right'})}});
+  if(D.C.length){y=doc.lastAutoTable.finalY+7;doc.setFontSize(9);doc.setTextColor(31,138,91);doc.text('Carga al estanque este día: +'+L(D.tc)+' ('+D.C.map(c=>title(P.sol[c[2]])).join(', ')+')',12,y)}
+  sharePDF(doc.output('blob'),'Reporte_Petroleo_'+DAY+'.pdf','Reporte de petróleo '+fd+' · '+L(D.tot));
+}
+
+/* ---------- eventos ---------- */
+$('#pe_yrs').onclick=e=>{const b=e.target.closest('[data-y]');if(!b)return;YR=+b.dataset.y;render()};
+$('#pe_mos').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.disabled)return;MO=+b.dataset.m;render()};
+$('#pe_dTabs').onclick=e=>{const b=e.target.closest('[data-d]');if(!b)return;DD=+b.dataset.d;renderDest(P.entregas.filter(x=>inP(x[0])))};
+$('#pe_mTabs').onclick=e=>{const b=e.target.closest('[data-d]');if(!b)return;MD=b.dataset.d;MALL=false;renderMaq(P.entregas.filter(x=>inP(x[0])))};
+$('#pe_mMore').onclick=()=>{MALL=!MALL;renderMaq(P.entregas.filter(x=>inP(x[0])))};
+$('#pe_dList').onclick=e=>{const b=e.target.closest('[data-cc]');if(b)ccDetail(b.dataset.cc)};
+$('#pe_mList').onclick=e=>{const b=e.target.closest('[data-maq]');if(b)maqDetail(b.dataset.maq)};
+$('#pe_dDay').onchange=()=>{if($('#pe_dDay').value){DAY=$('#pe_dDay').value;renderDay()}};
+$('#pe_dPrev').onclick=()=>shiftDay(-1);$('#pe_dNext').onclick=()=>shiftDay(1);
+$('#pe_rPdf').onclick=dayPDF;
+window.peRaw=()=>P;
+window.peData=async()=>{if(!P){try{const r=await fetch('petroleo.json',{cache:'no-cache'});P=await r.json()}catch(e){}}return P};
+window.peInit=async()=>{
+  if(!P){try{const r=await fetch('petroleo.json',{cache:'no-cache'});P=await r.json()}catch(e){}}
+  if(!P){$('#pe_note').textContent='No se pudieron cargar los datos de petróleo.';return}
+  render();
+};
 })();
 </script>
 </body>
