@@ -1,0 +1,59 @@
+name: Actualizar producción desde Dropbox
+
+on:
+  schedule:
+    # Cada 2 horas entre las 8:00 y las 20:00 (hora de Chile aprox.)
+    - cron: "0 11-23/2 * * *"
+  workflow_dispatch: {}   # botón "Run workflow" para actualizar a mano
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install openpyxl==3.1.5
+      - name: Producción diaria (RECUPERACION)
+        env:
+          DROPBOX_URL: ${{ secrets.DROPBOX_URL }}
+        run: python actualizar_datos.py
+      - name: Pallets y categorías (CONTROL DE CALIDAD)
+        if: ${{ env.URL_CAL != '' }}
+        env:
+          URL_CAL: ${{ secrets.DROPBOX_URL_CALIDAD }}
+          DROPBOX_URL_CALIDAD: ${{ secrets.DROPBOX_URL_CALIDAD }}
+        run: python actualizar_calidad.py
+      - name: Ingreso de mineral (INGRESO MINERAL)
+        if: ${{ env.URL_MIN != '' }}
+        env:
+          URL_MIN: ${{ secrets.DROPBOX_URL_MINERAL }}
+          DROPBOX_URL_MINERAL: ${{ secrets.DROPBOX_URL_MINERAL }}
+        run: python actualizar_mineral.py
+      - name: Petróleo (ENTREGA DE PETRÓLEO)
+        if: ${{ env.URL_PE != '' }}
+        env:
+          URL_PE: ${{ secrets.DROPBOX_URL_PETROLEO }}
+          DROPBOX_URL_PETROLEO: ${{ secrets.DROPBOX_URL_PETROLEO }}
+        run: python actualizar_petroleo.py
+      - name: Ácido (CONTROL DE ÁCIDO)
+        if: ${{ env.URL_AC != '' }}
+        env:
+          URL_AC: ${{ secrets.DROPBOX_URL_ACIDO }}
+          DROPBOX_URL_ACIDO: ${{ secrets.DROPBOX_URL_ACIDO }}
+        run: python actualizar_acido.py
+      - name: Guardar cambios
+        run: |
+          if git diff --quiet; then
+            echo "Nada que guardar."
+          else
+            git config user.name "actualizador-automatico"
+            git config user.email "actions@github.com"
+            git add datos.json pallets.json mineral.json petroleo.json acido.json
+            git commit -m "Datos actualizados desde Dropbox"
+            git push
+          fi
