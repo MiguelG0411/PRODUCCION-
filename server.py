@@ -159,8 +159,25 @@ def api_actualizar():
     return jsonify(_meta()), 202
 
 
-_armar()                  # deja disponible al menos el histórico mientras descarga
-iniciar_actualizacion()   # descarga inicial al arrancar el servidor
+_pid = None
+
+
+@app.before_request
+def _arrancar():
+    """Descarga inicial en el proceso que atiende las visitas.
+    Render lanza gunicorn con --preload: el módulo se importa en un proceso y luego se copia a otro,
+    y los hilos no se copian. Por eso la descarga no parte al importar sino aquí, una vez por proceso
+    (la primera visita es la revisión de salud que Render hace apenas arranca el servidor)."""
+    global _pid
+    if _pid == os.getpid(): return
+    with _lock:
+        if _pid == os.getpid(): return
+        _pid = os.getpid()
+        _estado.update(cargando=False, inicio=0.0)   # estado copiado de otro proceso: se reinicia
+    iniciar_actualizacion()
+
+
+_armar()   # deja disponible al menos el histórico mientras descarga
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
