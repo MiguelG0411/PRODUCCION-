@@ -1753,7 +1753,7 @@ async function esperarServidor(){
     m=await getJSON('api/estado');if(!m.cargando)return m;
     // si el servidor se reinicia a mitad de la descarga (por ejemplo, por falta de memoria) vuelve a empezar
     if(ini!=null&&m.inicio!==ini)throw new Error('El servidor se reinició durante la descarga');ini=m.inicio;
-    if(Date.now()-t0>8*60e3)throw new Error('La descarga está tardando más de 8 minutos');
+    if(Date.now()-t0>4*60e3){toast('La descarga está tardando mucho; se muestran los datos disponibles');return m}
     syncUI(m,true);await pausa(1500);
   }
 }
