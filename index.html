@@ -331,6 +331,8 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
       <div class="lbl" id="mDispSub"></div>
       <div class="flow"><div><small>Ingresado</small><b id="mIng">0</b></div><span class="op">−</span><div><small>Chancado</small><b id="mCh">0</b></div><span class="op">−</span><div><small>Stock pile</small><b id="mSp">0</b></div></div>
       <p class="note" id="mFlowNote" style="margin:10px 0 0"></p>
+      <div class="flow" id="mRipBox" hidden style="margin-top:12px;grid-template-columns:1fr 1fr 1fr"><div><small id="mRipL">Ripio en pilas</small><b id="mRipT">0</b></div><div><small>Ley ripio</small><b id="mRipLey">—</b></div><div><small>Último mes</small><b id="mRipU">—</b></div></div>
+      <p class="note" id="mRipNote" hidden style="margin:6px 0 0"></p>
     </section>
     <section class="card">
       <h2>¿De qué minas es el mineral por chancar?</h2>
@@ -595,7 +597,7 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
     <p class="note" id="acNote"></p>
     </div>
   </div>
-  <footer class="credit">Diseñado por <b>BG IA Solutions</b><br><a href="tel:+56955374077">📞 +56 9 5537 4077</a><br><a href="tel:+56957220849">📞 +56 9 5722 0849</a><br><a href="https://bgiasolutions.cl/" target="_blank" rel="noopener">🌐 bgiasolutions.cl</a></footer>
+  <footer class="credit">Diseñado por <b>BG Solutions</b><br><a href="tel:+56955374077">📞 +56 9 5537 4077</a><br><a href="tel:+56957220849">📞 +56 9 5722 0849</a><br><a href="https://bgiasolutions.cl/" target="_blank" rel="noopener">🌐 bgiasolutions.cl</a></footer>
 </div>
 
 <button class="fab" id="addBtn" aria-label="Registrar producción">+</button>
@@ -871,6 +873,13 @@ function minRender(){
   const dl=L.filter(l=>l[6]===0);
   $('#mDisp').innerHTML=tf(disp)+'<span>t</span>';
   $('#mDispSub').textContent=dl.length+' camiones en cancha'+(dl.length?' · el más antiguo llegó el '+dl.map(l=>l[1]).sort()[0].split('-').reverse().join('/'):'');
+  // ripio dispuesto en pilas: no es mineral por chancar, pero aporta cobre a la producción
+  const RY=Object.keys(RIPIO).map(Number).sort(),ry=RY.includes(+TODAY.slice(0,4))?+TODAY.slice(0,4):RY[RY.length-1],rr=RIPIO[ry];
+  $('#mRipBox').hidden=$('#mRipNote').hidden=!rr;
+  if(rr){const um=(MIN.ripio||[]).filter(x=>x[0].startsWith(ry+'-')).pop();
+    $('#mRipL').textContent='Ripio en pilas '+ry;$('#mRipT').textContent=nf(rr.t)+' t';$('#mRipLey').textContent=nf(rr.ley,2)+'%';
+    $('#mRipU').textContent=um?MES[+um[0].slice(5,7)-1].slice(0,3)+' · '+nf(um[1])+' t':'—';
+    $('#mRipNote').textContent='Ripio de la hoja INFORME DE PILAS. Ya está en pilas de lixiviación: no se suma al mineral disponible, pero aporta '+nf(rr.cu*SULF,1)+' t de sulfato (al '+nf(REC_RIPIO*100,0)+'%: '+nf(rr.cu*SULF*REC_RIPIO,1)+' t) para la recuperación.'}
   $('#mIng').textContent=nf(ing);$('#mCh').textContent=nf(ch);$('#mSp').textContent=nf(sp,1);
   const y0=L.map(l=>l[1]).sort()[0].slice(0,4);
   $('#mFlowNote').textContent='Toneladas desde '+y0+'. Ingresado − chancado (lotes con fecha de chancado) − stock pile (lotes con ley y sin fecha de chancado).';
@@ -942,7 +951,7 @@ function recProdRender(){
   const dmin=dm.reduce((a,b)=>a+b,0);
   $('#rcT').textContent='Recuperación '+YEAR;
   $('#rcS').textContent='Sulfato producido ÷ sulfato disponible del mineral ingresado en el año';
-  $('#rcBox').innerHTML=recBox(dmin,rs*REC_RIPIO,rs,[YEAR]);
+  $('#rcBox').innerHTML=recBox(dmin,rs*REC_RIPIO,rs,[YEAR],rp);
   const last=Object.keys(D).filter(k=>+k.slice(0,4)===YEAR).sort().pop();const lm=last?+last.slice(5,7)-1:-1;
   let ad=0,ap=0;const line=dm.map((d,i)=>{ad+=d+(rp?rp.m[i]*REC_RIPIO:0);ap+=pm[i];return i<=lm&&ad?ap/ad*100:null});
   $('#cRec').innerHTML=lm<0?'':chart({labels:MES.map(x=>x.slice(0,3)),bars:pm,line,sel:MON,fmtL:v=>nf(v,v<10?1:0),fmtR:v=>nf(v,0)+'%',unitL:'t sulfato',unitR:'recup.',dimFrom:lm+1,dots:true,tipB:'Producido',tipL:'Recup. acumulada',sufB:' t',sufL:'',tipX:MES.map(m=>m+' '+YEAR)});
@@ -976,7 +985,7 @@ function tablaAnios(ys,t,c,pa,cu,ac){
   return `<div style="overflow-x:auto"><table class="mtab"><thead><tr><th>Año</th><th>Tonelaje</th><th>Ley</th><th>Consumo<br>kg/t</th><th>Sulfato<br>disp. (t)</th></tr></thead><tbody>${rows}
     <tr class="tot"><td>Total</td><td>${nf(T,1)}</td><td>${PA?nf(CU/PA*100,2)+'%':'—'}</td><td>${PA?nf(AC/PA,1):'—'}</td><td>${PA?nf(CU*SULF,1):'—'}</td></tr>${ripT?`
     <tr class="tot rip"><td>Ripio</td><td>${nf(ripT,1)}</td><td>${nf(ripS/SULF/ripT*100,2)}%</td><td>s/a</td><td>${nf(ripS,1)}</td></tr>`:''}</tbody></table></div>
-    ${recBox(cuP*SULF,ripS*REC_RIPIO,ripS,pys)}
+    ${recBox(cuP*SULF,ripS*REC_RIPIO,ripS,pys,{t:ripT,ley:ripT?ripS/SULF/ripT*100:0})}
     <p class="note" style="margin:8px 2px 0">La recuperación global de todos los años compara solo los años con producción registrada (${pys[0]}–${pys[pys.length-1]}); el mineral de ${ys.filter(y=>y<y0).join(', ')||'—'} no entra en el disponible.</p>`;
 }
 
@@ -989,12 +998,12 @@ let RIPIO={};
 function ripioPorAnio(R){const o={};(R||[]).forEach(([m,t,ley])=>{const y=+m.slice(0,4),r=o[y]=o[y]||{t:0,cu:0,m:Array(12).fill(0)};
   r.t+=t;r.cu+=t*ley/100;r.m[+m.slice(5,7)-1]+=t*ley/100*SULF});Object.values(o).forEach(r=>r.ley=r.t?r.cu/r.t*100:0);return o}
 const REC_RIPIO=0.70; // recuperación considerada para el ripio
-function recBox(dmin,drip,dripTot,yrs){drip=drip||0;const disp=dmin+drip;yrs=yrs||[MY];
+function recBox(dmin,drip,dripTot,yrs,rip){drip=drip||0;const disp=dmin+drip;yrs=yrs||[MY];
   const D=DIAS(),ks=Object.keys(D).filter(k=>yrs.includes(+k.slice(0,4))).sort();
   const prod=ks.reduce((a,k)=>a+kgOf(D[k]),0)/1000;
   if(!ks.length)return `<div class="rec"><div class="rr"><span>Sulfato disponible</span><b>${nf(disp,1)} t</b></div><div class="rr"><span>Sulfato producido</span><b>sin datos</b></div><p class="note" style="margin:6px 0 0">No hay producción diaria registrada para ${yrs.join(', ')}.</p></div>`;
   const r=disp?prod/disp*100:0,last=ks[ks.length-1];
-  return `<div class="rec">${drip?`<div class="rr sm"><span>Disponible mineral</span><b>${nf(dmin,1)} t</b></div><div class="rr sm"><span>+ Ripio (${nf(REC_RIPIO*100,0)}% de ${nf(dripTot,1)} t)</span><b>${nf(drip,1)} t</b></div>`:''}<div class="rr"><span>Sulfato disponible${drip?' total':''}</span><b>${nf(disp,1)} t</b></div>
+  return `<div class="rec">${drip?`<div class="rr sm"><span>Disponible mineral</span><b>${nf(dmin,1)} t</b></div><div class="rr sm"><span>+ Ripio${rip&&rip.t?` ${nf(rip.t)} t al ${nf(rip.ley,2)}%`:''} (${nf(REC_RIPIO*100,0)}% de ${nf(dripTot,1)} t de sulfato)</span><b>${nf(drip,1)} t</b></div>`:''}<div class="rr"><span>Sulfato disponible${drip?' total':''}</span><b>${nf(disp,1)} t</b></div>
     <div class="rr"><span>Sulfato producido</span><b>${nf(prod,1)} t</b></div>
     <div class="rr big"><span>Recuperación global</span><b>${nf(r,1)}%</b></div>
     <p class="note" style="margin:6px 0 0">Recuperación global = sulfato producido ÷ sulfato disponible total.${drip?` Se considera una recuperación del ${nf(REC_RIPIO*100,0)}% para el ripio.`:''} Producción registrada hasta el ${last.slice(8)}/${last.slice(5,7)}/${last.slice(0,4)}.</p></div>`;
@@ -1011,7 +1020,7 @@ function tablaMes(LY){
   return `<div style="overflow-x:auto"><table class="mtab"><thead><tr><th>Mes</th><th>Tonelaje</th><th>Ley</th><th>Consumo<br>kg/t</th><th>Sulfato<br>disp. (t)</th></tr></thead><tbody>${rows}
     <tr class="tot"><td>Total</td><td>${nf(T,1)}</td><td>${PA?nf(CU/PA*100,2)+'%':'—'}</td><td>${PA?nf(AC/PA,1):'—'}</td><td>${PA?nf(CU*SULF,1):'—'}</td></tr>${rip?`
     <tr class="tot rip"><td>Ripio</td><td>${nf(rip.t,1)}</td><td>${nf(rip.ley,2)}%</td><td>s/a</td><td>${nf(ripS,1)}</td></tr>`:''}</tbody></table></div>
-    ${recBox(CU*SULF,ripS*REC_RIPIO,ripS)}
+    ${recBox(CU*SULF,ripS*REC_RIPIO,ripS,null,rip)}
     <p class="note" style="margin:8px 2px 0">Sulfato disponible = tonelaje × ley × ${nf(SULF,2)}, sobre el mineral con análisis.${parcial?' * Mes con camiones aún sin análisis: el sulfato de esos camiones todavía no se cuenta.':''}</p>`;
 }
 
@@ -1450,7 +1459,7 @@ function dsPDF(key){
   doc.autoTable({startY:y+2,head:[['Lote','Producción','Cat.','pH','% Cu','Insol.','Hum.','Pureza','Acidez','Aspecto','Olor','Flotación','Operador (turno)','Días bod.']],body,
     styles:{fontSize:7.5,cellPadding:1.6,textColor:[20,33,45],lineColor:[215,222,228],lineWidth:.1},headStyles:{fillColor:[30,111,168],textColor:255,fontStyle:'bold'},
     alternateRowStyles:{fillColor:[243,246,249]},columnStyles:{0:{fontStyle:'bold'},3:{halign:'right'},4:{halign:'right'},5:{halign:'right'},6:{halign:'right'},7:{halign:'right'},8:{halign:'right'},13:{halign:'right'}},margin:{left:12,right:12},
-    didDrawPage:()=>{const ph=doc.internal.pageSize.getHeight();doc.setFontSize(7.5);doc.setTextColor(120);doc.text('Generado el '+new Date().toLocaleDateString('es-CL')+' · App Producción de Sulfato · Diseñado por BG IA Solutions',12,ph-7);doc.text('Página '+doc.internal.getNumberOfPages(),W-12,ph-7,{align:'right'})}});
+    didDrawPage:()=>{const ph=doc.internal.pageSize.getHeight();doc.setFontSize(7.5);doc.setTextColor(120);doc.text('Generado el '+new Date().toLocaleDateString('es-CL')+' · App Producción de Sulfato · Diseñado por BG Solutions',12,ph-7);doc.text('Página '+doc.internal.getNumberOfPages(),W-12,ph-7,{align:'right'})}});
   if(body.some(r=>r.some(c=>typeof c==='string'&&c.endsWith(' *')))){doc.setFontSize(7.5);doc.setTextColor(120);doc.text('* Valor con probable error de digitación en el Excel (no se usa en los promedios).',12,doc.lastAutoTable.finalY+5)}
   const name=`Despacho_${f}_${(cam||'camion').replace(/[^A-Za-z0-9]/g,'')}.pdf`,blob=doc.output('blob');
   sharePDF(blob,name,`Despacho ${fd} · Camión ${cam} · ${S.length} pallets`);
@@ -1938,7 +1947,7 @@ function extPDF(){
   const cw=(W-24)/info.length;info.forEach(([k,v],i)=>{doc.setFontSize(8);doc.setTextColor(94,107,119);doc.text(k,12+cw*i,y);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(20,33,45);doc.text(v,12+cw*i,y+5.5);doc.setFont('helvetica','normal')});
   y+=12;
   const boldRow=r=>r.map(c=>({content:c,styles:{fontStyle:'bold',fillColor:[238,242,245]}}));
-  const foot=()=>{const ph=doc.internal.pageSize.getHeight();doc.setFontSize(7.5);doc.setTextColor(120);doc.text('Generado el '+new Date().toLocaleDateString('es-CL')+' · App Consumo de Petróleo · Diseñado por BG IA Solutions',12,ph-7);doc.text('Página '+doc.internal.getNumberOfPages(),W-12,ph-7,{align:'right'})};
+  const foot=()=>{const ph=doc.internal.pageSize.getHeight();doc.setFontSize(7.5);doc.setTextColor(120);doc.text('Generado el '+new Date().toLocaleDateString('es-CL')+' · App Consumo de Petróleo · Diseñado por BG Solutions',12,ph-7);doc.text('Página '+doc.internal.getNumberOfPages(),W-12,ph-7,{align:'right'})};
   const st={styles:{fontSize:8.5,cellPadding:1.8,textColor:[20,33,45]},headStyles:{fillColor:[192,101,47],textColor:255},margin:{left:12,right:12},didDrawPage:foot};
   doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(20,33,45);doc.text('Resumen por máquina y centro de costos',12,y);
   doc.autoTable({...st,startY:y+2,head:[['Máquina','Centro de costos','Entregas','Desde','Hasta','Litros']],body:G.map(o=>[title(P.maq[o.maq]),title(P.cc[o.cc]),String(o.n),fdate(o.f0),fdate(o.f1),nf(o.l)]).concat([boldRow(['Total','',String(X.length),'','',nf(tot)])]),columnStyles:{2:{halign:'right'},5:{halign:'right'}}});
@@ -2044,7 +2053,7 @@ function dayPDF(){
   y=doc.lastAutoTable.finalY+8;doc.text('Detalle de entregas',12,y);
   doc.autoTable({startY:y+2,head:[['#','Máquina','Solicitante','Centro de costo','Destino','Litros']],body:D.E.map((e,i)=>[String(i+1),title(P.maq[e[1]]),title(P.sol[e[2]]),title(P.cc[e[4]]),DN[e[5]],nf(e[3])]).concat([boldRow(['','','','','Total',nf(D.tot)])]),
     styles:{fontSize:8,cellPadding:1.6,textColor:[20,33,45]},headStyles:{fillColor:[30,111,168],textColor:255},footStyles:{fillColor:[238,242,245],textColor:[20,33,45],fontStyle:'bold'},alternateRowStyles:{fillColor:[245,247,249]},columnStyles:{5:{halign:'right'}},margin:{left:12,right:12},
-    didDrawPage:()=>{const ph=doc.internal.pageSize.getHeight();doc.setFontSize(7.5);doc.setTextColor(120);doc.text('Generado el '+new Date().toLocaleDateString('es-CL')+' · App Consumo de Petróleo · Diseñado por BG IA Solutions',12,ph-7);doc.text('Página '+doc.internal.getNumberOfPages(),W-12,ph-7,{align:'right'})}});
+    didDrawPage:()=>{const ph=doc.internal.pageSize.getHeight();doc.setFontSize(7.5);doc.setTextColor(120);doc.text('Generado el '+new Date().toLocaleDateString('es-CL')+' · App Consumo de Petróleo · Diseñado por BG Solutions',12,ph-7);doc.text('Página '+doc.internal.getNumberOfPages(),W-12,ph-7,{align:'right'})}});
   if(D.C.length){y=doc.lastAutoTable.finalY+7;doc.setFontSize(9);doc.setTextColor(31,138,91);doc.text('Carga al estanque este día: +'+L(D.tc)+' ('+D.C.map(c=>title(P.sol[c[2]])).join(', ')+')',12,y)}
   sharePDF(doc.output('blob'),'Reporte_Petroleo_'+DAY+'.pdf','Reporte de petróleo '+fd+' · '+L(D.tot));
 }
