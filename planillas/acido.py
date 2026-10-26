@@ -3,7 +3,10 @@ CONTROL-DE-ACIDO-2024.xlsm, hoja BDR: C fecha, E-I nivel de los estanques TK1..T
 CONTROL-ACIDO-HEXAGON-2026.xlsm, hoja BDR: encabezados en la fila 5; C fecha de llegada, F toneladas.
 
 Toneladas de cada estanque = nivel x 11,2. Excepción: TK3 desde el 27-02-2026 = nivel x 20.
-Consumo del día = ácido total de ayer + toneladas llegadas ese día - ácido total de hoy."""
+Consumo del día = ácido total de ayer + toneladas llegadas ese día - ácido total de hoy.
+Antes del año de la planilla de llegadas no hay llegadas registradas: el día en que el ácido total sube se
+considera llegada de camión, y el consumo de ese día se estima con el promedio de los 3 días anteriores y
+3 posteriores sin llegada (llegada estimada = subida + consumo estimado, para que el balance cuadre)."""
 from .comun import libro, hoja, filas, fecha, num, minimo
 
 CAMBIO_TK3 = "2026-02-26"
@@ -45,8 +48,10 @@ def leer_llegadas(contenido):
 
 def combinar(niveles, llegadas):
     """Une las lecturas de los estanques con las llegadas.
-    Cada día: [fecha, consumo, baja de cada TK, toneladas llegadas, toneladas en cada TK, ácido total]."""
+    Cada día: [fecha, consumo, baja de cada TK, toneladas llegadas, toneladas en cada TK, ácido total,
+    1 si la llegada y el consumo de ese día son estimados]."""
     llegadas = llegadas or []
+    desde = llegadas[0][0][:4] + "-01-01" if llegadas else "9999"   # desde aquí hay llegadas registradas
     dias, faltan = [], []
     ult, k = [None] * 5, 0
     # llegadas anteriores a la primera lectura no se pueden asociar a un consumo
@@ -71,8 +76,16 @@ def combinar(niveles, llegadas):
         # La diferencia de cada TK se calcula con el factor del día, así el cambio de fórmula del TK3
         # no aparece como consumo. Los traspasos entre estanques se anulan en la suma.
         dif = [(ant[j] - ult[j]) * fac[j] if (n and ant[j] is not None and ult[j] is not None) else 0.0 for j in range(5)]
-        cons = round(sum(dif) + lleg, 3) if n else 0.0
-        dias.append([f, cons, [round(max(d, 0), 3) for d in dif], round(lleg, 3), nivel, total])
+        cons, est = (round(sum(dif) + lleg, 3) if n else 0.0), 0
+        if n and f < desde and cons < 0:   # sin planilla de llegadas: la subida es un camión
+            lleg, cons, est = -cons, 0.0, 1
+        dias.append([f, cons, [round(max(d, 0), 3) for d in dif], round(lleg, 3), nivel, total, est])
+    for i, d in enumerate(dias):
+        if not d[6]: continue
+        ok = lambda x: not x[6] and x[0] < desde
+        vals = [x[1] for x in dias[max(0, i - 15):i] if ok(x)][-3:] + [x[1] for x in dias[i + 1:i + 16] if ok(x)][:3]
+        e = round(sum(vals) / len(vals), 3) if vals else 0.0
+        d[1], d[3] = e, round(d[3] + e, 3)
     ultima = dias[-1][0] if dias else ""
     return {
         "actualizado": ultima,

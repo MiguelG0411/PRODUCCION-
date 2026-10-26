@@ -1,10 +1,13 @@
 """ENTREGA-DE-PETROLEO-2026.xlsm.
 Hoja BDR (despachos): C fecha, D máquina, E solicitante, F litros, G encargado, H centro de costos, K destino.
 Hoja BDC (recargas del camión): C fecha, E solicitante, F litros cargados.
-Destino: PLANTA = consumo interno (0), EXTERNO = prestado a proveedores (1), otro o vacío = sin destino (2)."""
+Destino: PLANTA = consumo interno (0), EXTERNO/EXTERNOS = prestado a proveedores (1), otro o vacío = sin destino (2)."""
 from .comun import libro, hoja, filas, fecha, num, txt, minimo
 
-DESTINOS = {"PLANTA": 0, "EXTERNO": 1}
+
+def destino(v):
+    d = "".join(str(v or "").split()).upper()   # sin distinguir mayúsculas ni espacios
+    return 0 if d.startswith("PLANTA") else 1 if d.startswith("EXTERN") else 2
 
 
 def leer(contenido):
@@ -19,7 +22,7 @@ def leer(contenido):
     for i, r in filas(bdr, 3, 11):
         f, lit = fecha(r[0]), num(r[3])
         if f is None or lit is None: continue
-        dest = DESTINOS.get("".join(str(r[8] or "").split()).upper(), 2)   # sin distinguir mayúsculas ni espacios
+        dest = destino(r[8])
         if dest == 2: otros.setdefault(txt(r[8]) or "(vacío)", []).append(i)
         entregas.append([f, ix("maq", r[1]), ix("sol", r[2]), round(lit, 1), ix("cc", r[5]), dest, ix("enc", r[4])])
     cargas = []

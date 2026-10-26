@@ -331,8 +331,6 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
       <div class="lbl" id="mDispSub"></div>
       <div class="flow"><div><small>Ingresado</small><b id="mIng">0</b></div><span class="op">−</span><div><small>Chancado</small><b id="mCh">0</b></div><span class="op">−</span><div><small>Stock pile</small><b id="mSp">0</b></div></div>
       <p class="note" id="mFlowNote" style="margin:10px 0 0"></p>
-      <div class="flow" id="mRipBox" hidden style="margin-top:12px;grid-template-columns:1fr 1fr 1fr"><div><small id="mRipL">Ripio en pilas</small><b id="mRipT">0</b></div><div><small>Ley ripio</small><b id="mRipLey">—</b></div><div><small>Último mes</small><b id="mRipU">—</b></div></div>
-      <p class="note" id="mRipNote" hidden style="margin:6px 0 0"></p>
     </section>
     <section class="card">
       <h2>¿De qué minas es el mineral por chancar?</h2>
@@ -873,13 +871,6 @@ function minRender(){
   const dl=L.filter(l=>l[6]===0);
   $('#mDisp').innerHTML=tf(disp)+'<span>t</span>';
   $('#mDispSub').textContent=dl.length+' camiones en cancha'+(dl.length?' · el más antiguo llegó el '+dl.map(l=>l[1]).sort()[0].split('-').reverse().join('/'):'');
-  // ripio dispuesto en pilas: no es mineral por chancar, pero aporta cobre a la producción
-  const RY=Object.keys(RIPIO).map(Number).sort(),ry=RY.includes(+TODAY.slice(0,4))?+TODAY.slice(0,4):RY[RY.length-1],rr=RIPIO[ry];
-  $('#mRipBox').hidden=$('#mRipNote').hidden=!rr;
-  if(rr){const um=(MIN.ripio||[]).filter(x=>x[0].startsWith(ry+'-')).pop();
-    $('#mRipL').textContent='Ripio en pilas '+ry;$('#mRipT').textContent=nf(rr.t)+' t';$('#mRipLey').textContent=nf(rr.ley,2)+'%';
-    $('#mRipU').textContent=um?MES[+um[0].slice(5,7)-1].slice(0,3)+' · '+nf(um[1])+' t':'—';
-    $('#mRipNote').textContent='Ripio de la hoja INFORME DE PILAS. Ya está en pilas de lixiviación: no se suma al mineral disponible, pero aporta '+nf(rr.cu*SULF,1)+' t de sulfato (al '+nf(REC_RIPIO*100,0)+'%: '+nf(rr.cu*SULF*REC_RIPIO,1)+' t) para la recuperación.'}
   $('#mIng').textContent=nf(ing);$('#mCh').textContent=nf(ch);$('#mSp').textContent=nf(sp,1);
   const y0=L.map(l=>l[1]).sort()[0].slice(0,4);
   $('#mFlowNote').textContent='Toneladas desde '+y0+'. Ingresado − chancado (lotes con fecha de chancado) − stock pile (lotes con ley y sin fecha de chancado).';
@@ -1663,7 +1654,7 @@ function acRender(){
   $('#acLbl').textContent='Ácido consumido '+per;
   $('#acTot').innerHTML=nf(tot,1)+'<span>t</span>';
   $('#acSub').textContent=X.length+' lecturas · '+dc+' días con consumo · promedio '+nf(dc?tot/dc:0,2)+' t por día';
-  $('#acStats').innerHTML=`<div><small>Ácido recibido</small><b>${nf(rec,1)} t</b><small>${nr} días con llegada</small></div><div><small>Ácido por t de sulfato</small><b>${prodT?nf(tot/prodT,2)+' t':'—'}</b><small>${prodT?nf(prodT,1)+' t producidas':'sin producción'}</small></div><div><small>Ácido por t de mineral chancado</small><b>${chT?nf(tot/chT*1000,1)+' kg/t':'—'}</b><small>${chT?nf(chT,0)+' t chancadas':'sin chancado'}</small></div>`;
+  $('#acStats').innerHTML=`<div><small>Ácido recibido${X.some(d=>d[6])?' (≈ estimado)':''}</small><b>${nf(rec,1)} t</b><small>${nr} días con llegada</small></div><div><small>Ácido por t de sulfato</small><b>${prodT?nf(tot/prodT,2)+' t':'—'}</b><small>${prodT?nf(prodT,1)+' t producidas':'sin producción'}</small></div><div><small>Ácido por t de mineral chancado</small><b>${chT?nf(tot/chT*1000,1)+' kg/t':'—'}</b><small>${chT?nf(chT,0)+' t chancadas':'sin chancado'}</small></div>`;
   // chart
   let keys,labs,tipx,kf,u;
   if(ACY===0){keys=ys.map(String);labs=keys;tipx=keys;kf=f=>f.slice(0,4);u='año'}
@@ -1675,7 +1666,9 @@ function acRender(){
   $('#acCT').textContent='Consumo de ácido '+per;$('#acCS').textContent='Toneladas consumidas cada '+u+' y acumulado del período';
   $('#acChart').innerHTML=chart({labels:labs,bars:v,line:cum,sel:-1,fmtL:x=>nf(x,x<10?1:0),fmtR:x=>nf(x),unitL:'t',unitR:'t acum.',dimFrom:lastI+1,tipB:'Consumo',tipL:'Acumulado',sufB:' t',sufL:' t',tipX:tipx}).replace(/fill="var\(--cu-2\)"/g,'fill="#8E5BB5"').replace(/fill="var\(--cu\)"/g,'fill="#8E5BB5"');
   // llegadas vs consumo: barras de llegadas y consumo, línea con el ácido en estanques al cierre de cada período
-  const LL=(AC.llegadas||[]).filter(x=>inP(x[0])),lv=keys.map(()=>0),st=keys.map(()=>null);
+  // llegadas: las de la planilla de llegadas y, en los años sin esa planilla, las estimadas por subida de nivel
+  const LL=(AC.llegadas||[]).filter(x=>inP(x[0])).map(x=>[x[0],x[1],0]).concat(X.filter(d=>d[6]).map(d=>[d[0],d[3],1])).sort((a,b)=>a[0]<b[0]?-1:1),lv=keys.map(()=>0),st=keys.map(()=>null);
+  const llEst=LL.some(x=>x[2]);
   LL.forEach(x=>{const i=keys.indexOf(kf(x[0]));if(i>=0)lv[i]+=x[1]});
   X.forEach(d=>{const i=keys.indexOf(kf(d[0]));if(i>=0)st[i]=d[5]});
   $('#acLvT').textContent='Llegadas vs consumo '+per;$('#acLvS').textContent='Toneladas de ácido llegadas y consumidas cada '+u+', y ácido en estanques al cierre';
@@ -1685,10 +1678,10 @@ function acRender(){
   LL.forEach(x=>{const k=llK(x[0]),o=llG[k]=llG[k]||[0,0];o[0]++;o[1]+=x[1]});
   const llKs=Object.keys(llG).sort().reverse(),lblK=k=>k.length===4?k:MES[+k.slice(5,7)-1]+' '+k.slice(0,4);
   $('#acLlT').textContent='Llegadas de ácido '+per;
-  $('#acLlS').textContent=LL.length+' llegadas · '+nf(llT,1)+' t'+(LL.length?' · promedio '+nf(llT/LL.length,1)+' t por llegada':'');
+  $('#acLlS').textContent=LL.length+' llegadas · '+nf(llT,1)+' t'+(LL.length?' · promedio '+nf(llT/LL.length,1)+' t por llegada':'')+(llEst?' · ≈ estimadas por subida de nivel (sin planilla de llegadas)':'');
   $('#acLlMes').innerHTML=llKs.length?`<div style="overflow-x:auto"><table class="mtab"><thead><tr><th style="text-align:left">${ACY===0?'Año':'Mes'}</th><th>Llegadas</th><th>Toneladas</th></tr></thead><tbody>${llKs.map(k=>`<tr><td style="text-align:left">${lblK(k)}</td><td>${llG[k][0]}</td><td>${nf(llG[k][1],1)}</td></tr>`).join('')}${llKs.length>1?`<tr class="tot"><td style="text-align:left">Total</td><td>${LL.length}</td><td>${nf(llT,1)}</td></tr>`:''}</tbody></table></div>`:'<p class="note">Sin llegadas de ácido en este período.</p>';
   $('#acLlBtn').hidden=!LL.length;$('#acLlList').hidden=!ACLL;$('#acLlBtn').textContent=ACLL?'▲ Ocultar llegadas':'📋 Ver llegadas por fecha ('+LL.length+')';
-  if(ACLL)$('#acLlList').innerHTML=`<table class="mtab"><thead><tr><th style="text-align:left">Fecha</th><th>Toneladas</th></tr></thead><tbody>${LL.slice().reverse().map(x=>`<tr><td style="text-align:left">${fdmY(x[0])}</td><td>${nf(x[1],2)}</td></tr>`).join('')}</tbody></table>`;
+  if(ACLL)$('#acLlList').innerHTML=`<table class="mtab"><thead><tr><th style="text-align:left">Fecha</th><th>Toneladas</th></tr></thead><tbody>${LL.slice().reverse().map(x=>`<tr><td style="text-align:left">${fdmY(x[0])}${x[2]?' ≈':''}</td><td>${nf(x[1],2)}</td></tr>`).join('')}</tbody></table>`;
   // estanques
   const lastR=D[D.length-1],tkc=[0,0,0,0,0];X.forEach(d=>d[2].forEach((c,j)=>tkc[j]+=c));
   const mxL=Math.max(1,...lastR[4].map(x=>x||0));
@@ -1702,7 +1695,7 @@ function acRender(){
     $('#acBalT').textContent='Balance de ácido '+per;
     $('#acBal').innerHTML=`<div class="rec">
       <div class="rr sm"><span>Ácido en estanques al ${fdmY(r0[0])}</span><b>${nf(s0,2)} t</b></div>
-      <div class="rr sm"><span>+ Ácido llegado (planilla de llegadas)</span><b>${nf(recP,2)} t</b></div>
+      <div class="rr sm"><span>+ Ácido llegado ${X.some(d=>d[6])?'(≈ estimado por subidas de nivel)':'(planilla de llegadas)'}</span><b>${nf(recP,2)} t</b></div>
       <div class="rr sm"><span>− Ácido en estanques al ${fdmY(r1[0])}</span><b>${nf(s1,2)} t</b></div>
       ${Math.abs(tot-(s0+recP-s1))>=0.01?`<div class="rr sm"><span>Ajuste por cambio de ecuación de un estanque</span><b>${nf(tot-(s0+recP-s1),2)} t</b></div>`:''}
       <div class="rr big"><span>Consumo del período</span><b>${nf(tot,2)} t</b></div>
@@ -1712,9 +1705,9 @@ function acRender(){
   $('#acDays').hidden=!ACD;$('#acDBtn').textContent=ACD?'▲ Ocultar consumo diario':'📋 Ver consumo diario ('+X.length+' días)';
   $('#acDT').textContent='Consumo diario '+per;
   if(ACD){const rows=X.slice().reverse().slice(0,ACY===0?60:400);const mx=Math.max(1,...rows.map(d=>d[1]));
-    $('#acDays').innerHTML=rows.map(d=>`<div class="tkrow" style="grid-template-columns:70px 1fr auto"><b class="n">${fdmY(d[0])}</b><span class="lv"><i style="width:${Math.max(0,d[1])/mx*100}%"></i></span><b>${nf(d[1],2)} t</b><span class="kp">${d[2].map((c,j)=>c?`<span>TK${j+1} <b>${nf(c,2)}</b></span>`:'').join('')}${d[3]?`<span style="color:var(--ok)">🚚 Llegada <b style="color:var(--ok)">${nf(d[3],1)} t</b></span>`:''}${d[1]<0?'<span style="color:var(--down)">⚠ consumo negativo: revisar lecturas o llegadas</span>':''}${!d[1]&&!d[3]?'<span>Sin consumo</span>':''}</span></div>`).join('')}
+    $('#acDays').innerHTML=rows.map(d=>`<div class="tkrow" style="grid-template-columns:70px 1fr auto"><b class="n">${fdmY(d[0])}</b><span class="lv"><i style="width:${Math.max(0,d[1])/mx*100}%"></i></span><b>${nf(d[1],2)} t</b><span class="kp">${d[2].map((c,j)=>c?`<span>TK${j+1} <b>${nf(c,2)}</b></span>`:'').join('')}${d[3]?`<span style="color:var(--ok)">🚚 Llegada${d[6]?' estimada ≈':''} <b style="color:var(--ok)">${nf(d[3],1)} t</b></span>`:''}${d[6]?'<span>consumo estimado (promedio de días vecinos)</span>':''}${d[1]<0?'<span style="color:var(--down)">⚠ consumo negativo: revisar lecturas o llegadas</span>':''}${!d[1]&&!d[3]?'<span>Sin consumo</span>':''}</span></div>`).join('')}
   const av=AC.avisos||{};
-  $('#acNote').textContent='Datos de las planillas CONTROL DE ÁCIDO (niveles hasta el '+fdmY(AC.actualizado)+') y CONTROL ÁCIDO HEXAGON (llegadas). Toneladas de cada estanque según la ecuación de nivel de cada TK. Consumo del día = ácido total de ayer + toneladas llegadas ese día − ácido total de hoy; así el día de recarga no aparece como consumo negativo y los traspasos entre estanques no cuentan.'+((av.comas||[]).length?' Lecturas corregidas por coma faltante: '+av.comas.map(c=>'fila '+c[0]+' TK'+c[1]+' '+String(c[2]).replace('.',',')+'→'+String(c[2]/100).replace('.',',')).join('; ')+'.':'')+((av.faltan||[]).length?' Días sin lectura de algún TK (se usó la última lectura): '+av.faltan.length+'.':'');
+  $('#acNote').textContent='Datos de las planillas CONTROL DE ÁCIDO (niveles hasta el '+fdmY(AC.actualizado)+') y CONTROL ÁCIDO HEXAGON (llegadas). Toneladas de cada estanque según la ecuación de nivel de cada TK. Consumo del día = ácido total de ayer + toneladas llegadas ese día − ácido total de hoy; así el día de recarga no aparece como consumo negativo y los traspasos entre estanques no cuentan. Antes del año de la planilla de llegadas no hay llegadas registradas: el día en que el ácido total sube se toma como llegada de camión (≈) y su consumo se estima con el promedio de los 3 días anteriores y 3 posteriores.'+((av.comas||[]).length?' Lecturas corregidas por coma faltante: '+av.comas.map(c=>'fila '+c[0]+' TK'+c[1]+' '+String(c[2]).replace('.',',')+'→'+String(c[2]/100).replace('.',',')).join('; ')+'.':'')+((av.faltan||[]).length?' Días sin lectura de algún TK (se usó la última lectura): '+av.faltan.length+'.':'');
 }
 const fdmY=s=>s.slice(8)+'/'+s.slice(5,7)+'/'+s.slice(2,4);
 let ACLL=false;
