@@ -944,10 +944,10 @@ function recProdRender(){
   $('#rcS').textContent='Sulfato producido ÷ sulfato disponible del mineral ingresado en el año';
   $('#rcBox').innerHTML=recBox(dmin,rs*REC_RIPIO,rs,[YEAR]);
   const last=Object.keys(D).filter(k=>+k.slice(0,4)===YEAR).sort().pop();const lm=last?+last.slice(5,7)-1:-1;
-  let ad=0,ap=0;const rr=rs*REC_RIPIO;const line=dm.map((d,i)=>{ad+=d;ap+=pm[i];const dt=ad+(lm>=0?rr*(i+1)/(lm+1):0);return i<=lm&&dt?ap/dt*100:null});
+  let ad=0,ap=0;const line=dm.map((d,i)=>{ad+=d+(rp?rp.m[i]*REC_RIPIO:0);ap+=pm[i];return i<=lm&&ad?ap/ad*100:null});
   $('#cRec').innerHTML=lm<0?'':chart({labels:MES.map(x=>x.slice(0,3)),bars:pm,line,sel:MON,fmtL:v=>nf(v,v<10?1:0),fmtR:v=>nf(v,0)+'%',unitL:'t sulfato',unitR:'recup.',dimFrom:lm+1,dots:true,tipB:'Producido',tipL:'Recup. acumulada',sufB:' t',sufL:'',tipX:MES.map(m=>m+' '+YEAR)});
   $('#rcLeg').hidden=lm<0;
-  $('#rcNote').textContent='La curva muestra la recuperación acumulada mes a mes (producido acumulado ÷ disponible acumulado), así que en el último mes coincide con la recuperación global.'+(rs?' El ripio se reparte en partes iguales entre los meses del año.':'')+' Los primeros meses pueden salir altos porque se produce con mineral que llegó el año anterior, y los últimos porque hay mineral aún sin análisis.';
+  $('#rcNote').textContent='La curva muestra la recuperación acumulada mes a mes (producido acumulado ÷ disponible acumulado), así que en el último mes coincide con la recuperación global.'+(rs?' El ripio se suma en el mes en que se dispuso en pilas.':'')+' Los primeros meses pueden salir altos porque se produce con mineral que llegó el año anterior, y los últimos porque hay mineral aún sin análisis.';
 }
 
 let MALL=false;
@@ -983,8 +983,11 @@ function tablaAnios(ys,t,c,pa,cu,ac){
 let _PM=null;
 function priceMap(){if(_PM)return _PM;_PM=new Map();(MIN.pilas||[]).forEach(r=>_PM.set(String(r[0]),+r[7]||0));return _PM}
 const SULF=3.92;
-// Ripio incorporado por año (tonelaje y ley %). Consumo sin análisis.
-const RIPIO={2026:{t:12318,ley:0.33}};
+// Ripio dispuesto en pilas por año (hoja INFORME DE PILAS, columnas AG-AI): toneladas, ley % ponderada
+// y sulfato de cada mes. No es mineral disponible para chancar, pero aporta cobre a la producción.
+let RIPIO={};
+function ripioPorAnio(R){const o={};(R||[]).forEach(([m,t,ley])=>{const y=+m.slice(0,4),r=o[y]=o[y]||{t:0,cu:0,m:Array(12).fill(0)};
+  r.t+=t;r.cu+=t*ley/100;r.m[+m.slice(5,7)-1]+=t*ley/100*SULF});Object.values(o).forEach(r=>r.ley=r.t?r.cu/r.t*100:0);return o}
 const REC_RIPIO=0.70; // recuperación considerada para el ripio
 function recBox(dmin,drip,dripTot,yrs){drip=drip||0;const disp=dmin+drip;yrs=yrs||[MY];
   const D=DIAS(),ks=Object.keys(D).filter(k=>yrs.includes(+k.slice(0,4))).sort();
@@ -1735,6 +1738,7 @@ function aplicar(d){
   window.APP_DATA=d;
   BASE=d.produccion||{kgSaco:25,dias:{}};PAL=d.calidad||null;MIN=d.mineral||null;AC=d.acido||null;
   _PM=null;_CHM=null;_LT=null;   // cachés calculados con los datos anteriores
+  RIPIO=ripioPorAnio(MIN&&MIN.ripio);
   if(window.peSet)window.peSet(d.petroleo);
 }
 function syncUI(m,busy){
@@ -1762,7 +1766,7 @@ function rerender(){
   if(v==='prod')render();else if(v==='pal')palRender();else if(v==='min')minRender();else insRender();
 }
 let SYNC=false;
-function mesInicial(){const all=Object.keys(DIAS()).sort(),last=all[all.length-1];
+function mesInicial(){YEAR=+TODAY.slice(0,4);MON=+TODAY.slice(5,7)-1;const all=Object.keys(DIAS()).sort(),last=all[all.length-1];
   if(last&&!all.some(k=>k.startsWith(TODAY.slice(0,7)))){YEAR=+last.slice(0,4);MON=+last.slice(5,7)-1}}
 async function actualizar(primera){
   if(SYNC)return;SYNC=true;let m=null;
