@@ -1,17 +1,28 @@
 """Funciones compartidas por los lectores de planillas."""
-import datetime, io, urllib.request
+import datetime, io, time, urllib.request
 from openpyxl import load_workbook
+
+
+FILAS_VACIAS = 1000
 
 
 class ErrorPlanilla(Exception):
     """La planilla no tiene el formato esperado; se conservan los datos anteriores."""
 
 
-def descargar(url, timeout=120):
-    # Los links compartidos de Dropbox con dl=1 descargan el archivo directo
+def descargar(url, timeout=60, limite=180):
+    """Los links compartidos de Dropbox con dl=1 descargan el archivo directo.
+    timeout: espera máxima sin recibir datos; limite: duración máxima de toda la descarga."""
     req = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
+    fin, partes = time.time() + limite, []
     with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read()
+        while True:
+            b = r.read(1 << 20)
+            if not b: break
+            partes.append(b)
+            if time.time() > fin:
+                raise ErrorPlanilla(f"La descarga tardó más de {limite // 60} minutos; se mantienen los datos anteriores.")
+    return b"".join(partes)
 
 
 def libro(contenido):
@@ -27,9 +38,16 @@ def hoja(wb, nombre):
 
 def filas(ws, desde_col, hasta_col, desde_fila=1):
     """Recorre las filas entregando (n° de fila, valores) con largo fijo aunque la fila venga corta."""
-    n = hasta_col - desde_col + 1
+    n, vacias = hasta_col - desde_col + 1, 0
     for i, r in enumerate(ws.iter_rows(min_row=desde_fila, min_col=desde_col, max_col=hasta_col, values_only=True), start=desde_fila):
         r = tuple(r)
+        # Muchas planillas tienen formato aplicado hasta miles de filas vacías: se deja de leer
+        # después de FILAS_VACIAS filas seguidas sin ningún dato
+        if all(v is None or (isinstance(v, str) and not v.strip()) for v in r):
+            vacias += 1
+            if vacias >= FILAS_VACIAS: return
+            continue
+        vacias = 0
         yield i, r + (None,) * (n - len(r))
 
 

@@ -1739,14 +1739,24 @@ function aplicar(d){
 }
 function syncUI(m,busy){
   $('#syncBtn').disabled=!!busy;$('#syncSpin').hidden=!busy;$('#syncLbl').textContent=busy?'Actualizando…':'⟳ Actualizar';
-  if(busy){$('#syncTxt').textContent='Descargando planillas de Dropbox…';return}
+  if(busy){const F=Object.values((m&&m.fuentes)||{}),ok=F.filter(f=>f.fase==='lista'||f.fase==='error').length,lee=F.find(f=>f.fase==='leyendo');
+    $('#syncTxt').textContent='Descargando planillas de Dropbox…'+(F.length?' '+ok+' de '+F.length+' listas'+(lee?' · leyendo '+lee.nombre:''):'');return}
   if(!m){$('#syncTxt').textContent='Sin conexión con el servidor';return}
   $('#syncTxt').textContent=m.actualizado?'Actualizado: '+fhora(m.actualizado):'Aún no se descargan las planillas';
   const bad=Object.values(m.fuentes||{}).filter(f=>f.ok===false);
   $('#syncWarn').hidden=!bad.length;
   $('#syncWarn').innerHTML=bad.map(f=>`⚠ <b>${esc(f.nombre)}</b>: no se pudo actualizar. ${f.hora?'Se muestran los datos del '+fhora(f.hora)+'.':'Sin datos para mostrar.'} <small>(${esc(f.error||'')})</small>`).join('<br>');
 }
-async function esperarServidor(){let m;for(;;){m=await getJSON('api/estado');if(!m.cargando)return m;await pausa(1500)}}
+async function esperarServidor(){
+  const t0=Date.now();let m,ini=null;
+  for(;;){
+    m=await getJSON('api/estado');if(!m.cargando)return m;
+    // si el servidor se reinicia a mitad de la descarga (por ejemplo, por falta de memoria) vuelve a empezar
+    if(ini!=null&&m.inicio!==ini)throw new Error('El servidor se reinició durante la descarga');ini=m.inicio;
+    if(Date.now()-t0>8*60e3)throw new Error('La descarga está tardando más de 8 minutos');
+    syncUI(m,true);await pausa(1500);
+  }
+}
 function rerender(){
   const v=(document.querySelector('.tabs2 [aria-pressed="true"]')||{}).dataset?.v||'prod';
   if(v==='prod')render();else if(v==='pal')palRender();else if(v==='min')minRender();else insRender();
@@ -1767,8 +1777,8 @@ async function actualizar(primera){
     }
     m=est;
     if(!primera)toast(Object.values(est.fuentes).some(f=>f.ok===false)?'Actualizado con avisos':'Datos actualizados');
-  }catch(e){if(!primera)toast('No se pudo conectar con el servidor')}
-  finally{SYNC=false;syncUI(m,false)}
+  }catch(e){m=null;toast(e&&e.message&&!/^HTTP|fetch/i.test(e.message)?e.message:'No se pudo conectar con el servidor')}
+  finally{SYNC=false;syncUI(m,false);if(!m)$('#syncTxt').textContent='Sin respuesta del servidor. Presiona Actualizar para reintentar.'}
 }
 $('#syncBtn').onclick=()=>actualizar(false);
 /* ---------- start ---------- */

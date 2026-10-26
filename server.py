@@ -32,8 +32,9 @@ with open(os.path.join(RAIZ, "historico_produccion.json"), encoding="utf-8") as 
     HISTORICO = json.load(fh)
 
 _lock = threading.Lock()
+_lock_lectura = threading.Lock()
 _crudo = {}                                     # lo último leído bien de cada planilla
-_fuentes = {k: {"nombre": v[1], "ok": None, "error": None, "hora": None} for k, v in FUENTES.items()}
+_fuentes = {k: {"nombre": v[1], "ok": None, "error": None, "hora": None, "fase": None} for k, v in FUENTES.items()}
 _estado = {"cargando": False, "actualizado": None, "inicio": 0.0}
 _paquete = {"json": b"", "gz": b""}
 
@@ -47,8 +48,18 @@ def _leer_una(clave):
     url = os.environ.get(env, "").strip()
     if not url:
         raise ErrorPlanilla(f"Falta la variable de entorno {env}.")
+    f = _fuentes[clave]
     try:
-        return lector(descargar(url))
+        t0 = time.time(); f["fase"] = "descargando"
+        contenido = descargar(url)
+        log.info("Planilla %s: descargada (%.1f MB) en %.1f s", clave, len(contenido) / 1e6, time.time() - t0)
+        f["fase"] = "esperando"
+        with _lock_lectura:   # se lee una planilla a la vez para no pasar el límite de memoria del servidor
+            t1 = time.time(); f["fase"] = "leyendo"
+            datos = lector(contenido)
+        del contenido
+        log.info("Planilla %s: leída en %.1f s", clave, time.time() - t1)
+        return datos
     except ErrorPlanilla:
         raise
     except Exception as e:   # red, archivo dañado, etc.: el mensaje no debe incluir el link
@@ -74,20 +85,21 @@ def _armar():
 
 
 def _meta():
-    return {"cargando": _estado["cargando"], "actualizado": _estado["actualizado"], "fuentes": _fuentes}
+    return {"cargando": _estado["cargando"], "actualizado": _estado["actualizado"], "inicio": _estado["inicio"], "fuentes": _fuentes}
 
 
 def actualizar():
     """Descarga las planillas en paralelo. Cada una que falle conserva sus datos anteriores."""
     t0 = time.time()
+    for f in _fuentes.values(): f["fase"] = "esperando"
     with ThreadPoolExecutor(max_workers=len(FUENTES)) as ex:
         futuros = {k: ex.submit(_leer_una, k) for k in FUENTES}
         for k, fut in futuros.items():
             try:
                 _crudo[k] = fut.result()
-                _fuentes[k].update(ok=True, error=None, hora=ahora())
+                _fuentes[k].update(ok=True, error=None, hora=ahora(), fase="lista")
             except Exception as e:
-                _fuentes[k].update(ok=False, error=str(e))
+                _fuentes[k].update(ok=False, error=str(e), fase="error")
                 log.warning("Planilla %s: %s", k, e)
     try:
         _armar()
