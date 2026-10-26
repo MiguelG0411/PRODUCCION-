@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: produccion-sulfato
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    # Un solo proceso: los datos de las planillas quedan en la memoria de ese proceso
+    startCommand: gunicorn server:app --workers 1 --threads 8 --timeout 120 --bind 0.0.0.0:$PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.7"
+      - key: DROPBOX_URL_RECUPERACION
+        sync: false
+      - key: DROPBOX_URL_ACIDO
+        sync: false
+      - key: DROPBOX_URL_CARGASACIDO
+        sync: false
+      - key: DROPBOX_URL_PETROLEO
+        sync: false
+      - key: DROPBOX_URL_MINERAL
+        sync: false
+      - key: DROPBOX_URL_CALIDAD
+        sync: false

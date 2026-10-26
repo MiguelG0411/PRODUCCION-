@@ -140,7 +140,7 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .lrow .kp{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:2px 12px;font-size:.82rem;color:var(--muted)}
 .lrow .kp b{color:var(--ink)}
 .dtag{display:inline-block;font-size:.7rem;font-weight:800;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:1px;color:#fff}
-.dP{background:var(--pl)}.dE{background:var(--ex)}
+.dP{background:var(--pl)}.dE{background:var(--ex)}.dS{background:var(--muted)}
 .daynav{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center;margin-bottom:10px}
 .daynav button{height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-size:1.2rem}
 .daynav input{width:100%;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font:inherit;text-align:center}
@@ -260,7 +260,15 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
 .toast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);
   padding:10px 18px;border-radius:999px;font-weight:600;font-size:.9rem;opacity:0;transition:opacity .2s;z-index:20;pointer-events:none}
 .toast.show{opacity:1}
-@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.sync{display:flex;align-items:center;gap:10px;margin:-4px 0 12px;flex-wrap:wrap}
+.sync button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);border-radius:12px;padding:8px 14px;font-weight:700;font-size:.9rem;color:var(--cu)}
+.sync button:disabled{opacity:.7;cursor:progress}
+.sync small{color:var(--muted);font-size:.8rem;line-height:1.3}
+.spin{width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.syncw{background:#FFF4E5;color:#8A4B00;border:1px solid #F3CF9B;border-radius:12px;padding:10px 12px;margin:0 0 12px;font-size:.85rem;line-height:1.4}
+@media (prefers-color-scheme:dark){.syncw{background:#3A2A12;color:#F6CE8E;border-color:#6B4A1A}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.spin{animation-duration:2.4s}}
 </style>
 </head>
 <body>
@@ -270,6 +278,8 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
     <h1>Producción de Sulfato<small id="sub">Minera Anita SpA</small></h1>
     <button class="pill" id="menuBtn" aria-label="Opciones">⋯</button>
   </header>
+  <div class="sync"><button id="syncBtn" type="button"><span class="spin" id="syncSpin" hidden></span><span id="syncLbl">⟳ Actualizar</span></button><small id="syncTxt" role="status">Conectando…</small></div>
+  <div class="syncw" id="syncWarn" hidden></div>
   <nav class="tabs2" role="group" aria-label="Sección"><button data-v="min" aria-pressed="false">Mineral</button><button data-v="prod" aria-pressed="true">Producción</button><button data-v="pal" aria-pressed="false">Bodega</button><button data-v="ins" aria-pressed="false">Insumos</button></nav>
   <div id="vProd">
   <div class="yrs" id="pdYears" role="group" aria-label="Año" style="margin:0 -2px 12px"></div>
@@ -466,6 +476,17 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
     <div id="pe_dList"></div>
   </section>
 
+  <section class="card" id="pe_xCard">
+    <h2 id="pe_xTitle">Petróleo prestado a externos</h2>
+    <p class="sub" id="pe_xSub"></p>
+    <div class="mstats" id="pe_xStats"></div>
+    <div id="pe_xList"></div>
+    <button class="more" id="pe_xMore" hidden></button>
+    <button class="secondary" id="pe_xBtn">📋 Ver cada entrega</button>
+    <div id="pe_xRows" hidden></div>
+    <button class="primary" id="pe_xPdf">📄 PDF de préstamos del período</button>
+  </section>
+
   <section class="card">
     <h2 id="pe_mTitle">Máquinas</h2>
     <p class="sub" id="pe_mSub"></p>
@@ -542,9 +563,22 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
       <div class="chart" id="acChart"></div>
       <div class="legend"><span><i style="background:#8E5BB5"></i>Consumo de ácido</span><span><i class="ln" style="border-color:var(--acc)"></i>Acumulado</span></div>
     </section>
+    <section class="card">
+      <h2 id="acLvT">Llegadas vs consumo</h2>
+      <p class="sub" id="acLvS"></p>
+      <div class="chart" id="acLvChart"></div>
+      <div class="legend"><span><i style="background:var(--ca)"></i>Ácido llegado</span><span><i style="background:#8E5BB5"></i>Consumo</span><span><i class="ln" style="border-color:var(--acc)"></i>Ácido en estanques</span></div>
+    </section>
+    <section class="card">
+      <h2 id="acLlT">Llegadas de ácido</h2>
+      <p class="sub" id="acLlS"></p>
+      <div id="acLlMes"></div>
+      <button class="secondary" id="acLlBtn">📋 Ver llegadas</button>
+      <div id="acLlList" hidden></div>
+    </section>
     <section class="card" id="acBalCard">
       <h2 id="acBalT">Balance de ácido</h2>
-      <p class="sub">Stock al inicio + ácido recibido − stock al final = consumo del período</p>
+      <p class="sub">Ácido en estanques al inicio + ácido llegado − ácido en estanques al final = consumo del período</p>
       <div id="acBal"></div>
     </section>
     <section class="card">
@@ -554,7 +588,7 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
     </section>
     <section class="card">
       <h2 id="acDT">Consumo diario</h2>
-      <p class="sub">Toneladas consumidas cada día por estanque. Los días en que llegó un camión aparecen como recepción.</p>
+      <p class="sub">Toneladas consumidas cada día, cuánto bajó cada estanque y las llegadas de ácido.</p>
       <button class="secondary" id="acDBtn">📋 Ver consumo diario</button>
       <div id="acDays" hidden></div>
     </section>
@@ -588,7 +622,8 @@ try{EDIT=JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){EDIT={}}
 const saveEdit=()=>{try{localStorage.setItem(LS,JSON.stringify(EDIT))}catch(e){toast('No se pudo guardar')}};
 function DIAS(){return {...BASE.dias,...EDIT}}
 const KG=()=>+BASE.kgSaco||25;
-const kgOf=v=>v?((+v[0]||0)+(+v[1]||0))*KG():0;
+// v = [sacos día, sacos noche, kilos (columna G)]; los días registrados en el teléfono no traen kilos: sacos × 25
+const kgOf=v=>v?(v[2]!=null?+v[2]:((+v[0]||0)+(+v[1]||0))*KG()):0;
 
 let YEAR=+TODAY.slice(0,4), MON=+TODAY.slice(5,7)-1;
 
@@ -681,7 +716,7 @@ function render(){
   $('#months').innerHTML=MES.map((x,i)=>`<button data-m="${i}" aria-pressed="${i===MON}" ${m[i].dias||i<=lastM?'':'disabled'}>${x.slice(0,3)}</button>`).join('');
   renderMonth(m,D);
   const sb=$('#months [aria-pressed="true"]');if(sb){const c=$('#months');c.scrollLeft=sb.offsetLeft-c.clientWidth/2+sb.clientWidth/2}
-  $('#note').textContent='Datos de los Excel RECUPERACION 2022–2026, último día registrado el '+(BASE.actualizado?BASE.actualizado.split('-').reverse().join('/'):'—')+(Object.keys(EDIT).length?' · '+Object.keys(EDIT).length+' días registrados en este teléfono':'')+'. Toca un día para corregirlo.';
+  $('#note').textContent='Producción 2022–2025: datos históricos fijos. Año en curso: planilla RECUPERACION (columna G, kilos del día), último día registrado el '+(BASE.actualizado?BASE.actualizado.split('-').reverse().join('/'):'—')+(Object.keys(EDIT).length?' · '+Object.keys(EDIT).length+' días registrados en este teléfono':'')+'. Toca un día para corregirlo.';
 }
 function renderMonth(m,D){
   const x=m[MON],prev=MON>0?m[MON-1]:null,nd=new Date(YEAR,MON+1,0).getDate();
@@ -764,7 +799,7 @@ let PAL=null,PY=null;
 const CATN={1:'Categoría 1',2:'Categoría 2',3:'Categoría 3',4:'Categoría 4',0:'Sin categoría'};
 const CATC={1:'#1F8A5B',2:'#2F6FA8',3:'#C88A2A',4:'#B9442F',0:'#8A96A3'};
 function palRender(){
-  if(!PAL){$('#vPal').innerHTML='<p class="note">No se pudieron cargar los datos de pallets.</p>';return}
+  if(!PAL){$('#pNote').textContent='Sin datos de control de calidad todavía.';return}
   const L=PAL.lotes,S=PAL.salidas,tp=+PAL.tonPallet||1.25;
   const prod=L.length,out=S.length,left=prod-out;
   $('#pStock').textContent=nf(left);$('#pStockT').textContent='≈ '+nf(left*tp,1)+' t · '+nf(left*tp*40)+' sacos de 25 kg';
@@ -830,7 +865,7 @@ function grouped(labels,a,b,line){
 let MIN=null,MY=null,MSORT='t';
 const tf=(v,d=1)=>nf(v,d);
 function minRender(){
-  if(!MIN){$('#vMin').innerHTML='<p class="note">No se pudieron cargar los datos de mineral.</p>';return}
+  if(!MIN){$('#mDispSub').textContent='Sin datos de mineral todavía.';return}
   const L=MIN.lotes,M=MIN.minas;
   const ing=L.reduce((a,l)=>a+l[2],0),ch=L.filter(l=>l[6]===1).reduce((a,l)=>a+l[2],0),sp=L.filter(l=>l[6]===2).reduce((a,l)=>a+l[2],0),disp=ing-ch-sp;
   const dl=L.filter(l=>l[6]===0);
@@ -838,7 +873,7 @@ function minRender(){
   $('#mDispSub').textContent=dl.length+' camiones en cancha'+(dl.length?' · el más antiguo llegó el '+dl.map(l=>l[1]).sort()[0].split('-').reverse().join('/'):'');
   $('#mIng').textContent=nf(ing);$('#mCh').textContent=nf(ch);$('#mSp').textContent=nf(sp,1);
   const y0=L.map(l=>l[1]).sort()[0].slice(0,4);
-  $('#mFlowNote').textContent='Toneladas desde '+y0+'. Ingresado (BD) − chancado (peso chancado) − stock pile (BDSP, lotes aún no chancados).';
+  $('#mFlowNote').textContent='Toneladas desde '+y0+'. Ingresado − chancado (lotes con fecha de chancado) − stock pile (lotes con ley y sin fecha de chancado).';
   // stock by mina
   const sm={};L.forEach(l=>{if(l[6]===1)return;const k=M[l[3]];sm[k]=sm[k]||{d:0,s:0,old:'9'};if(l[6]===0){sm[k].d+=l[2];if(l[1]<sm[k].old)sm[k].old=l[1]}else sm[k].s+=l[2]});
   const ks=Object.keys(sm).sort((a,b)=>(sm[b].d+sm[b].s)-(sm[a].d+sm[a].s)),mx=Math.max(1,...ks.map(k=>sm[k].d+sm[k].s));
@@ -878,7 +913,7 @@ function minRender(){
   const keys=Object.keys(g).sort((a,b)=>val(g[b])-val(g[a])),mt2=Math.max(1,...keys.map(k=>g[k].t));
   $('#mMinas').innerHTML=keys.map(k=>{const o=g[k];return `<button class="mrow mbtn" data-mina="${esc(k)}"><b>${esc(title(k))} <span class="go">›</span></b><span class="t">${tf(o.t)} t</span><span class="bar"><i style="width:${o.t/mt2*100}%"></i></span>
     <span class="kp"><span>Ley <b>${o.pa?nf(o.cu/o.pa*100,2)+'%':'s/a'}</b></span><span>Consumo <b>${o.pa?nf(o.ac/o.pa,1)+' kg/t':'s/a'}</b></span><span>${o.n} cam.</span><span>Costo <b>${o.co?clpM(o.co):'—'}</b></span><span>${o.co&&o.tc?'<b>'+clp(o.co/o.tc)+'</b>/t':''}</span></span></button>`}).join('');
-  $('#mNote').textContent='Datos del Excel INGRESO_MINERAL hasta el '+MIN.actualizado.split('-').reverse().join('/')+'. Ley = cobre ÷ toneladas con análisis. Consumo = kg de ácido por tonelada de mineral (ley × consumo H+/Cu × 10). "s/a" = sin análisis todavía. Costo = precio de los lotes en la hoja BDCH (solo lotes ya chancados); costo por tonelada sobre esos mismos lotes; precios menores a 0 no se contabilizan.';
+  $('#mNote').textContent='Datos del Excel INGRESO_MINERAL hasta el '+MIN.actualizado.split('-').reverse().join('/')+'. Ley = cobre ÷ toneladas con análisis. Consumo = kg de ácido por tonelada de mineral (ley × consumo H+/Cu × 10). "s/a" = sin análisis todavía. Costo = precio de los lotes en la columna T de la hoja BD (valor del lote, solo lotes ya chancados); costo por tonelada sobre esos mismos lotes; precios menores a 0 no se contabilizan.';
 }
 function title(s){return String(s).toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase())}
 
@@ -1003,13 +1038,13 @@ function minaDetail(k){
     <div class="card" style="margin:8px 0 0;padding:12px 8px 8px"><h2 style="font-size:.98rem">Ingreso mensual y ley</h2>
       <div class="chart">${T?chart({labels:MES.map(x=>x.slice(0,3)),bars:mt,line:mpa.map((v,i)=>v?mcu[i]/v*100:null),sel:-1,fmtL:v=>nf(v),fmtR:v=>nf(v,2)+'%',unitL:'t/mes',unitR:'ley %',dimFrom:lastM+1,dots:true}):'<p class="note">Sin ingresos este año.</p>'}</div>
       <div class="legend"><span><i style="background:var(--cu-2)"></i>Ingreso del mes</span><span><i class="ln" style="border-color:var(--acc)"></i>Ley de cobre del mes</span></div></div>
-    ${rows?`<table class="mtab"><thead><tr><th>Mes</th><th>t</th><th>Cam.</th><th>Ley</th><th>kg/t</th><th>MM$</th></tr></thead><tbody>${rows}</tbody></table><p class="note" style="margin:6px 2px 0">MM$ = costo de los lotes en millones de pesos (precio de BDCH; solo lotes ya chancados).</p>`:''}
+    ${rows?`<table class="mtab"><thead><tr><th>Mes</th><th>t</th><th>Cam.</th><th>Ley</th><th>kg/t</th><th>MM$</th></tr></thead><tbody>${rows}</tbody></table><p class="note" style="margin:6px 2px 0">MM$ = costo de los lotes en millones de pesos (valor del lote, columna T de la hoja BD; solo lotes ya chancados).</p>`:''}
     <button class="secondary" id="mdClose">Cerrar</button>`,()=>{$('#mdClose').onclick=close});
 }
 $('#mYears').onclick=e=>{const b=e.target.closest('[data-y]');if(!b)return;MY=+b.dataset.y;MMES=-1;TMES=-1;minRender()};
 $('#mSort').onclick=e=>{const b=e.target.closest('[data-s]');if(!b)return;MSORT=b.dataset.s;$('#mSort').querySelectorAll('button').forEach(o=>o.setAttribute('aria-pressed',o===b));minRender()};
 
-/* ---------- pilas (BDCH) ---------- */
+/* ---------- pilas (hoja BD: fecha de chancado y pila) ---------- */
 let PILY=null,PILM=null;
 const DCOL=['#1E6FA8','#C0652F','#1F8A5B','#C88A2A','#7A4FB0','#2E8C99','#B9442F','#5E6B77','#8FB339','#D16BA5'];
 const pilaMes=p=>{const m=/^P\d+-(\d{2})-(\d{4})$/.exec(p);return m?m[2]+'-'+m[1]:null};
@@ -1045,7 +1080,7 @@ function pilRender(){
   $('#pilList').innerHTML=MO.map(o=>{const parc=o.pa&&o.pa<o.t-0.01;return `<button class="pila" data-p="${esc(o.p)}"><b class="n">${esc(o.p)} <span style="color:var(--muted);font-weight:600">›</span></b><span class="t">${nf(o.t,1)} t</span>
     <small style="grid-column:1/-1">Chancada ${o.f0===o.f1?'el '+fdm(o.f0):'del '+fdm(o.f0)+' al '+fdm(o.f1)} · ${o.l.length} lotes</small>
     <span class="kp"><span>Ley <b>${o.pa?nf(o.cu/o.pa*100,2)+'%':'s/a'}</b></span><span>Consumo <b>${o.pa?nf(o.ac/o.pa,1)+' kg/t':'s/a'}</b></span><span>Sulfato <b class="su">${o.pa?nf(o.cu*SULF,1)+' t':'s/a'}${parc?'*':''}</b></span><span>Costo <b>${o.costo?clpM(o.costo):'sin precio'}</b></span></span></button>`}).join('');
-  $('#pilNote').textContent='Datos de la hoja BDCH del Excel INGRESO_MINERAL. Las pilas se agrupan por el mes de su nombre (P01-08-2026 = agosto 2026). Aporte en sulfato = peso × ley × '+nf(SULF,2)+', sobre los lotes con análisis. * Pila con lotes aún sin análisis. Costo = suma del precio de los lotes (columna PRECIO de BDCH); los lotes con precio menor a 0 no se contabilizan.';
+  $('#pilNote').textContent='Datos de la hoja BD del Excel INGRESO MINERAL (fecha de chancado, pila de destino y valor del lote). Las pilas se agrupan por el mes de su nombre (P01-08-2026 = agosto 2026). Aporte en sulfato = peso × ley × '+nf(SULF,2)+', sobre los lotes con análisis. * Pila con lotes aún sin análisis. Costo = suma del precio de los lotes (columna T de la hoja BD); los lotes con precio menor a 0 no se contabilizan.';
 }
 function donut(parts){
   const R=60,r=36,cx=75,cy=75,tot=parts.reduce((a,p)=>a+p.v,0);let a0=-Math.PI/2,s=`<svg viewBox="0 0 150 150" role="img">`;
@@ -1076,7 +1111,7 @@ function pilaDetail(id){
       <div class="donut">${donut(parts)}<div class="dleg">${parts.map(p=>`<div><i style="background:${p.c}"></i><span>${esc(title(p.k))}</span><b>${nf(p.v/o.t*100,1)}%</b></div>`).join('')}</div></div></div>
     <h2 style="font-size:.98rem;margin:16px 0 0">Lotes que la conforman</h2>
     <div style="overflow-x:auto"><table class="mtab"><thead><tr><th>Lote</th><th>Chanc.</th><th style="text-align:left">Mina</th><th>t</th><th>Ley</th><th>kg/t</th><th>MM$</th></tr></thead><tbody>${rows}<tr class="tot"><td colspan="3">Total</td><td>${nf(o.t,1)}</td><td>${o.pa?nf(o.cu/o.pa*100,2)+'%':'—'}</td><td>${o.pa?nf(o.ac/o.pa,1):'—'}</td><td>${o.costo?nf(o.costo/1e6,2):'—'}</td></tr></tbody></table></div>
-    <p class="note" style="margin:6px 2px 0">MM$ = precio del lote en millones de pesos (columna PRECIO de BDCH). Los lotes con precio menor a 0 no se contabilizan.</p>
+    <p class="note" style="margin:6px 2px 0">MM$ = precio del lote en millones de pesos (columna T de la hoja BD). Los lotes con precio menor a 0 no se contabilizan.</p>
     <button class="secondary" id="pdClose">Cerrar</button>`,()=>{$('#pdClose').onclick=close});
 }
 
@@ -1498,12 +1533,12 @@ function dayBars(labels,v,flag,tipx,unit){
 }
 function chRender(){
   const CHM=chMap(),PE=window.peRaw?window.peRaw():null;
-  if(!AC||!PE||!Object.keys(CHM).length){$('#chNote').textContent='Faltan datos para comparar (ácido, petróleo o chancado).';return}
+  if(!AC||!AC.dias.length||!PE||!Object.keys(CHM).length){$('#chNote').textContent='Faltan datos para comparar (ácido, petróleo o chancado).';return}
   // rango común: desde el inicio de los datos de ácido/petróleo hasta el último día con datos de chancado
   const lastCh=Object.keys(CHM).sort().pop();
   const acMap={};AC.dias.forEach(d=>{acMap[d[0]]=(acMap[d[0]]||0)+d[1]});
   // Solo petróleo de PLANTA: se descuenta lo entregado a externos
-  const peMap={};PE.entregas.forEach(e=>{if(!e[5])peMap[e[0]]=(peMap[e[0]]||0)+e[3]});
+  const peMap={};PE.entregas.forEach(e=>{if(e[5]===0)peMap[e[0]]=(peMap[e[0]]||0)+e[3]});
   const acStart=AC.dias[0][0],peStart=PE.entregas[0][0],acEnd=[AC.actualizado,lastCh].sort()[0],peEnd=[PE.actualizado,lastCh].sort()[0];
   const ys=[...new Set(Object.keys(acMap).concat(Object.keys(peMap)).map(k=>+k.slice(0,4)))].filter(y=>y>=+peStart.slice(0,4)||y>=+acStart.slice(0,4)).sort();
   if(CHY==null)CHY=ys[ys.length-1];
@@ -1581,7 +1616,7 @@ function chRender(){
     $('#chAChart').innerHTML=cmpChart(labs,aa,ab,tx,'t/día',ac);
     $('#chPChart').innerHTML=cmpChart(labs,pa,pb,tx,'L/día',pc);
   }
-  $('#chNote').textContent='Día con chancado = día en que hay lotes chancados en la hoja BDCH. Ácido: se comparan los días con lectura en el Excel de control de ácido. Petróleo: solo lo entregado a la planta (se descuentan los externos) y se cuentan todos los días del calendario (un día sin entregas suma 0 L). Datos hasta el '+fdmY([acEnd,peEnd].sort().pop())+'.';
+  $('#chNote').textContent='Día con chancado = día con lotes que tienen fecha de chancado en la hoja BD. Ácido: se comparan los días con lectura en el Excel de control de ácido. Petróleo: solo lo entregado a la planta (se descuentan los externos) y se cuentan todos los días del calendario (un día sin entregas suma 0 L). Datos hasta el '+fdmY([acEnd,peEnd].sort().pop())+'.';
 }
 $('#chYrs').onclick=e=>{const b=e.target.closest('[data-y]');if(!b)return;CHY=+b.dataset.y;chRender()};
 $('#chMos').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.disabled)return;CHMO=+b.dataset.m;chRender()};
@@ -1593,9 +1628,8 @@ async function insRender(){
   $('#insTabs').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.i===INS));
   $('#insPe').hidden=INS!=='pe';$('#insAc').hidden=INS!=='ac';$('#insCh').hidden=INS!=='ch';
   if(INS==='pe'){if(window.peInit)window.peInit();return}
-  if(INS==='ch'){if(!AC){try{const r=await fetch('acido.json',{cache:'no-cache'});AC=await r.json()}catch(e){}}if(window.peData)await window.peData();chRender();return}
-  if(!AC){try{const r=await fetch('acido.json',{cache:'no-cache'});AC=await r.json()}catch(e){}}
-  if(!AC){$('#acNote').textContent='No se pudieron cargar los datos de ácido.';return}
+  if(INS==='ch'){chRender();return}
+  if(!AC||!AC.dias.length){$('#acNote').textContent='Sin datos de ácido todavía.';return}
   acRender();
 }
 function acRender(){
@@ -1613,11 +1647,11 @@ function acRender(){
   const X=D.filter(d=>inP(d[0])),tot=X.reduce((a,d)=>a+d[1],0),rec=X.reduce((a,d)=>a+d[3],0),dc=X.filter(d=>d[1]>0).length,nr=X.filter(d=>d[3]>0).length;
   // sulfato producido en el mismo período
   const PD=DIAS(),prodT=Object.keys(PD).filter(k=>inP(k)).reduce((a,k)=>a+kgOf(PD[k]),0)/1000;
-  const CHM=chMap(),chT=Object.keys(CHM).filter(k=>inP(k)).reduce((a,k)=>a+CHM[k],0),trT=X.reduce((a,d)=>a+(d[5]||0),0);
+  const CHM=chMap(),chT=Object.keys(CHM).filter(k=>inP(k)).reduce((a,k)=>a+CHM[k],0);
   $('#acLbl').textContent='Ácido consumido '+per;
   $('#acTot').innerHTML=nf(tot,1)+'<span>t</span>';
   $('#acSub').textContent=X.length+' lecturas · '+dc+' días con consumo · promedio '+nf(dc?tot/dc:0,2)+' t por día';
-  $('#acStats').innerHTML=`<div><small>Ácido recibido${(ACY&&ACM<0&&ACIDO_RECIBIDO[ACY]!=null)?'':' (aprox.)'}</small><b>${nf((ACY&&ACM<0&&ACIDO_RECIBIDO[ACY]!=null)?ACIDO_RECIBIDO[ACY]:rec+X.reduce((a,d)=>a+(d[6]||0),0),1)} t</b><small>${nr} llegadas de camión</small></div><div><small>Ácido por t de sulfato</small><b>${prodT?nf(tot/prodT,2)+' t':'—'}</b><small>${prodT?nf(prodT,1)+' t producidas':'sin producción'}</small></div><div><small>Ácido por t de mineral chancado</small><b>${chT?nf(tot/chT*1000,1)+' kg/t':'—'}</b><small>${chT?nf(chT,0)+' t chancadas':'sin chancado'}</small></div>`;
+  $('#acStats').innerHTML=`<div><small>Ácido recibido</small><b>${nf(rec,1)} t</b><small>${nr} días con llegada</small></div><div><small>Ácido por t de sulfato</small><b>${prodT?nf(tot/prodT,2)+' t':'—'}</b><small>${prodT?nf(prodT,1)+' t producidas':'sin producción'}</small></div><div><small>Ácido por t de mineral chancado</small><b>${chT?nf(tot/chT*1000,1)+' kg/t':'—'}</b><small>${chT?nf(chT,0)+' t chancadas':'sin chancado'}</small></div>`;
   // chart
   let keys,labs,tipx,kf,u;
   if(ACY===0){keys=ys.map(String);labs=keys;tipx=keys;kf=f=>f.slice(0,4);u='año'}
@@ -1628,55 +1662,119 @@ function acRender(){
   let a=0;const cum=v.map((x,i)=>i<=lastI?(a+=x):null);
   $('#acCT').textContent='Consumo de ácido '+per;$('#acCS').textContent='Toneladas consumidas cada '+u+' y acumulado del período';
   $('#acChart').innerHTML=chart({labels:labs,bars:v,line:cum,sel:-1,fmtL:x=>nf(x,x<10?1:0),fmtR:x=>nf(x),unitL:'t',unitR:'t acum.',dimFrom:lastI+1,tipB:'Consumo',tipL:'Acumulado',sufB:' t',sufL:' t',tipX:tipx}).replace(/fill="var\(--cu-2\)"/g,'fill="#8E5BB5"').replace(/fill="var\(--cu\)"/g,'fill="#8E5BB5"');
+  // llegadas vs consumo: barras de llegadas y consumo, línea con el ácido en estanques al cierre de cada período
+  const LL=(AC.llegadas||[]).filter(x=>inP(x[0])),lv=keys.map(()=>0),st=keys.map(()=>null);
+  LL.forEach(x=>{const i=keys.indexOf(kf(x[0]));if(i>=0)lv[i]+=x[1]});
+  X.forEach(d=>{const i=keys.indexOf(kf(d[0]));if(i>=0)st[i]=d[5]});
+  $('#acLvT').textContent='Llegadas vs consumo '+per;$('#acLvS').textContent='Toneladas de ácido llegadas y consumidas cada '+u+', y ácido en estanques al cierre';
+  $('#acLvChart').innerHTML=acLvChart(labs,lv,v,st,tipx);
+  // llegadas
+  const llT=LL.reduce((a,x)=>a+x[1],0),llK=ACY===0?(f=>f.slice(0,4)):(f=>f.slice(0,7)),llG={};
+  LL.forEach(x=>{const k=llK(x[0]),o=llG[k]=llG[k]||[0,0];o[0]++;o[1]+=x[1]});
+  const llKs=Object.keys(llG).sort().reverse(),lblK=k=>k.length===4?k:MES[+k.slice(5,7)-1]+' '+k.slice(0,4);
+  $('#acLlT').textContent='Llegadas de ácido '+per;
+  $('#acLlS').textContent=LL.length+' llegadas · '+nf(llT,1)+' t'+(LL.length?' · promedio '+nf(llT/LL.length,1)+' t por llegada':'');
+  $('#acLlMes').innerHTML=llKs.length?`<div style="overflow-x:auto"><table class="mtab"><thead><tr><th style="text-align:left">${ACY===0?'Año':'Mes'}</th><th>Llegadas</th><th>Toneladas</th></tr></thead><tbody>${llKs.map(k=>`<tr><td style="text-align:left">${lblK(k)}</td><td>${llG[k][0]}</td><td>${nf(llG[k][1],1)}</td></tr>`).join('')}${llKs.length>1?`<tr class="tot"><td style="text-align:left">Total</td><td>${LL.length}</td><td>${nf(llT,1)}</td></tr>`:''}</tbody></table></div>`:'<p class="note">Sin llegadas de ácido en este período.</p>';
+  $('#acLlBtn').hidden=!LL.length;$('#acLlList').hidden=!ACLL;$('#acLlBtn').textContent=ACLL?'▲ Ocultar llegadas':'📋 Ver llegadas por fecha ('+LL.length+')';
+  if(ACLL)$('#acLlList').innerHTML=`<table class="mtab"><thead><tr><th style="text-align:left">Fecha</th><th>Toneladas</th></tr></thead><tbody>${LL.slice().reverse().map(x=>`<tr><td style="text-align:left">${fdmY(x[0])}</td><td>${nf(x[1],2)}</td></tr>`).join('')}</tbody></table>`;
   // estanques
   const lastR=D[D.length-1],tkc=[0,0,0,0,0];X.forEach(d=>d[2].forEach((c,j)=>tkc[j]+=c));
   const mxL=Math.max(1,...lastR[4].map(x=>x||0));
-  $('#acTkS').textContent='Nivel en la última lectura ('+fdmY(lastR[0])+') y consumo de cada estanque en '+per;
-  $('#acTk').innerHTML=[0,1,2,3,4].map(j=>{const lv=lastR[4][j];return `<div class="tkrow"><b class="n">TK${j+1}</b><span class="lv"><i style="width:${(lv||0)/mxL*100}%"></i></span><b>${lv==null?'—':nf(lv,1)+' t'}</b><span class="kp"><span>Consumo del período <b>${nf(tkc[j],1)} t</b></span><span>${tot?nf(tkc[j]/tot*100,0):0}% del total</span><span>Factor ×${j===2&&lastR[0]>AC.cambioTK3?'20':'11,2'}</span></span></div>`}).join('')+`<p class="note" style="margin:8px 4px 0">Nivel total en estanques: <b>${nf(lastR[4].reduce((a2,x)=>a2+(x||0),0),1)} t</b></p>`;
+  $('#acTkS').textContent='Toneladas en la última lectura ('+fdmY(lastR[0])+') y cuánto bajó cada estanque en '+per+' (incluye traspasos entre estanques)';
+  $('#acTk').innerHTML=[0,1,2,3,4].map(j=>{const lv=lastR[4][j];return `<div class="tkrow"><b class="n">TK${j+1}</b><span class="lv"><i style="width:${(lv||0)/mxL*100}%"></i></span><b>${lv==null?'—':nf(lv,1)+' t'}</b><span class="kp"><span>Bajó en el período <b>${nf(tkc[j],1)} t</b></span>${AC.factores&&AC.factores[j]?`<span>Factor ×${nf(AC.factores[j],1)}</span>`:''}</span></div>`}).join('')+`<p class="note" style="margin:8px 4px 0">Ácido total en estanques: <b>${nf(lastR[5],1)} t</b></p>`;
   // balance
   $('#acBalCard').hidden=X.length<2;
   if(X.length>=2){
-    const r0=X[0],r1=X[X.length-1],s0=stockUtil(r0),s1=stockUtil(r1),est=X.reduce((a,d)=>a+(d[6]||0),0);
-    const recReal=(ACY&&ACM<0)?ACIDO_RECIBIDO[ACY]:null,recLect=rec+est;
-    const recU=recReal!=null?recReal:recLect,bal=s0+recU-s1;
+    // stock al cierre de la lectura anterior al período + llegadas del período − stock al final = consumo
+    const i0=D.indexOf(X[0]),r0=i0>0?D[i0-1]:X[0],r1=X[X.length-1],s0=r0[5],s1=r1[5],recP=i0>0?rec:rec-X[0][3];
     $('#acBalT').textContent='Balance de ácido '+per;
     $('#acBal').innerHTML=`<div class="rec">
-      <div class="rr sm"><span>Stock útil al ${fdmY(r0[0])}</span><b>${nf(s0,2)} t</b></div>
-      <div class="rr sm"><span>+ Ácido recibido ${recReal!=null?'(informado)':'(estimado de lecturas)'}</span><b>${nf(recU,2)} t</b></div>
-      <div class="rr sm"><span>− Stock útil al ${fdmY(r1[0])}</span><b>${nf(s1,2)} t</b></div>
-      <div class="rr big"><span>Consumo por balance</span><b>${nf(bal,2)} t</b></div>
-      <div class="rr sm"><span>Consumo por lecturas diarias</span><b>${nf(tot,1)} t</b></div>
-      <div class="rr sm"><span>Diferencia</span><b>${nf(Math.abs(bal-tot)<0.05?0:bal-tot,1)} t (${nf(bal?Math.abs(bal-tot)/bal*100:0,1)}%)</b></div>
-      <p class="note" style="margin:6px 0 0">El stock útil no considera el fondo de los estanques (lecturas de 0,1). ${recReal==null?'Para un balance exacto se necesita el ácido recibido real del período.':'El consumo por lecturas estima los días de llegada de camión; la diferencia corresponde a esa estimación.'}</p></div>`;
+      <div class="rr sm"><span>Ácido en estanques al ${fdmY(r0[0])}</span><b>${nf(s0,2)} t</b></div>
+      <div class="rr sm"><span>+ Ácido llegado (planilla de llegadas)</span><b>${nf(recP,2)} t</b></div>
+      <div class="rr sm"><span>− Ácido en estanques al ${fdmY(r1[0])}</span><b>${nf(s1,2)} t</b></div>
+      ${Math.abs(tot-(s0+recP-s1))>=0.01?`<div class="rr sm"><span>Ajuste por cambio de ecuación de un estanque</span><b>${nf(tot-(s0+recP-s1),2)} t</b></div>`:''}
+      <div class="rr big"><span>Consumo del período</span><b>${nf(tot,2)} t</b></div>
+      <p class="note" style="margin:6px 0 0">Es la suma del consumo diario: ácido total de ayer + llegadas del día − ácido total de hoy. El día en que cambió la ecuación de un estanque (TK3, 27/02/2026) la diferencia se calcula con la ecuación nueva para no contar consumo que no existió.</p></div>`;
   }
   // diario
   $('#acDays').hidden=!ACD;$('#acDBtn').textContent=ACD?'▲ Ocultar consumo diario':'📋 Ver consumo diario ('+X.length+' días)';
   $('#acDT').textContent='Consumo diario '+per;
   if(ACD){const rows=X.slice().reverse().slice(0,ACY===0?60:400);const mx=Math.max(1,...rows.map(d=>d[1]));
-    $('#acDays').innerHTML=rows.map(d=>`<div class="tkrow" style="grid-template-columns:70px 1fr auto"><b class="n">${fdmY(d[0])}</b><span class="lv"><i style="width:${d[1]/mx*100}%"></i></span><b>${nf(d[1],2)} t</b><span class="kp">${d[2].map((c,j)=>c?`<span>TK${j+1} <b>${nf(c,2)}</b></span>`:'').join('')}${d[3]?`<span style="color:var(--ok)">🚚 Recepción ≈ <b style="color:var(--ok)">${nf(d[3],1)} t</b></span>`:''}${d[5]?`<span>🔁 Traspaso TK4→TK3 <b>${nf(d[5],1)} t</b></span>`:''}${d[6]?`<span>≈ incluye <b>${nf(d[6],2)} t</b> estimadas</span>`:''}${!d[1]&&!d[3]?'<span>Sin consumo</span>':''}</span></div>`).join('')}
+    $('#acDays').innerHTML=rows.map(d=>`<div class="tkrow" style="grid-template-columns:70px 1fr auto"><b class="n">${fdmY(d[0])}</b><span class="lv"><i style="width:${Math.max(0,d[1])/mx*100}%"></i></span><b>${nf(d[1],2)} t</b><span class="kp">${d[2].map((c,j)=>c?`<span>TK${j+1} <b>${nf(c,2)}</b></span>`:'').join('')}${d[3]?`<span style="color:var(--ok)">🚚 Llegada <b style="color:var(--ok)">${nf(d[3],1)} t</b></span>`:''}${d[1]<0?'<span style="color:var(--down)">⚠ consumo negativo: revisar lecturas o llegadas</span>':''}${!d[1]&&!d[3]?'<span>Sin consumo</span>':''}</span></div>`).join('')}
   const av=AC.avisos||{};
-  $('#acNote').textContent='Datos del Excel CONTROL DE ÁCIDO hasta el '+fdmY(AC.actualizado)+'. Toneladas = lectura × 11,2 (TK3 desde el 27/02/2026: × 20). Consumo = baja de la lectura respecto del día anterior; si la lectura sube se considera llegada de camión y no consumo. Desde el 27/02/2026, si el mismo día baja el TK4 y sube el TK3 se considera traspaso y no consumo. En los días con llegada de camión, el consumo se estima con el promedio de los 3 días anteriores y 3 posteriores.'+((av.comas||[]).length?' Lecturas corregidas por coma faltante: '+av.comas.map(c=>'fila '+c[0]+' TK'+c[1]+' '+String(c[2]).replace('.',',')+'→'+String(c[2]/100).replace('.',',')).join('; ')+'.':'')+((av.fechas||[]).length?' Fecha corregida en fila '+av.fechas.join(', ')+'.':'');
+  $('#acNote').textContent='Datos de las planillas CONTROL DE ÁCIDO (niveles hasta el '+fdmY(AC.actualizado)+') y CONTROL ÁCIDO HEXAGON (llegadas). Toneladas de cada estanque según la ecuación de nivel de cada TK. Consumo del día = ácido total de ayer + toneladas llegadas ese día − ácido total de hoy; así el día de recarga no aparece como consumo negativo y los traspasos entre estanques no cuentan.'+((av.comas||[]).length?' Lecturas corregidas por coma faltante: '+av.comas.map(c=>'fila '+c[0]+' TK'+c[1]+' '+String(c[2]).replace('.',',')+'→'+String(c[2]/100).replace('.',',')).join('; ')+'.':'')+((av.faltan||[]).length?' Días sin lectura de algún TK (se usó la última lectura): '+av.faltan.length+'.':'');
 }
 const fdmY=s=>s.slice(8)+'/'+s.slice(5,7)+'/'+s.slice(2,4);
-// Ácido recibido real por año (informado por la planta). Si existe, el balance usa este valor.
-const ACIDO_RECIBIDO={2026:668.5};
-const acFac=(j,f)=>j===2&&f>AC.cambioTK3?20:11.2;
-// stock útil: no cuenta el fondo del estanque (lectura de 0,1 o menos)
-const stockUtil=r=>r[4].reduce((a,lv,j)=>a+(lv!=null&&lv/acFac(j,r[0])>0.1001?lv:0),0);
+let ACLL=false;
+function acLvChart(labels,lv,cs,st,tipx){
+  const W=360,H=220,Lm=40,R=44,T=24,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*0.36));
+  const mb=niceMax(Math.max(1,...lv,...cs)),ms=niceMax(Math.max(1,...st.filter(x=>x!=null))),y=x=>T+ih-(Math.max(0,x)/mb)*ih,ys=x=>T+ih-(x/ms)*ih;
+  const t=x=>nf(x,1)+' t';
+  const tipM={W,L:Lm,step,c:1,x:tipx,s:[{n:'Llegado',v:lv.map(t),col:'#1F8A5B'},{n:'Consumo',v:cs.map(t),col:'#8E5BB5'},{n:'En estanques',v:st.map(x=>x==null?'—':t(x)),col:'var(--acc)'}]};
+  let s=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Llegadas y consumo de ácido" data-tip="${esc(JSON.stringify(tipM))}">`;
+  for(let i=0;i<=4;i++){const yy=T+ih*i/4;s+=`<line x1="${Lm}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${Lm-5}" y="${yy+3}" text-anchor="end">${nf(mb*(1-i/4))}</text><text x="${W-R+5}" y="${yy+3}" style="fill:var(--acc)">${nf(ms*(1-i/4))}</text>`}
+  s+=`<text x="${Lm-5}" y="10" text-anchor="end" style="font-weight:700">t</text><text x="${W-R+5}" y="10" style="fill:var(--acc);font-weight:700">t est.</text>`;
+  lv.forEach((x,i)=>{const cx=Lm+step*i+step/2;s+=`<rect x="${cx-bw-0.5}" y="${y(x)}" width="${bw}" height="${T+ih-y(x)}" rx="1.5" fill="var(--ca)"/><rect x="${cx+0.5}" y="${y(cs[i])}" width="${bw}" height="${T+ih-y(cs[i])}" rx="1.5" fill="#8E5BB5"/>`});
+  const pts=st.map((x,i)=>x==null?null:[Lm+step*i+step/2,ys(x)]).filter(Boolean);
+  if(pts.length)s+=`<polyline fill="none" stroke="var(--acc)" stroke-width="2" stroke-linejoin="round" points="${pts.map(p=>p.join(',')).join(' ')}"/>`;
+  const every=n>16?Math.ceil(n/8):1;
+  labels.forEach((l,i)=>{if(i%every&&i!==n-1)return;s+=`<text x="${Lm+step*i+step/2}" y="${H-7}" text-anchor="middle">${l}</text>`});
+  return s+'</svg>';
+}
 
 $('#acYrs').onclick=e=>{const b=e.target.closest('[data-y]');if(!b)return;ACY=+b.dataset.y;acRender()};
 $('#acMos').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.disabled)return;ACM=+b.dataset.m;acRender()};
 $('#acDBtn').onclick=()=>{ACD=!ACD;acRender()};
+$('#acLlBtn').onclick=()=>{ACLL=!ACLL;acRender()};
+/* ---------- datos del servidor ----------
+   El servidor descarga las planillas de Dropbox al iniciar y cuando se presiona "Actualizar". */
+const pausa=ms=>new Promise(r=>setTimeout(r,ms));
+async function getJSON(u,o){const r=await fetch(u,{cache:'no-store',...o});if(!r.ok)throw new Error('HTTP '+r.status);return r.json()}
+const fhora=iso=>{const d=new Date(iso);return d.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})};
+function aplicar(d){
+  window.APP_DATA=d;
+  BASE=d.produccion||{kgSaco:25,dias:{}};PAL=d.calidad||null;MIN=d.mineral||null;AC=d.acido||null;
+  _PM=null;_CHM=null;_LT=null;   // cachés calculados con los datos anteriores
+  if(window.peSet)window.peSet(d.petroleo);
+}
+function syncUI(m,busy){
+  $('#syncBtn').disabled=!!busy;$('#syncSpin').hidden=!busy;$('#syncLbl').textContent=busy?'Actualizando…':'⟳ Actualizar';
+  if(busy){$('#syncTxt').textContent='Descargando planillas de Dropbox…';return}
+  if(!m){$('#syncTxt').textContent='Sin conexión con el servidor';return}
+  $('#syncTxt').textContent=m.actualizado?'Actualizado: '+fhora(m.actualizado):'Aún no se descargan las planillas';
+  const bad=Object.values(m.fuentes||{}).filter(f=>f.ok===false);
+  $('#syncWarn').hidden=!bad.length;
+  $('#syncWarn').innerHTML=bad.map(f=>`⚠ <b>${esc(f.nombre)}</b>: no se pudo actualizar. ${f.hora?'Se muestran los datos del '+fhora(f.hora)+'.':'Sin datos para mostrar.'} <small>(${esc(f.error||'')})</small>`).join('<br>');
+}
+async function esperarServidor(){let m;for(;;){m=await getJSON('api/estado');if(!m.cargando)return m;await pausa(1500)}}
+function rerender(){
+  const v=(document.querySelector('.tabs2 [aria-pressed="true"]')||{}).dataset?.v||'prod';
+  if(v==='prod')render();else if(v==='pal')palRender();else if(v==='min')minRender();else insRender();
+}
+let SYNC=false;
+function mesInicial(){const all=Object.keys(DIAS()).sort(),last=all[all.length-1];
+  if(last&&!all.some(k=>k.startsWith(TODAY.slice(0,7)))){YEAR=+last.slice(0,4);MON=+last.slice(5,7)-1}}
+async function actualizar(primera){
+  if(SYNC)return;SYNC=true;let m=null;
+  try{
+    // al abrir: primero los datos que ya tiene el servidor (o la copia guardada si no hay conexión)
+    if(primera){try{aplicar(await getJSON('api/datos'));mesInicial();rerender()}catch(e){}}
+    else{syncUI(null,true);await getJSON('api/actualizar',{method:'POST'})}
+    let est=await getJSON('api/estado');
+    if(est.cargando||!primera){
+      if(est.cargando){syncUI(est,true);est=await esperarServidor()}
+      aplicar(await getJSON('api/datos'));if(primera)mesInicial();rerender();
+    }
+    m=est;
+    if(!primera)toast(Object.values(est.fuentes).some(f=>f.ok===false)?'Actualizado con avisos':'Datos actualizados');
+  }catch(e){if(!primera)toast('No se pudo conectar con el servidor')}
+  finally{SYNC=false;syncUI(m,false)}
+}
+$('#syncBtn').onclick=()=>actualizar(false);
 /* ---------- start ---------- */
-(async()=>{
-  try{const r=await fetch('datos.json',{cache:'no-cache'});BASE=await r.json()}catch(e){}
-  try{const r=await fetch('pallets.json',{cache:'no-cache'});PAL=await r.json()}catch(e){}
-  try{const r=await fetch('mineral.json',{cache:'no-cache'});MIN=await r.json()}catch(e){}
-  const all=Object.keys(DIAS()).sort(),last=all[all.length-1];
-  if(last&&!all.some(k=>k.startsWith(TODAY.slice(0,7)))){YEAR=+last.slice(0,4);MON=+last.slice(5,7)-1}
-  render();
-  if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
-})();
+render();
+actualizar(true);
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>
 <script>
@@ -1716,7 +1814,7 @@ function chart({labels,bars,line,sel,fmtL,fmtR,unitL,unitR,onTap,dimFrom,dots,ti
 }
 
 let P=null,YR=null,MO=-1,DD=0,MD='',MALL=false,DAY=null;
-const DN=['Planta','Externos'];
+const DN=['Planta','Externos','Sin destino'],DT=['P','E','S'],DC=['dP','dE','dS'];
 
 /* ---------- filtros ---------- */
 function inP(f){return (YR===0||+f.slice(0,4)===YR)&&(MO<0||+f.slice(5,7)-1===MO)}
@@ -1755,27 +1853,28 @@ function render(){
   $('#pe_mos').innerHTML=`<button data-m="-1" aria-pressed="${MO<0}">Año</button>`+MES.map((m,i)=>`<button data-m="${i}" aria-pressed="${i===MO}" ${msAv.includes(i)?'':'disabled'}>${m.slice(0,3)}</button>`).join('');
   {const c=$('#pe_mos'),s=c.querySelector('[aria-pressed="true"]');if(s&&MO>=0)c.scrollLeft=s.offsetLeft-c.clientWidth/2+s.clientWidth/2;else c.scrollLeft=0}
   const E=P.entregas.filter(e=>inP(e[0])),C=P.cargas.filter(c=>inP(c[0]));
-  const tot=E.reduce((a,e)=>a+e[3],0),tp=E.filter(e=>!e[5]).reduce((a,e)=>a+e[3],0),te=tot-tp,tc=C.reduce((a,c)=>a+c[1],0);
+  const tot=E.reduce((a,e)=>a+e[3],0),tp=E.filter(e=>e[5]===0).reduce((a,e)=>a+e[3],0),te=E.filter(e=>e[5]===1).reduce((a,e)=>a+e[3],0),ts=tot-tp-te,tc=C.reduce((a,c)=>a+c[1],0);
   const days=new Set(E.map(e=>e[0])).size;
   $('#pe_hLbl').textContent='Petróleo entregado '+periodo();
   $('#pe_hTot').innerHTML=nf(tot)+'<span>L</span>';
-  $('#pe_hSub').textContent=nf(E.length)+' entregas · '+days+' días con movimiento · promedio '+L(days?tot/days:0)+' por día';
+  $('#pe_hSub').textContent=nf(E.length)+' entregas · '+days+' días con movimiento · promedio '+L(days?tot/days:0)+' por día'+(ts?' · '+L(ts)+' sin destino':'');
   $('#pe_spP').style.width=(tot?tp/tot*100:0)+'%';$('#pe_spE').style.width=(tot?te/tot*100:0)+'%';
   $('#pe_lgP').textContent=L(tp)+' · '+nf(tot?tp/tot*100:0,0)+'%';$('#pe_lgE').textContent=L(te)+' · '+nf(tot?te/tot*100:0,0)+'%';
   const nm=new Set(E.map(e=>e[1])).size;
-  $('#pe_hStats').innerHTML=`<div><small>Cargas al estanque</small><b>${L(tc)}</b></div><div><small>Cargas − entregas</small><b class="${tc-tot>=0?'up':'dn'}">${(tc-tot>=0?'+':'−')+L(Math.abs(tc-tot))}</b></div><div><small>Máquinas</small><b>${nm}</b></div>`;
+  $('#pe_hStats').innerHTML=`<div><small>Cargas al estanque</small><b>${L(tc)}</b></div><div><small>Stock (cargas − despachos)</small><b class="${tc-tp-te>=0?'up':'dn'}">${(tc-tp-te>=0?'':'−')+L(Math.abs(tc-tp-te))}</b><small>planta + externos del período</small></div><div><small>Máquinas</small><b>${nm}</b></div>`;
   // chart
   const K=keysOf(),pl=K.keys.map(()=>0),ex=K.keys.map(()=>0),ca=K.keys.map(()=>0);
-  E.forEach(e=>{const i=K.keys.indexOf(K.kf(e[0]));if(i<0)return;if(e[5])ex[i]+=e[3];else pl[i]+=e[3]});
+  E.forEach(e=>{const i=K.keys.indexOf(K.kf(e[0]));if(i<0)return;if(e[5]===1)ex[i]+=e[3];else if(e[5]===0)pl[i]+=e[3]});
   C.forEach(c=>{const i=K.keys.indexOf(K.kf(c[0]));if(i>=0)ca[i]+=c[1]});
   const last=P.actualizado,lastI=K.keys.reduce((m,k,i)=>{const full=YR===0?k:MO<0?YR+'-'+k:YR+'-'+String(MO+1).padStart(2,'0')+'-'+k;return full<=last.slice(0,full.length)?i:m},-1);
   const caL=ca.map((v,i)=>i<=lastI?v:null);
   $('#pe_cTitle').textContent='Consumo de petróleo '+periodo();
   $('#pe_cSub').textContent='Litros entregados cada '+K.u+' a la planta y a externos, y litros cargados al estanque';
   $('#pe_cMain').innerHTML=mainChart(K.labs,pl,ex,caL,K.tipx);
-  renderDest(E);renderMaq(E);renderCargas(C);
+  renderDest(E);renderExt(E);renderMaq(E);renderCargas(C);
   if(!DAY)DAY=P.actualizado;renderDay();
-  $('#pe_note').textContent='Datos del Excel ENTREGA_DE_PETROLEO hasta el '+fdate(P.actualizado)+'.'+(P.corregidas&&P.corregidas.length?' Fila con fecha mal escrita en el Excel (se usó la fecha del registro anterior): '+P.corregidas.join(', ')+'.':'');
+  const sd=P.sinDestino||[];
+  $('#pe_note').textContent='Datos del Excel ENTREGA DE PETRÓLEO hasta el '+fdate(P.actualizado)+'. Destino PLANTA = consumo interno; EXTERNO = petróleo prestado a proveedores. Stock = cargas al camión (BDC) − despachos a planta y externos.'+(sd.length?' ⚠ Despachos sin destino válido (no cuentan en el stock): '+sd.map(x=>'"'+x[0]+'" en fila'+(x[1].length>1?'s ':' ')+x[1].slice(0,8).join(', ')+(x[1].length>8?'…':'')).join('; ')+'.':'');
 }
 function renderDest(E){
   const Ed=E.filter(e=>e[5]===DD),tot=Ed.reduce((a,e)=>a+e[3],0),g={};
@@ -1787,9 +1886,55 @@ function renderDest(E){
   const col=DD?'var(--ex)':'var(--pl)';
   $('#pe_dList').innerHTML=ks.map(k=>{const o=g[k];return `<button class="lrow" data-cc="${k}"><b class="n">${esc(title(P.cc[k]))} <span style="color:var(--muted)">›</span></b><span class="t">${L(o.l)}</span><span class="bar"><i style="width:${o.l/mx*100}%;background:${col}"></i></span><span class="kp"><span><b>${nf(tot?o.l/tot*100:0,1)}%</b> del total ${DN[DD].toLowerCase()}</span><span>${nf(o.n)} entregas</span><span>${o.m.size} ${o.m.size===1?'máquina':'máquinas'}</span></span></button>`}).join('')||'<p class="note">Sin entregas en este período.</p>';
 }
+/* ---------- préstamos a externos: cuánto, cuándo y a quién ---------- */
+let XALL=false,XMORE=false;
+function extData(E){
+  const X=E.filter(e=>e[5]===1),tot=X.reduce((a,e)=>a+e[3],0),g={};
+  X.forEach(e=>{const k=e[1]+'|'+e[4],o=g[k]=g[k]||{maq:e[1],cc:e[4],l:0,n:0,f0:e[0],f1:e[0]};o.l+=e[3];o.n++;if(e[0]<o.f0)o.f0=e[0];if(e[0]>o.f1)o.f1=e[0]});
+  return {X,tot,G:Object.values(g).sort((a,b)=>b.l-a.l)};
+}
+function renderExt(E){
+  const {X,tot,G}=extData(E),mx=Math.max(1,...G.map(o=>o.l));
+  $('#pe_xTitle').textContent='Petróleo prestado a externos '+periodo();
+  $('#pe_xSub').textContent=X.length?'Destino EXTERNO: petróleo pasado a proveedores, para cobrarles después · toca uno para ver cada fecha':'Sin préstamos a externos en este período.';
+  $('#pe_xStats').innerHTML=X.length?`<div><small>Litros prestados</small><b style="color:var(--ex)">${L(tot)}</b></div><div><small>Entregas</small><b>${nf(X.length)}</b></div><div><small>Máquina / centro de costos</small><b>${G.length}</b></div><div><small>Última entrega</small><b>${fdate(X[X.length-1][0])}</b></div>`:'';
+  $('#pe_xList').innerHTML=(XMORE?G:G.slice(0,10)).map(o=>`<button class="lrow" data-x="${o.maq}|${o.cc}"><b class="n">${esc(title(P.maq[o.maq]))} <span style="color:var(--muted)">›</span></b><span class="t">${L(o.l)}</span><span class="bar"><i style="width:${o.l/mx*100}%;background:var(--ex)"></i></span><span class="kp"><span>${esc(title(P.cc[o.cc]))}</span><span>${nf(o.n)} ${o.n===1?'entrega':'entregas'}</span><span>${o.f0===o.f1?fdate(o.f0):fdate(o.f0)+' – '+fdate(o.f1)}</span></span></button>`).join('');
+  $('#pe_xMore').hidden=G.length<=10;$('#pe_xMore').textContent=XMORE?'Ver menos':'Ver las '+G.length+' máquinas / centros de costos';
+  $('#pe_xBtn').hidden=!X.length;$('#pe_xPdf').hidden=!X.length;$('#pe_xRows').hidden=!XALL||!X.length;
+  $('#pe_xBtn').textContent=XALL?'▲ Ocultar entregas':'📋 Ver cada entrega ('+X.length+')';
+  if(XALL)$('#pe_xRows').innerHTML=`<div style="overflow-x:auto"><table class="mtab"><thead><tr><th style="text-align:left">Fecha</th><th style="text-align:left">Máquina</th><th style="text-align:left">Centro de costos</th><th>Litros</th></tr></thead><tbody>${X.slice().reverse().map(e=>`<tr><td style="text-align:left">${fdate(e[0])}</td><td style="text-align:left">${esc(title(P.maq[e[1]]))}</td><td style="text-align:left">${esc(title(P.cc[e[4]]))}</td><td>${nf(e[3])}</td></tr>`).join('')}<tr class="tot"><td colspan="3">Total</td><td>${nf(tot)}</td></tr></tbody></table></div>`;
+}
+function extDetail(k){
+  const [m,c]=k.split('|').map(Number),X=P.entregas.filter(e=>inP(e[0])&&e[5]===1&&e[1]===m&&e[4]===c),tot=X.reduce((a,e)=>a+e[3],0);
+  open(`<h3>${esc(title(P.maq[m]))}<span class="dtag dE">Externo</span></h3><p class="note" style="margin:0 0 10px">${esc(title(P.cc[c]))} · ${periodo()}</p>
+    <div class="mstats"><div><small>Litros prestados</small><b>${L(tot)}</b></div><div><small>Entregas</small><b>${nf(X.length)}</b></div></div>
+    <table class="mtab"><thead><tr><th style="text-align:left">Fecha</th><th style="text-align:left">Solicitante</th><th>Litros</th></tr></thead><tbody>${X.slice().reverse().map(e=>`<tr><td style="text-align:left">${fdate(e[0])}</td><td style="text-align:left">${esc(title(P.sol[e[2]]))}</td><td>${nf(e[3])}</td></tr>`).join('')}<tr class="tot"><td colspan="2">Total</td><td>${nf(tot)}</td></tr></tbody></table>
+    <button class="secondary" id="xX">Cerrar</button>`,()=>{$('#xX').onclick=close});
+}
+function extPDF(){
+  const btn=$('#pe_xPdf'),lbl='📄 PDF de préstamos del período';
+  if(!window.jspdf||!window.jspdf.jsPDF){btn.textContent='Preparando PDF…';pdfPrep().then(()=>{btn.textContent=lbl;toast('Listo, toca de nuevo para generar el PDF')}).catch(()=>{btn.textContent=lbl;toast('No se pudo cargar el generador de PDF. Revisa tu conexión.')});return}
+  const {X,tot,G}=extData(P.entregas.filter(e=>inP(e[0]))),per=periodo();
+  const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'}),W=210;let y=12;
+  if(_logo){const lh=13,lw=lh*_logo.w/_logo.h;doc.addImage(_logo.d,'PNG',12,y-2,lw,lh)}
+  doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(20,33,45);doc.text('Petróleo prestado a externos',W-12,y+3,{align:'right'});
+  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(94,107,119);doc.text('Minera Anita SpA · '+per,W-12,y+9,{align:'right'});
+  y+=17;doc.setDrawColor(215,222,228);doc.line(12,y,W-12,y);y+=7;
+  const info=[['Litros prestados',L(tot)],['Entregas',String(X.length)],['Máquina / centro de costos',String(G.length)]];
+  const cw=(W-24)/info.length;info.forEach(([k,v],i)=>{doc.setFontSize(8);doc.setTextColor(94,107,119);doc.text(k,12+cw*i,y);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(20,33,45);doc.text(v,12+cw*i,y+5.5);doc.setFont('helvetica','normal')});
+  y+=12;
+  const boldRow=r=>r.map(c=>({content:c,styles:{fontStyle:'bold',fillColor:[238,242,245]}}));
+  const foot=()=>{const ph=doc.internal.pageSize.getHeight();doc.setFontSize(7.5);doc.setTextColor(120);doc.text('Generado el '+new Date().toLocaleDateString('es-CL')+' · App Consumo de Petróleo · Diseñado por BG IA Solutions',12,ph-7);doc.text('Página '+doc.internal.getNumberOfPages(),W-12,ph-7,{align:'right'})};
+  const st={styles:{fontSize:8.5,cellPadding:1.8,textColor:[20,33,45]},headStyles:{fillColor:[192,101,47],textColor:255},margin:{left:12,right:12},didDrawPage:foot};
+  doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(20,33,45);doc.text('Resumen por máquina y centro de costos',12,y);
+  doc.autoTable({...st,startY:y+2,head:[['Máquina','Centro de costos','Entregas','Desde','Hasta','Litros']],body:G.map(o=>[title(P.maq[o.maq]),title(P.cc[o.cc]),String(o.n),fdate(o.f0),fdate(o.f1),nf(o.l)]).concat([boldRow(['Total','',String(X.length),'','',nf(tot)])]),columnStyles:{2:{halign:'right'},5:{halign:'right'}}});
+  y=doc.lastAutoTable.finalY+8;doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Detalle de entregas',12,y);
+  doc.autoTable({...st,startY:y+2,head:[['Fecha','Máquina','Centro de costos','Solicitante','Litros']],body:X.map(e=>[fdate(e[0]),title(P.maq[e[1]]),title(P.cc[e[4]]),title(P.sol[e[2]]),nf(e[3])]).concat([boldRow(['Total','','','',nf(tot)])]),alternateRowStyles:{fillColor:[245,247,249]},columnStyles:{4:{halign:'right'}}});
+  sharePDF(doc.output('blob'),'Prestamos_Petroleo_Externos_'+per.replace(/[^0-9A-Za-zÁÉÍÓÚáéíóúñÑ]+/g,'_')+'.pdf','Petróleo prestado a externos '+per+' · '+L(tot));
+}
 function renderMaq(E){
   const Em=MD===''?E:E.filter(e=>e[5]===+MD),tot=Em.reduce((a,e)=>a+e[3],0),g={};
-  Em.forEach(e=>{const o=g[e[1]]=g[e[1]]||{l:0,n:0,cc:{},d:[0,0]};o.l+=e[3];o.n++;o.cc[e[4]]=(o.cc[e[4]]||0)+e[3];o.d[e[5]]+=e[3]});
+  Em.forEach(e=>{const o=g[e[1]]=g[e[1]]||{l:0,n:0,cc:{},d:[0,0,0]};o.l+=e[3];o.n++;o.cc[e[4]]=(o.cc[e[4]]||0)+e[3];o.d[e[5]]+=e[3]});
   const ks=Object.keys(g).sort((a,b)=>g[b].l-g[a].l),mx=Math.max(1,...ks.map(k=>g[k].l));
   $('#pe_mTabs').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.d===MD));
   $('#pe_mTitle').textContent='Máquinas '+periodo();
@@ -1812,7 +1957,7 @@ function seriesFor(E){const K=keysOf(),v=K.keys.map(()=>0);E.forEach(e=>{const i
 function ccDetail(k){
   const E=P.entregas.filter(e=>inP(e[0])&&e[4]===+k),tot=E.reduce((a,e)=>a+e[3],0),g={};
   E.forEach(e=>{const o=g[e[1]]=g[e[1]]||{l:0,n:0};o.l+=e[3];o.n++});
-  const ks=Object.keys(g).sort((a,b)=>g[b].l-g[a].l),{K,v}=seriesFor(E),isE=E.length&&E[0][5];
+  const ks=Object.keys(g).sort((a,b)=>g[b].l-g[a].l),{K,v}=seriesFor(E),isE=E.length&&E[0][5]===1;
   open(`<h3>${esc(title(P.cc[k]))}<span class="dtag ${isE?'dE':'dP'}">${isE?'Externo':'Planta'}</span></h3><p class="note" style="margin:0 0 10px">${periodo()}</p>
     <div class="mstats"><div><small>Litros</small><b>${L(tot)}</b></div><div><small>Entregas</small><b>${nf(E.length)}</b></div></div>
     <div class="card" style="margin:8px 0 0;padding:12px 8px 8px"><h2 style="font-size:.98rem">Litros por ${K.u}</h2><div class="chart">${chart({labels:K.labs,bars:v,line:v.map(()=>null),sel:-1,fmtL:x=>nf(x),fmtR:x=>nf(x),unitL:'litros',unitR:'',tipB:'Litros',tipL:'',sufB:' L',sufL:'',tipX:K.tipx})}</div></div>
@@ -1833,7 +1978,7 @@ function maqDetail(k){
 }
 
 /* ---------- reporte diario ---------- */
-function dayData(d){const E=P.entregas.filter(e=>e[0]===d),C=P.cargas.filter(c=>c[0]===d);const tot=E.reduce((a,e)=>a+e[3],0),tp=E.filter(e=>!e[5]).reduce((a,e)=>a+e[3],0);return {E,C,tot,tp,te:tot-tp,tc:C.reduce((a,c)=>a+c[1],0)}}
+function dayData(d){const E=P.entregas.filter(e=>e[0]===d),C=P.cargas.filter(c=>c[0]===d);const tot=E.reduce((a,e)=>a+e[3],0),tp=E.filter(e=>e[5]===0).reduce((a,e)=>a+e[3],0),te=E.filter(e=>e[5]===1).reduce((a,e)=>a+e[3],0);return {E,C,tot,tp,te,tc:C.reduce((a,c)=>a+c[1],0)}}
 function renderDay(){
   $('#pe_dDay').value=DAY;$('#pe_dDay').min=P.entregas[0][0];$('#pe_dDay').max=P.actualizado;
   const D=dayData(DAY),dw=DOW[new Date(DAY+'T12:00:00').getDay()];
@@ -1842,9 +1987,9 @@ function renderDay(){
   $('#pe_rPdf').hidden=false;
   const g={};D.E.forEach(e=>{const k=e[5]+'|'+e[4];g[k]=(g[k]||0)+e[3]});
   const byCC=Object.entries(g).sort((a,b)=>a[0].localeCompare(b[0])||b[1]-a[1]);
-  $('#pe_rBody').innerHTML=`<h2 style="font-size:.95rem;margin:4px 0 0">Por destino</h2><table class="mtab"><tbody>${byCC.map(([k,v])=>{const[d,c]=k.split('|');return `<tr><td style="text-align:left"><span class="dtag ${+d?'dE':'dP'}" style="margin:0 6px 0 0">${+d?'E':'P'}</span>${esc(title(P.cc[c]))}</td><td>${L(v)}</td></tr>`}).join('')}</tbody></table>
+  $('#pe_rBody').innerHTML=`<h2 style="font-size:.95rem;margin:4px 0 0">Por destino</h2><table class="mtab"><tbody>${byCC.map(([k,v])=>{const[d,c]=k.split('|');return `<tr><td style="text-align:left"><span class="dtag ${DC[d]}" style="margin:0 6px 0 0">${DT[d]}</span>${esc(title(P.cc[c]))}</td><td>${L(v)}</td></tr>`}).join('')}</tbody></table>
     <h2 style="font-size:.95rem;margin:12px 0 0">Detalle de entregas</h2>
-    <div style="overflow-x:auto"><table class="mtab"><thead><tr><th style="text-align:left">Máquina</th><th style="text-align:left">Solicitante</th><th style="text-align:left">Centro de costo</th><th>Litros</th></tr></thead><tbody>${D.E.map(e=>`<tr><td style="text-align:left"><span class="dtag ${e[5]?'dE':'dP'}" style="margin:0 6px 0 0">${e[5]?'E':'P'}</span>${esc(title(P.maq[e[1]]))}</td><td style="text-align:left">${esc(title(P.sol[e[2]]))}</td><td style="text-align:left">${esc(title(P.cc[e[4]]))}</td><td>${nf(e[3])}</td></tr>`).join('')}<tr class="tot"><td colspan="3">Total</td><td>${nf(D.tot)}</td></tr></tbody></table></div>
+    <div style="overflow-x:auto"><table class="mtab"><thead><tr><th style="text-align:left">Máquina</th><th style="text-align:left">Solicitante</th><th style="text-align:left">Centro de costo</th><th>Litros</th></tr></thead><tbody>${D.E.map(e=>`<tr><td style="text-align:left"><span class="dtag ${DC[e[5]]}" style="margin:0 6px 0 0">${DT[e[5]]}</span>${esc(title(P.maq[e[1]]))}</td><td style="text-align:left">${esc(title(P.sol[e[2]]))}</td><td style="text-align:left">${esc(title(P.cc[e[4]]))}</td><td>${nf(e[3])}</td></tr>`).join('')}<tr class="tot"><td colspan="3">Total</td><td>${nf(D.tot)}</td></tr></tbody></table></div>
     ${D.C.length?`<p class="note" style="color:var(--ca);font-weight:700">Carga al estanque este día: +${L(D.tc)} (${D.C.map(c=>esc(title(P.sol[c[2]]))).join(', ')})</p>`:''}`;
   pdfPrep().catch(()=>{});
 }
@@ -1901,11 +2046,16 @@ $('#pe_mList').onclick=e=>{const b=e.target.closest('[data-maq]');if(b)maqDetail
 $('#pe_dDay').onchange=()=>{if($('#pe_dDay').value){DAY=$('#pe_dDay').value;renderDay()}};
 $('#pe_dPrev').onclick=()=>shiftDay(-1);$('#pe_dNext').onclick=()=>shiftDay(1);
 $('#pe_rPdf').onclick=dayPDF;
+$('#pe_xList').onclick=e=>{const b=e.target.closest('[data-x]');if(b)extDetail(b.dataset.x)};
+$('#pe_xMore').onclick=()=>{XMORE=!XMORE;renderExt(P.entregas.filter(x=>inP(x[0])))};
+$('#pe_xBtn').onclick=()=>{XALL=!XALL;renderExt(P.entregas.filter(x=>inP(x[0])))};
+$('#pe_xPdf').onclick=()=>{pdfPrep().catch(()=>{});extPDF()};
 window.peRaw=()=>P;
-window.peData=async()=>{if(!P){try{const r=await fetch('petroleo.json',{cache:'no-cache'});P=await r.json()}catch(e){}}return P};
+if(window.APP_DATA)P=window.APP_DATA.petroleo||null;
+window.peSet=x=>{P=x||null};
+window.peData=async()=>P;
 window.peInit=async()=>{
-  if(!P){try{const r=await fetch('petroleo.json',{cache:'no-cache'});P=await r.json()}catch(e){}}
-  if(!P){$('#pe_note').textContent='No se pudieron cargar los datos de petróleo.';return}
+  if(!P){$('#pe_note').textContent='Sin datos de petróleo todavía.';return}
   render();
 };
 })();
