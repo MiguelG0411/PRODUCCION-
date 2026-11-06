@@ -1978,19 +1978,40 @@ function ccDetail(k){
     <div class="mstats"><div><small>Litros</small><b>${L(tot)}</b></div><div><small>Entregas</small><b>${nf(E.length)}</b></div></div>
     <div class="card" style="margin:8px 0 0;padding:12px 8px 8px"><h2 style="font-size:.98rem">Litros por ${K.u}</h2><div class="chart">${chart({labels:K.labs,bars:v,line:v.map(()=>null),sel:-1,fmtL:x=>nf(x),fmtR:x=>nf(x),unitL:'litros',unitR:'',tipB:'Litros',tipL:'',sufB:' L',sufL:'',tipX:K.tipx})}</div></div>
     <h2 style="font-size:.98rem;margin:14px 0 0">Máquinas</h2>
-    <table class="mtab"><thead><tr><th>Máquina</th><th>Entregas</th><th>Litros</th><th>%</th></tr></thead><tbody>${ks.map(m=>`<tr><td style="text-align:left">${esc(title(P.maq[m]))}</td><td>${g[m].n}</td><td>${nf(g[m].l)}</td><td>${nf(tot?g[m].l/tot*100:0,1)}%</td></tr>`).join('')}</tbody></table>
-    <button class="secondary" id="xC">Cerrar</button>`,()=>{$('#xC').onclick=close});
+    <table class="mtab"><thead><tr><th>Máquina</th><th>Entregas</th><th>Litros</th><th>%</th></tr></thead><tbody id="ccMaq">${ks.map(m=>`<tr data-maq="${m}" style="cursor:pointer"><td style="text-align:left;color:var(--cu);font-weight:700">${esc(title(P.maq[m]))} ›</td><td>${g[m].n}</td><td>${nf(g[m].l)}</td><td>${nf(tot?g[m].l/tot*100:0,1)}%</td></tr>`).join('')}</tbody></table>
+    <p class="note" style="margin:6px 2px 0">Toca una máquina para ver su detalle.</p>
+    <button class="secondary" id="xC">Cerrar</button>`,()=>{$('#xC').onclick=close;$('#ccMaq').onclick=e=>{const r=e.target.closest('[data-maq]');if(r)maqDetail(r.dataset.maq,k)}});
 }
-function maqDetail(k){
+/* promedio mensual de una máquina: litros ÷ meses calendario del período (desde su primera entrega
+   hasta el último dato). Con un mes elegido se usan los 12 meses que terminan en ese mes. */
+const mIdx=f=>+f.slice(0,4)*12+ +f.slice(5,7)-1;
+function promMensual(k){
+  const A=P.entregas.filter(e=>e[1]===+k);if(!A.length)return {v:0,n:0,lbl:''};
+  const last=mIdx(P.actualizado);let ini,fin;
+  if(MO>=0){fin=YR*12+MO;ini=fin-11}
+  else if(YR===0){ini=mIdx(P.entregas[0][0]);fin=last}
+  else{ini=YR*12;fin=Math.min(YR*12+11,last)}
+  ini=Math.max(ini,mIdx(A[0][0]));
+  const n=fin-ini+1;if(n<1)return {v:0,n:0,lbl:''};
+  const l=A.filter(e=>{const i=mIdx(e[0]);return i>=ini&&i<=fin}).reduce((a,e)=>a+e[3],0);
+  return {v:l/n,n,lbl:MO>=0?'últimos 12 meses':n+(n===1?' mes':' meses')};
+}
+// toneladas chancadas en el período (planilla de mineral: lotes con fecha de chancado)
+function chancadoPeriodo(){const M=window.APP_DATA&&window.APP_DATA.mineral;if(!M||!M.pilas)return null;return M.pilas.filter(p=>inP(p[1])).reduce((a,p)=>a+p[4],0)}
+function maqDetail(k,desdeCC){
   const E=P.entregas.filter(e=>inP(e[0])&&e[1]===+k),tot=E.reduce((a,e)=>a+e[3],0),{K,v}=seriesFor(E),so={},cc={};
+  const pm=promMensual(k),ch=chancadoPeriodo();
   E.forEach(e=>{so[e[2]]=(so[e[2]]||0)+1;cc[e[4]]=(cc[e[4]]||0)+e[3]});
   const last=E.slice().reverse().slice(0,15);
   open(`<h3>${esc(title(P.maq[k]))}</h3><p class="note" style="margin:0 0 10px">${periodo()} · ${Object.keys(cc).map(c=>esc(title(P.cc[c]))).join(', ')}</p>
-    <div class="mstats"><div><small>Litros</small><b>${L(tot)}</b></div><div><small>Entregas</small><b>${nf(E.length)}</b></div><div><small>Promedio por entrega</small><b>${L(E.length?tot/E.length:0)}</b></div><div><small>Solicitante principal</small><b style="font-size:.95rem">${E.length?esc(title(P.sol[Object.keys(so).sort((a,b)=>so[b]-so[a])[0]])):'—'}</b></div></div>
+    <div class="mstats"><div><small>Litros consumidos</small><b>${L(tot)}</b></div><div><small>Promedio mensual</small><b>${pm.n?L(pm.v):'—'}</b><small>${pm.lbl}</small></div>
+    <div><small>Litros por t chancada</small><b>${ch?nf(tot/ch,2)+' L/t':'—'}</b><small>${ch?nf(ch,1)+' t chancadas':'sin chancado en el período'}</small></div>
+    <div><small>Entregas</small><b>${nf(E.length)}</b></div><div><small>Promedio por entrega</small><b>${L(E.length?tot/E.length:0)}</b></div><div><small>Solicitante principal</small><b style="font-size:.95rem">${E.length?esc(title(P.sol[Object.keys(so).sort((a,b)=>so[b]-so[a])[0]])):'—'}</b></div></div>
     <div class="card" style="margin:8px 0 0;padding:12px 8px 8px"><h2 style="font-size:.98rem">Litros por ${K.u}</h2><div class="chart">${chart({labels:K.labs,bars:v,line:v.map(()=>null),sel:-1,fmtL:x=>nf(x),fmtR:x=>nf(x),unitL:'litros',unitR:'',tipB:'Litros',tipL:'',sufB:' L',sufL:'',tipX:K.tipx})}</div></div>
     <h2 style="font-size:.98rem;margin:14px 0 0">Últimas entregas</h2>
     <table class="mtab"><thead><tr><th>Fecha</th><th style="text-align:left">Solicitante</th><th>Litros</th></tr></thead><tbody>${last.map(e=>`<tr><td>${fdate(e[0])}</td><td style="text-align:left">${esc(title(P.sol[e[2]]))}</td><td>${nf(e[3])}</td></tr>`).join('')}</tbody></table>
-    <button class="secondary" id="xM">Cerrar</button>`,()=>{$('#xM').onclick=close});
+    ${desdeCC!=null?`<button class="secondary" id="xV">‹ Volver a ${esc(title(P.cc[desdeCC]))}</button>`:''}
+    <button class="secondary" id="xM">Cerrar</button>`,()=>{$('#xM').onclick=close;const b=$('#xV');if(b)b.onclick=()=>ccDetail(desdeCC);$('#sheet').scrollTop=0});
 }
 
 /* ---------- reporte diario ---------- */
