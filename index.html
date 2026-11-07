@@ -1010,10 +1010,11 @@ function tablaAnios(ys,t,c,pa,cu,ac){
 let _PM=null;
 function priceMap(){if(_PM)return _PM;_PM=new Map();(MIN.pilas||[]).forEach(r=>_PM.set(String(r[0]),+r[7]||0));return _PM}
 const SULF=3.92;
-// Ripio dispuesto en pilas por año (hoja INFORME DE PILAS, columnas AG-AI): toneladas, ley % ponderada
+// Ripio dispuesto en pilas por año (hoja INFORME DE PILAS, columnas AG-AH): toneladas; la ley es fija (LEY_RIPIO)
 // y sulfato de cada mes. No es mineral disponible para chancar, pero aporta cobre a la producción.
 let RIPIO={};
-function ripioPorAnio(R){const o={};(R||[]).forEach(([m,t,ley])=>{const y=+m.slice(0,4),r=o[y]=o[y]||{t:0,cu:0,m:Array(12).fill(0)};
+const LEY_RIPIO=0.33;   // ley de cobre del ripio (%), fija por definición de la planta
+function ripioPorAnio(R){const o={};(R||[]).forEach(([m,t])=>{const ley=LEY_RIPIO;const y=+m.slice(0,4),r=o[y]=o[y]||{t:0,cu:0,m:Array(12).fill(0)};
   r.t+=t;r.cu+=t*ley/100;r.m[+m.slice(5,7)-1]+=t*ley/100*SULF});Object.values(o).forEach(r=>r.ley=r.t?r.cu/r.t*100:0);return o}
 const REC_RIPIO=0.70; // recuperación considerada para el ripio
 function recBox(dmin,drip,dripTot,yrs,rip){drip=drip||0;const disp=dmin+drip;yrs=yrs||[MY];
@@ -1100,14 +1101,14 @@ let PILY=null,PILM=null;
 const DCOL=['#1E6FA8','#C0652F','#1F8A5B','#C88A2A','#7A4FB0','#2E8C99','#B9442F','#5E6B77','#8FB339','#D16BA5'];
 const pilaMes=p=>{const m=/^[PR]\d+-(\d{2})-(\d{4})$/.exec(p);return m?m[2]+'-'+m[1]:null};
 const T_RIPIO=600;   // toneladas que se consideran para cada pila de ripio
-const leyRipio=pm=>{const r=(MIN&&MIN.ripio||[]).find(x=>x[0]===pm);return r&&r[2]>0?r[2]:null};
+
 function pilasAgg(){
   const P=MIN.pilas||[],g={};
   P.forEach(r=>{if((+r[7]||0)<0)return;const pm=pilaMes(r[2])||r[1].slice(0,7);const o=g[r[2]]=g[r[2]]||{p:r[2],mes:pm,l:[],t:0,pa:0,cu:0,ac:0,f0:'9',f1:'',costo:0,sinp:0};const pr=+r[7]||0;if(pr>0)o.costo+=pr;else if(pr===0)o.sinp++;
     o.l.push(r);o.t+=r[4];if(r[1]<o.f0)o.f0=r[1];if(r[1]>o.f1)o.f1=r[1];if(r[5]>0){o.pa+=r[4];o.cu+=r[4]*r[5]/100;o.ac+=r[4]*r[5]*r[6]*10}});
-  // pilas de ripio (R): salen del control químico, 600 t cada una; la ley es la del ripio del mes (INFORME DE PILAS)
+  // pilas de ripio (R): salen del control químico, 600 t cada una, con la ley fija del ripio
   if(CQ)Object.entries(CQ.pilas).forEach(([k,r])=>{if(k[0]!=='R'||g[k])return;const pm=pilaMes(k)||r[0][0].slice(0,7);
-    g[k]={p:k,mes:pm,l:[],t:T_RIPIO,pa:0,cu:0,ac:0,f0:r[0][0],f1:r[r.length-1][0],costo:0,sinp:0,rip:true,ley:leyRipio(pm)}});
+    g[k]={p:k,mes:pm,l:[],t:T_RIPIO,pa:0,cu:0,ac:0,f0:r[0][0],f1:r[r.length-1][0],costo:0,sinp:0,rip:true,ley:LEY_RIPIO}});
   return g;
 }
 const fdm=s=>s.slice(8)+'/'+s.slice(5,7);
@@ -1140,7 +1141,7 @@ function pilRender(){
     const parc=o.pa&&o.pa<o.t-0.01;return `<button class="pila" data-p="${esc(o.p)}"><b class="n">${esc(o.p)} <span style="color:var(--muted);font-weight:600">›</span></b><span class="t">${nf(o.t,1)} t</span>
     <small style="grid-column:1/-1">Chancada ${o.f0===o.f1?'el '+fdm(o.f0):'del '+fdm(o.f0)+' al '+fdm(o.f1)} · ${o.l.length} lotes</small>
     <span class="kp"><span>Ley <b>${o.pa?nf(o.cu/o.pa*100,2)+'%':'s/a'}</b></span><span>Consumo <b>${o.pa?nf(o.ac/o.pa,1)+' kg/t':'s/a'}</b></span><span>Sulfato <b class="su">${o.pa?nf(o.cu*SULF,1)+' t':'s/a'}${parc?'*':''}</b></span><span>Costo <b>${o.costo?clpM(o.costo):'sin precio'}</b></span></span></button>`}).join('');
-  $('#pilNote').textContent='Datos de la hoja BD del Excel INGRESO MINERAL (fecha de chancado, pila de destino y valor del lote). Las pilas se agrupan por el mes de su nombre (P01-08-2026 = agosto 2026). Las pilas de ripio (R) salen del control químico y se consideran de 600 t cada una; suman al tonelaje, pero la ley, el consumo y el costo del mes son solo del mineral. Al tocar una pila se ve su lixiviación según el control químico. Aporte en sulfato = peso × ley × '+nf(SULF,2)+', sobre los lotes con análisis. * Pila con lotes aún sin análisis. Costo = suma del precio de los lotes (columna T de la hoja BD); los lotes con precio menor a 0 no se contabilizan.';
+  $('#pilNote').textContent='Datos de la hoja BD del Excel INGRESO MINERAL (fecha de chancado, pila de destino y valor del lote). Las pilas se agrupan por el mes de su nombre (P01-08-2026 = agosto 2026). Las pilas de ripio (R) salen del control químico y se consideran de 600 t cada una, con ley 0,33%; suman al tonelaje, pero la ley, el consumo y el costo del mes son solo del mineral. Al tocar una pila se ve su lixiviación según el control químico. Aporte en sulfato = peso × ley × '+nf(SULF,2)+', sobre los lotes con análisis. * Pila con lotes aún sin análisis. Costo = suma del precio de los lotes (columna T de la hoja BD); los lotes con precio menor a 0 no se contabilizan.';
 }
 function donut(parts){
   const R=60,r=36,cx=75,cy=75,tot=parts.reduce((a,p)=>a+p.v,0);let a0=-Math.PI/2,s=`<svg viewBox="0 0 150 150" role="img">`;
@@ -1167,7 +1168,7 @@ function lixCard(id){
 function pilaDetail(id){
   const o=pilasAgg()[id];if(!o)return;const M=MIN.minas;
   if(o.rip){open(`<h3>Pila ${esc(o.p)} <span class="rp">ripio</span></h3><p class="note" style="margin:0 0 12px">Pila de ripio · se consideran ${T_RIPIO} t</p>
-    <div class="mstats"><div><small>Tonelaje considerado</small><b>${nf(o.t)} t</b></div><div><small>Ley del ripio</small><b>${o.ley?nf(o.ley,2)+'%':'s/i'}</b><small>INFORME DE PILAS, ${MES[+o.mes.slice(5,7)-1].toLowerCase()}</small></div>
+    <div class="mstats"><div><small>Tonelaje considerado</small><b>${nf(o.t)} t</b></div><div><small>Ley del ripio</small><b>${o.ley?nf(o.ley,2)+'%':'s/i'}</b><small>ley fija del ripio</small></div>
     <div class="sulfbox"><small>Aporte sulfato</small><b>${o.ley?nf(o.t*o.ley/100*SULF,1)+' t':'s/i'}</b></div></div>
     ${lixCard(id)}<button class="secondary" id="pdClose">Cerrar</button>`,()=>{$('#pdClose').onclick=close;$('#sheet').scrollTop=0});return}
   const bm={};o.l.forEach(r=>{bm[M[r[3]]]=(bm[M[r[3]]]||0)+r[4]});

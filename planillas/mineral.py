@@ -2,7 +2,8 @@
 Hoja BD: C lote, D fecha, E peso, F mina, K ley, L consumo, O fecha de chancado, P pila de destino, T valor del lote.
 Estado de cada lote: chancado si tiene fecha de chancado; stock pile si tiene ley y no está chancado; si no, disponible.
 Hoja INFORME DE PILAS desde X14: tarifas ENAMI (X fecha, AB base, AC escala, AD ácido).
-Hoja INFORME DE PILAS desde la fila 15: ripio dispuesto en pilas de lixiviación (AG mes y año, AH toneladas, AI ley %).
+Hoja INFORME DE PILAS desde la fila 15: ripio dispuesto en pilas de lixiviación (AG mes y año, AH toneladas, AI ley %;
+la app usa una ley fija de 0,33% para el ripio).
 El ripio ya está en pilas: no cuenta como mineral disponible, pero aporta cobre a la producción (recuperación)."""
 import re
 from openpyxl.utils.datetime import from_excel
