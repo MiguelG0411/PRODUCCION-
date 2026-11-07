@@ -4,6 +4,7 @@ Estado de cada lote: chancado si tiene fecha de chancado; stock pile si tiene le
 Hoja INFORME DE PILAS desde X14: tarifas ENAMI (X fecha, AB base, AC escala, AD ácido).
 Hoja INFORME DE PILAS desde la fila 15: ripio dispuesto en pilas de lixiviación (AG mes y año, AH toneladas, AI ley %;
 la app usa una ley fija de 0,33% para el ripio).
+Hoja CONTROL RECHAZO: material rechazado por la parrilla (sobretamaño), pesado por pila y mina: C pila, D peso (t), E mina.
 El ripio ya está en pilas: no cuenta como mineral disponible, pero aporta cobre a la producción (recuperación)."""
 import re
 from openpyxl.utils.datetime import from_excel
@@ -60,7 +61,16 @@ def leer(contenido):
             f = fecha(r[0])
             if f is None or num(r[4]) is None: continue
             tarifas.append([f[:7], num(r[4]), num(r[5]) or 0, num(r[6]) or 0])
+    # rechazo pesado por pila y mina (la hoja se busca sin distinguir mayúsculas ni espacios)
+    rechazo = []
+    nombre = next((n for n in wb.sheetnames if txt(n) == "CONTROL RECHAZO"), None)
+    if nombre:
+        for _, r in filas(wb[nombre], 3, 5):
+            pila, peso, mina = txt(r[0]), num(r[1]), txt(r[2])
+            if not pila or not mina or not peso or peso <= 0: continue
+            rechazo.append([pila, round(peso, 3), mina])
     lotes.sort(key=lambda x: (x[1], str(x[0])))
     pilas.sort(key=lambda x: (x[1], x[2], str(x[0])))
     return {"actualizado": max(l[1] for l in lotes), "minas": minas, "lotes": lotes, "pilas": pilas, "tarifas": sorted(tarifas),
-            "ripio": [[m, round(o[0], 2), round(o[1] / o[0], 4)] for m, o in sorted(ripio.items())]}
+            "ripio": [[m, round(o[0], 2), round(o[1] / o[0], 4)] for m, o in sorted(ripio.items())],
+            "rechazo": rechazo}

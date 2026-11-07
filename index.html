@@ -150,6 +150,9 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .rp{font-size:.66rem;background:#E7F5EC;color:#14804A;border-radius:4px;padding:1px 4px;margin-left:4px;font-weight:700}
 .pmini{border:1px solid var(--line);border-radius:12px;padding:8px 6px 2px;margin-top:8px}.pmini .mh{display:flex;justify-content:space-between;font-size:.82rem;padding:0 4px}.pmini .mh span{color:var(--muted)}
 @media (prefers-color-scheme:dark){.sc .sh small:last-child,.sc .sr b.p{background:#1d2a44}.sc .sr b.p{color:#8fb3ff}}
+.rz{color:#C0392B!important}.rzbox{border:1px dashed #E5A9A2!important;cursor:pointer}.rzbox b{color:#C0392B}
+.flow.f4{grid-template-columns:1fr auto 1fr auto 1fr auto 1fr}.flow .op2{color:var(--muted);font-weight:700}
+.kv{display:flex;justify-content:space-between;align-items:flex-end;gap:6px}.kv b{white-space:nowrap}.kv .rs{text-align:right;font-size:.7rem;line-height:1.35;color:#C0392B;font-weight:700;white-space:nowrap}
 .dP{background:var(--pl)}.dE{background:var(--ex)}.dS{background:var(--muted)}
 .daynav{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center;margin-bottom:10px}
 .daynav button{height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-size:1.2rem}
@@ -356,7 +359,7 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
       <div class="lbl">Mineral disponible para chancar</div>
       <div class="big" id="mDisp">0<span>t</span></div>
       <div class="lbl" id="mDispSub"></div>
-      <div class="flow"><div><small>Ingresado</small><b id="mIng">0</b></div><span class="op">−</span><div><small>Chancado</small><b id="mCh">0</b></div><span class="op">−</span><div><small>Stock pile</small><b id="mSp">0</b></div></div>
+      <div class="flow f4"><div><small>Ingresado</small><b id="mIng">0</b></div><span class="op">−</span><div><small>Chancado</small><b id="mCh">0</b></div><span class="op">−</span><div><small>Stock pile</small><b id="mSp">0</b></div><span class="op2">·</span><button class="rzbox" id="mRz" type="button" style="background:var(--bg);border-radius:12px;padding:9px 4px;font:inherit;color:inherit"><small>Stock rechazo ›</small><b id="mRzT">—</b></button></div>
       <p class="note" id="mFlowNote" style="margin:10px 0 0"></p>
     </section>
     <section class="card">
@@ -898,9 +901,10 @@ function minRender(){
   const dl=L.filter(l=>l[6]===0);
   $('#mDisp').innerHTML=tf(disp)+'<span>t</span>';
   $('#mDispSub').textContent=dl.length+' camiones en cancha'+(dl.length?' · el más antiguo llegó el '+dl.map(l=>l[1]).sort()[0].split('-').reverse().join('/'):'');
+  const RZ=rechazo();$('#mRzT').textContent=RZ.tot?nf(RZ.stock,1):'—';
   $('#mIng').textContent=nf(ing);$('#mCh').textContent=nf(ch);$('#mSp').textContent=nf(sp,1);
   const y0=L.map(l=>l[1]).sort()[0].slice(0,4);
-  $('#mFlowNote').textContent='Toneladas desde '+y0+'. Ingresado − chancado (lotes con fecha de chancado) − stock pile (lotes con ley y sin fecha de chancado).';
+  $('#mFlowNote').textContent='Toneladas desde '+y0+'. Ingresado − chancado (lotes con fecha de chancado) − stock pile (lotes con ley y sin fecha de chancado). El stock de rechazo es solo indicativo: no se suma al disponible.';
   // stock by mina
   const sm={};L.forEach(l=>{if(l[6]===1)return;const k=M[l[3]];sm[k]=sm[k]||{d:0,s:0,old:'9'};if(l[6]===0){sm[k].d+=l[2];if(l[1]<sm[k].old)sm[k].old=l[1]}else sm[k].s+=l[2]});
   const ks=Object.keys(sm).sort((a,b)=>(sm[b].d+sm[b].s)-(sm[a].d+sm[a].s)),mx=Math.max(1,...ks.map(k=>sm[k].d+sm[k].s));
@@ -962,7 +966,7 @@ function recProdRender(){
     $('#rcBox').innerHTML=`<div style="overflow-x:auto"><table class="mtab"><thead><tr><th>Año</th><th>Disponible (t)</th><th>Producido (t)</th><th>Recuperación</th></tr></thead><tbody>${rows}
       <tr class="tot"><td>Total</td><td>${nf(TD+TR,1)}</td><td>${nf(TP,1)}</td><td>${TD+TR?nf(TP/(TD+TR)*100,1)+'%':'—'}</td></tr></tbody></table></div>`;
     $('#cRec').innerHTML='';$('#rcLeg').hidden=true;
-    $('#rcNote').textContent='* Incluye ripio al '+nf(REC_RIPIO*100,0)+'%. Disponible = tonelaje × ley × '+nf(SULF,2)+' del mineral con análisis. Una recuperación sobre 100% indica que se procesó mineral de años anteriores o que falta mineral sin análisis/ripio en el disponible.';
+    $('#rcNote').textContent='* Incluye ripio al '+nf(REC_RIPIO*100,0)+'%. Disponible = tonelaje × ley × 3,92 × 1,06 del mineral con análisis. Una recuperación sobre 100% indica que se procesó mineral de años anteriores o que falta mineral sin análisis/ripio en el disponible.';
     return;
   }
   const dm=dispMes(YEAR),pm=prodMes(YEAR),rp=RIPIO[YEAR],rs=rp?rp.t*rp.ley/100*SULF:0;
@@ -1009,7 +1013,7 @@ function tablaAnios(ys,t,c,pa,cu,ac){
 
 let _PM=null;
 function priceMap(){if(_PM)return _PM;_PM=new Map();(MIN.pilas||[]).forEach(r=>_PM.set(String(r[0]),+r[7]||0));return _PM}
-const SULF=3.92;
+const SULF=3.92*1.06;   // t de sulfato por t de cobre: estequiometría 3,92 × humedad 1,06
 // Ripio dispuesto en pilas por año (hoja INFORME DE PILAS, columnas AG-AH): toneladas; la ley es fija (LEY_RIPIO)
 // y sulfato de cada mes. No es mineral disponible para chancar, pero aporta cobre a la producción.
 let RIPIO={};
@@ -1025,6 +1029,40 @@ function ripioMeses(){
 function ripioPorAnio(R){const o={};(R||[]).forEach(([m,t])=>{const ley=LEY_RIPIO;const y=+m.slice(0,4),r=o[y]=o[y]||{t:0,cu:0,m:Array(12).fill(0)};
   r.t+=t;r.cu+=t*ley/100;r.m[+m.slice(5,7)-1]+=t*ley/100*SULF});Object.values(o).forEach(r=>r.ley=r.t?r.cu/r.t*100:0);return o}
 const REC_RIPIO=0.70; // recuperación considerada para el ripio
+/* Rechazo: material de sobretamaño que la parrilla separa antes de la pila. Se pesa por pila y mina (hoja CONTROL RECHAZO).
+   Los lotes de BD con mina RECHAZO ingresados desde RECHAZO_DESDE son ese material ya reducido de tamaño: se descuentan del
+   stock, repartidos en proporción a lo que cada mina tiene en él. Ley estimada de cada mina = ley ponderada de sus lotes. */
+const RECHAZO_DESDE='2026-11-01';
+let _RZ=null;
+function rechazo(){
+  if(_RZ)return _RZ;
+  const M=MIN?MIN.minas:[],L=MIN?MIN.lotes:[],porMina={},porPila={},acc={},ingreso={};let tot=0;
+  ((MIN&&MIN.rechazo)||[]).forEach(([p,t,m])=>{tot+=t;porMina[m]=(porMina[m]||0)+t;const o=porPila[p]=porPila[p]||{t:0,m:{}};o.t+=t;o.m[m]=(o.m[m]||0)+t});
+  L.forEach(l=>{const k=M[l[3]];ingreso[k]=(ingreso[k]||0)+l[2];if(l[4]>0){const o=acc[k]=acc[k]||[0,0];o[0]+=l[2];o[1]+=l[2]*l[4]}});
+  const ley={};Object.entries(acc).forEach(([k,o])=>ley[k]=o[1]/o[0]);
+  const proc=L.filter(l=>String(M[l[3]]||'').startsWith('RECHAZO')&&l[1]>=RECHAZO_DESDE),usado=proc.reduce((a,l)=>a+l[2],0);
+  const stock=Math.max(0,tot-usado),f=tot?stock/tot:0,sulf=(t,m)=>ley[m]?t*ley[m]/100*SULF:0;
+  return _RZ={tot,porMina,porPila,proc,usado,stock,f,ley,ingreso,sulf};
+}
+function rechazoPila(p){const R=rechazo(),o=R.porPila[p];return o?{t:o.t,s:Object.entries(o.m).reduce((a,[m,t])=>a+R.sulf(t,m),0)}:{t:0,s:0}}
+function rechazoDetail(){
+  const R=rechazo(),ks=Object.keys(R.porMina).sort((a,b)=>R.porMina[b]-R.porMina[a]);
+  const sT=ks.reduce((a,m)=>a+R.sulf(R.porMina[m]*R.f,m),0),lT=ks.reduce((a,m)=>a+(R.ley[m]?R.porMina[m]:0),0),lP=lT?ks.reduce((a,m)=>a+(R.ley[m]?R.porMina[m]*R.ley[m]:0),0)/lT:0;
+  const pil=Object.entries(R.porPila).sort((a,b)=>a[0]<b[0]?-1:1);
+  open(`<h3>Stock de rechazo</h3><p class="note" style="margin:0 0 12px">Sobretamaño separado por la parrilla (hoja CONTROL RECHAZO). Es indicativo: no se suma al mineral disponible para chancar.</p>
+    <div class="mstats">
+      <div><small>Rechazo pesado</small><b class="rz">${nf(R.tot,1)} t</b></div>
+      <div><small>Procesado (lotes RECHAZO)</small><b>${nf(R.usado,1)} t</b><small>${R.proc.length} lotes desde ${RECHAZO_DESDE.slice(5,7)}/${RECHAZO_DESDE.slice(0,4)}</small></div>
+      <div><small>Stock actual</small><b class="rz">${nf(R.stock,1)} t</b></div>
+      <div><small>Ley estimada</small><b>${lP?nf(lP,2)+'%':'s/i'}</b><small>sulfato ≈ ${nf(sT,1)} t</small></div>
+    </div>
+    ${ks.length?`<h2 style="font-size:.98rem;margin:12px 0 0">Por mina</h2><div style="overflow-x:auto"><table class="mtab"><thead><tr><th style="text-align:left">Mina</th><th>Pesado t</th><th>Stock t</th><th>Ley est.</th><th>% rechazo</th></tr></thead><tbody>${ks.map(m=>`<tr><td style="text-align:left">${esc(title(m))}</td><td>${nf(R.porMina[m],1)}</td><td class="rz">${nf(R.porMina[m]*R.f,1)}</td><td>${R.ley[m]?nf(R.ley[m],2)+'%':'s/i'}</td><td>${R.ingreso[m]?nf(R.porMina[m]/R.ingreso[m]*100,1)+'%':'—'}</td></tr>`).join('')}</tbody></table></div>
+    <p class="note" style="margin:6px 2px 0">Stock por mina = rechazo pesado × ${nf(R.f*100,1)}% (lo procesado se descuenta en proporción a cada mina). % rechazo = rechazo pesado ÷ ingreso total de la mina.</p>`:'<p class="note">La hoja CONTROL RECHAZO no tiene datos.</p>'}
+    ${pil.length?`<h2 style="font-size:.98rem;margin:14px 0 0">Por pila</h2><table class="mtab"><thead><tr><th style="text-align:left">Pila</th><th>Rechazo t</th><th>Sulfato t</th></tr></thead><tbody>${pil.map(([p])=>{const x=rechazoPila(p);return `<tr><td style="text-align:left">${esc(p)}</td><td class="rz">${nf(x.t,1)}</td><td>${nf(x.s,1)}</td></tr>`}).join('')}</tbody></table>`:''}
+    ${R.proc.length?`<h2 style="font-size:.98rem;margin:14px 0 0">Lotes de rechazo procesados</h2><table class="mtab"><thead><tr><th>Lote</th><th>Ingreso</th><th>t</th></tr></thead><tbody>${R.proc.map(l=>`<tr><td>${esc(String(l[0]))}</td><td>${l[1].split('-').reverse().join('/')}</td><td>${nf(l[2],2)}</td></tr>`).join('')}</tbody></table>`:''}
+    <button class="secondary" id="rzClose">Cerrar</button>`,()=>{$('#rzClose').onclick=close;$('#sheet').scrollTop=0});
+}
+$('#mRz').onclick=()=>{if(MIN)rechazoDetail()};
 function recBox(dmin,drip,dripTot,yrs,rip){drip=drip||0;const disp=dmin+drip;yrs=yrs||[MY];
   const D=DIAS(),ks=Object.keys(D).filter(k=>yrs.includes(+k.slice(0,4))).sort();
   const prod=ks.reduce((a,k)=>a+kgOf(D[k]),0)/1000;
@@ -1048,7 +1086,7 @@ function tablaMes(LY){
     <tr class="tot"><td>Total</td><td>${nf(T,1)}</td><td>${PA?nf(CU/PA*100,2)+'%':'—'}</td><td>${PA?nf(AC/PA,1):'—'}</td><td>${PA?nf(CU*SULF,1):'—'}</td></tr>${rip?`
     <tr class="tot rip"><td>Ripio</td><td>${nf(rip.t,1)}</td><td>${nf(rip.ley,2)}%</td><td>s/a</td><td>${nf(ripS,1)}</td></tr>`:''}</tbody></table></div>
     ${recBox(CU*SULF,ripS*REC_RIPIO,ripS,null,rip)}
-    <p class="note" style="margin:8px 2px 0">Sulfato disponible = tonelaje × ley × ${nf(SULF,2)}, sobre el mineral con análisis.${parcial?' * Mes con camiones aún sin análisis: el sulfato de esos camiones todavía no se cuenta.':''}</p>`;
+    <p class="note" style="margin:8px 2px 0">Sulfato disponible = tonelaje × ley × 3,92 × 1,06, sobre el mineral con análisis.${parcial?' * Mes con camiones aún sin análisis: el sulfato de esos camiones todavía no se cuenta.':''}</p>`;
 }
 
 function leyMes(LY){const t=Array(12).fill(0),c=Array(12).fill(0);LY.forEach(l=>{if(l[4]>0){const i=+l[1].slice(5,7)-1;t[i]+=l[2];c[i]+=l[2]*l[4]/100}});return t.map((v,i)=>v?c[i]/v*100:null)}
@@ -1093,6 +1131,7 @@ function minaDetail(k){
       <div><small>Cobre contenido</small><b>${PA?nf(CU,2)+' t':'—'}</b></div>
       <div><small>Costo total</small><b>${CO?clp(CO):'—'}</b></div>
       <div><small>Costo por tonelada</small><b>${CO&&TC?clp(CO/TC):'—'}</b></div>
+      ${(()=>{const R=rechazo(),rt=R.porMina[k]||0;return rt?`<div><small>Rechazo de la mina</small><b class="rz">${nf(rt,1)} t</b><small>pesado en total</small></div><div><small>% de rechazo</small><b class="rz">${R.ingreso[k]?nf(rt/R.ingreso[k]*100,1)+'%':'—'}</b><small>rechazo ÷ ingreso total</small></div>`:''})()}
     </div>
     <p class="note" style="margin:0 0 8px">${nf(PA,1)} de ${nf(T,1)} t con análisis (${nf(PA/Math.max(1,T)*100,0)}%)${pend||sp?` · Hoy: <b>${nf(pend,1)} t</b> por chancar${sp?` y <b>${nf(sp,1)} t</b> en stock pile`:''}`:''}</p>
     <div class="card" style="margin:8px 0 0;padding:12px 8px 8px"><h2 style="font-size:.98rem">Ingreso mensual y ley</h2>
@@ -1146,10 +1185,10 @@ function pilRender(){
   $('#pilList').innerHTML=MO.map(o=>{if(o.rip)return `<button class="pila" data-p="${esc(o.p)}"><b class="n">${esc(o.p)} <span class="rp">ripio</span> <span style="color:var(--muted);font-weight:600">›</span></b><span class="t">${nf(o.t)} t</span>
     <small style="grid-column:1/-1">Lixiviación desde el ${fdm(o.f0)} · ${T_RIPIO} t consideradas por pila de ripio</small>
     <span class="kp"><span>Ley ripio <b>${o.ley?nf(o.ley,2)+'%':'s/i'}</b></span><span>Sulfato <b class="su">${o.ley?nf(o.t*o.ley/100*SULF,1)+' t':'s/i'}</b></span></span></button>`;
-    const parc=o.pa&&o.pa<o.t-0.01;return `<button class="pila" data-p="${esc(o.p)}"><b class="n">${esc(o.p)} <span style="color:var(--muted);font-weight:600">›</span></b><span class="t">${nf(o.t,1)} t</span>
+    const parc=o.pa&&o.pa<o.t-0.01,rz=rechazoPila(o.p);return `<button class="pila" data-p="${esc(o.p)}"><b class="n">${esc(o.p)} <span style="color:var(--muted);font-weight:600">›</span></b><span class="t">${nf(o.t,1)} t${rz.t?`<br><small class="rz">rechazo ${nf(rz.t,1)} t</small>`:''}</span>
     <small style="grid-column:1/-1">Chancada ${o.f0===o.f1?'el '+fdm(o.f0):'del '+fdm(o.f0)+' al '+fdm(o.f1)} · ${o.l.length} lotes</small>
     <span class="kp"><span>Ley <b>${o.pa?nf(o.cu/o.pa*100,2)+'%':'s/a'}</b></span><span>Consumo <b>${o.pa?nf(o.ac/o.pa,1)+' kg/t':'s/a'}</b></span><span>Sulfato <b class="su">${o.pa?nf(o.cu*SULF,1)+' t':'s/a'}${parc?'*':''}</b></span><span>Costo <b>${o.costo?clpM(o.costo):'sin precio'}</b></span></span></button>`}).join('');
-  $('#pilNote').textContent='Datos de la hoja BD del Excel INGRESO MINERAL (fecha de chancado, pila de destino y valor del lote). Las pilas se agrupan por el mes de su nombre (P01-08-2026 = agosto 2026). Las pilas de ripio (R) salen del control químico y se consideran de 600 t cada una, con ley 0,33%; suman al tonelaje, pero la ley, el consumo y el costo del mes son solo del mineral. Al tocar una pila se ve su lixiviación según el control químico. Aporte en sulfato = peso × ley × '+nf(SULF,2)+', sobre los lotes con análisis. * Pila con lotes aún sin análisis. Costo = suma del precio de los lotes (columna T de la hoja BD); los lotes con precio menor a 0 no se contabilizan.';
+  $('#pilNote').textContent='Datos de la hoja BD del Excel INGRESO MINERAL (fecha de chancado, pila de destino y valor del lote). Las pilas se agrupan por el mes de su nombre (P01-08-2026 = agosto 2026). Las pilas de ripio (R) salen del control químico y se consideran de 600 t cada una, con ley 0,33%; suman al tonelaje, pero la ley, el consumo y el costo del mes son solo del mineral. Al tocar una pila se ve su lixiviación según el control químico. Aporte en sulfato = peso × ley × 3,92 × 1,06, sobre los lotes con análisis. * Pila con lotes aún sin análisis. Costo = suma del precio de los lotes (columna T de la hoja BD); los lotes con precio menor a 0 no se contabilizan.';
 }
 function donut(parts){
   const R=60,r=36,cx=75,cy=75,tot=parts.reduce((a,p)=>a+p.v,0);let a0=-Math.PI/2,s=`<svg viewBox="0 0 150 150" role="img">`;
@@ -1182,12 +1221,14 @@ function pilaDetail(id){
   const bm={};o.l.forEach(r=>{bm[M[r[3]]]=(bm[M[r[3]]]||0)+r[4]});
   const parts=Object.entries(bm).sort((a,b)=>b[1]-a[1]).map(([k,v],i)=>({k,v,c:DCOL[i%DCOL.length]}));
   const rows=o.l.slice().sort((a,b)=>a[1].localeCompare(b[1])||String(a[0]).localeCompare(String(b[0]))).map(r=>`<tr><td>${esc(r[0])}</td><td>${fdm(r[1])}</td><td style="text-align:left">${esc(title(M[r[3]]).replace(/^Mina /,''))}</td><td>${nf(r[4],2)}</td><td>${r[5]>0?nf(r[5],2)+'%':'s/a'}</td><td>${r[5]>0?nf(r[5]*r[6]*10,1):'s/a'}</td><td>${+r[7]>0?nf(r[7]/1e6,2):'—'}</td></tr>`).join('');
+  const rz=rechazoPila(o.p);
   open(`<h3>Pila ${esc(o.p)}</h3><p class="note" style="margin:0 0 12px">Chancada ${o.f0===o.f1?'el '+fdm(o.f0):'del '+fdm(o.f0)+' al '+fdm(o.f1)} · ${o.l.length} lotes</p>
     <div class="mstats">
-      <div><small>Tonelaje</small><b>${nf(o.t,1)} t</b></div>
+      <div><small>Tonelaje</small><span class="kv"><b>${nf(o.t,1)} t</b>${rz.t?`<span class="rs">Rechazo ${nf(rz.t,1)} t<br>Corregido ${nf(o.t-rz.t,1)} t</span>`:''}</span></div>
       <div><small>Ley media</small><b>${o.pa?nf(o.cu/o.pa*100,2)+'%':'s/a'}</b></div>
       <div><small>Consumo ácido</small><b>${o.pa?nf(o.ac/o.pa,1)+' kg/t':'s/a'}</b></div>
-      <div class="sulfbox"><small>Aporte sulfato</small><b>${o.pa?nf(o.cu*SULF,1)+' t':'s/a'}</b></div>
+      <div class="sulfbox"><small>Aporte sulfato</small><span class="kv"><b>${o.pa?nf(o.cu*SULF,1)+' t':'s/a'}</b>${rz.t?`<span class="rs">Sulfato rechazado<br>${nf(rz.s,1)} t</span>`:''}</span></div>
+      ${rz.t?`<div class="sulfbox"><small>Aporte sulfato corregido</small><b>${o.pa?nf(o.cu*SULF-rz.s,1)+' t':'s/a'}</b></div>`:''}
       <div><small>Costo de la pila</small><b>${o.costo?clp(o.costo):'sin precio'}</b></div>
       <div><small>Costo por tonelada</small><b>${o.costo?clp(o.costo/o.t):'—'}</b></div>
     </div>
@@ -1908,9 +1949,14 @@ function plaPilas(d){
   $('#plPiTab').innerHTML=act.length?`<table class="mtab"><thead><tr><th>Pila</th><th>Inicio</th><th>Días</th><th>t</th><th>Ley</th><th>Riego</th><th>Destino</th><th>Cu 07</th><th>Cu 19</th><th>H+ 07</th><th>H+ 19</th></tr></thead><tbody>${act.map(p=>{const R=p.k[0]==='R',m=ton[p.k],t=R?T_RIPIO:(m?m[0]:null),ley=R?LEY_RIPIO:(m&&m[1]?m[2]/m[1]:null),x=p.hoy;
     return `<tr><td style="text-align:left;white-space:nowrap"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.c};margin-right:4px"></i><b>${p.k}</b>${R?'<span class="rp">ripio</span>':''}</td><td>${p.ini.slice(8)}/${p.ini.slice(5,7)}</td><td>${dd(p.ini)}</td><td>${t?nf(t):'s/i'}</td><td>${ley?nf(ley,2)+'%':'s/i'}</td><td>${sh(x[5])}</td><td>${sh(x[6])}</td><td><b>${nv(x[1],2)}</b></td><td><b>${nv(x[2],2)}</b></td><td>${nv(x[3],1)}</td><td>${nv(x[4],1)}</td></tr>`}).join('')}</tbody></table>`:'<p class="note">No hay pilas con lecturas este día.</p>';
   const tR=600*act.filter(p=>p.k[0]==='R').length,tM=act.filter(p=>p.k[0]==='P').reduce((a,p)=>a+((ton[p.k]||[0])[0]),0);
-  $('#plRip').innerHTML=act.length?`<div><small>Ripio en riego</small><b>${nf(tR)} t</b><small>${nf(tR+tM?tR/(tR+tM)*100:0,1)}%</small></div><div><small>Mineral en riego</small><b>${nf(tM,1)} t</b><small>${nf(tR+tM?tM/(tR+tM)*100:0,1)}%</small></div>`:'';
+  // sulfato de las pilas en riego (t × ley × 3,92 × 1,06) y rechazo de esas pilas (hoja CONTROL RECHAZO)
+  const sR=tR*LEY_RIPIO/100*SULF,sM=act.filter(p=>p.k[0]==='P').reduce((a,p)=>{const m=ton[p.k];return a+(m&&m[1]?m[2]/100*SULF:0)},0);
+  const rzT=act.reduce((a,p)=>a+rechazoPila(p.k).t,0),rzS=act.reduce((a,p)=>a+rechazoPila(p.k).s,0),tT=tR+tM,sT=sR+sM;
+  $('#plRip').innerHTML=act.length?`<div><small>Ripio en riego</small><b>${nf(tR)} t</b><small>${nf(tT?tR/tT*100:0,1)}%</small></div><div><small>Mineral en riego</small><b>${nf(tM,1)} t</b><small>${nf(tT?tM/tT*100:0,1)}%</small></div>
+    <div><small>Tonelaje total</small><span class="kv"><b>${nf(tT,1)} t</b><span class="rs">Rechazo<br>${nf(rzT,1)} t</span></span></div><div><small>Tonelaje corregido</small><b>${nf(tT-rzT,1)} t</b></div>
+    <div class="sulfbox"><small>Sulfato total</small><span class="kv"><b>${nf(sT,1)} t</b><span class="rs">En rechazo<br>${nf(rzS,1)} t</span></span></div><div class="sulfbox"><small>Sulfato corregido</small><b>${nf(sT-rzS,1)} t</b></div>`:'';
   const sinI=act.filter(p=>p.k[0]==='P'&&!ton[p.k]).map(p=>p.k);
-  $('#plRipN').textContent=act.length?'% ripio = t ripio ÷ (t ripio + t pilas de mineral). Cada pila de ripio se considera de 600 t con ley 0,33%.'+(sinI.length?' s/i = sin datos en la planilla de mineral: '+sinI.join(', ')+' (no se cuentan).':''):'';
+  $('#plRipN').textContent=act.length?'% ripio = t ripio ÷ (t ripio + t pilas de mineral). Cada pila de ripio se considera de 600 t con ley 0,33%. Sulfato = t × ley × 3,92 × 1,06 (pilas con ley). Rechazo de la hoja CONTROL RECHAZO.'+(sinI.length?' s/i = sin datos en la planilla de mineral: '+sinI.join(', ')+' (no se cuentan).':''):'';
   // cobre de todas las pilas vs día de lixiviación
   const nmax=Math.max(1,...act.map(p=>dd(p.ini)));
   const serie=(p,j)=>{const v=Array(dd(p.ini)).fill(null);p.h.forEach(x=>{const a=prom([x[1+j],x[2+j]]);if(a!=null)v[dd(p.ini)-dd(x[0])]=a});return v};
@@ -1938,7 +1984,7 @@ const fhora=iso=>{const d=new Date(iso);return d.toLocaleDateString('es-CL',{day
 function aplicar(d){
   window.APP_DATA=d;
   BASE=d.produccion||{kgSaco:25,dias:{}};PAL=d.calidad||null;CQ=d.control||null;MIN=d.mineral||null;AC=d.acido||null;
-  _PM=null;_CHM=null;_LT=null;   // cachés calculados con los datos anteriores
+  _PM=null;_CHM=null;_LT=null;_RZ=null;   // cachés calculados con los datos anteriores
   RIPIO=ripioPorAnio(ripioMeses());
   if(window.peSet)window.peSet(d.petroleo);
 }
