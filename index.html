@@ -974,7 +974,7 @@ function recProdRender(){
   let ad=0,ap=0;const line=dm.map((d,i)=>{ad+=d+(rp?rp.m[i]*REC_RIPIO:0);ap+=pm[i];return i<=lm&&ad?ap/ad*100:null});
   $('#cRec').innerHTML=lm<0?'':chart({labels:MES.map(x=>x.slice(0,3)),bars:pm,line,sel:MON,fmtL:v=>nf(v,v<10?1:0),fmtR:v=>nf(v,0)+'%',unitL:'t sulfato',unitR:'recup.',dimFrom:lm+1,dots:true,tipB:'Producido',tipL:'Recup. acumulada',sufB:' t',sufL:'',tipX:MES.map(m=>m+' '+YEAR)});
   $('#rcLeg').hidden=lm<0;
-  $('#rcNote').textContent='La curva muestra la recuperación acumulada mes a mes (producido acumulado ÷ disponible acumulado), así que en el último mes coincide con la recuperación global.'+(rs?' El ripio se suma en el mes en que se dispuso en pilas.':'')+' Los primeros meses pueden salir altos porque se produce con mineral que llegó el año anterior, y los últimos porque hay mineral aún sin análisis.';
+  $('#rcNote').textContent='La curva muestra la recuperación acumulada mes a mes (producido acumulado ÷ disponible acumulado), así que en el último mes coincide con la recuperación global. Ripio hasta octubre 2026: INFORME DE PILAS; desde noviembre 2026: 600 t por cada pila de ripio (R) del control químico; ley del ripio 0,33%.'+(rs?' El ripio se suma en el mes en que se dispuso en pilas.':'')+' Los primeros meses pueden salir altos porque se produce con mineral que llegó el año anterior, y los últimos porque hay mineral aún sin análisis.';
 }
 
 let MALL=false;
@@ -1014,6 +1014,14 @@ const SULF=3.92;
 // y sulfato de cada mes. No es mineral disponible para chancar, pero aporta cobre a la producción.
 let RIPIO={};
 const LEY_RIPIO=0.33;   // ley de cobre del ripio (%), fija por definición de la planta
+// Desde RIPIO_DESDE el ripio se cuenta por pila (pilas R del control químico, 600 t cada una, en el mes de su nombre);
+// los meses anteriores salen de INFORME DE PILAS (columna AH), que ya tiene todo el ripio hasta octubre 2026.
+const RIPIO_DESDE='2026-11';
+function ripioMeses(){
+  const inf=((MIN&&MIN.ripio)||[]).filter(r=>r[0]<RIPIO_DESDE).map(r=>[r[0],r[1]]),pil={};
+  if(CQ)Object.entries(CQ.pilas).forEach(([k,r])=>{if(k[0]!=='R')return;const m=pilaMes(k)||r[0][0].slice(0,7);if(m>=RIPIO_DESDE)pil[m]=(pil[m]||0)+T_RIPIO});
+  return inf.concat(Object.entries(pil)).sort();
+}
 function ripioPorAnio(R){const o={};(R||[]).forEach(([m,t])=>{const ley=LEY_RIPIO;const y=+m.slice(0,4),r=o[y]=o[y]||{t:0,cu:0,m:Array(12).fill(0)};
   r.t+=t;r.cu+=t*ley/100;r.m[+m.slice(5,7)-1]+=t*ley/100*SULF});Object.values(o).forEach(r=>r.ley=r.t?r.cu/r.t*100:0);return o}
 const REC_RIPIO=0.70; // recuperación considerada para el ripio
@@ -1843,6 +1851,7 @@ function barras2({labels,a,b,na,nb,tipX}){
     if(i%3===0||i===n-1)o+=`<text x="${cx}" y="${H-6}" text-anchor="middle">${t}</text>`});
   return o+'</svg>';
 }
+const nv=(v,d)=>v==null?'—':nf(v,d);   // sin lectura: guion, no cero
 const leyendaL=s=>s.map(x=>`<span><i style="background:${x.c}"></i>${esc(x.n)}</span>`).join('');
 const fdd=f=>f.slice(8)+'/'+f.slice(5,7)+'/'+f.slice(0,4);
 function plaRender(){
@@ -1896,12 +1905,12 @@ function plaPilas(d){
   act.forEach((p,i)=>p.c=PCAT[i%8]);
   $('#plPiT').textContent='Pilas en riego · '+fdd(d)+' ('+act.length+')';
   const sh=x=>(x||'—').replace(' LIX','');
-  $('#plPiTab').innerHTML=act.length?`<table class="mtab"><thead><tr><th>Pila</th><th>Inicio</th><th>Días</th><th>t</th><th>Ley</th><th>Riego</th><th>Destino</th><th>Cu 07</th><th>Cu 19</th><th>H+ 07</th><th>H+ 19</th></tr></thead><tbody>${act.map(p=>{const R=p.k[0]==='R',m=ton[p.k],t=R?600:(m?m[0]:null),ley=!R&&m&&m[1]?m[2]/m[1]:null,x=p.hoy;
-    return `<tr><td style="text-align:left;white-space:nowrap"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.c};margin-right:4px"></i><b>${p.k}</b>${R?'<span class="rp">ripio</span>':''}</td><td>${p.ini.slice(8)}/${p.ini.slice(5,7)}</td><td>${dd(p.ini)}</td><td>${t?nf(t):'s/i'}</td><td>${ley?nf(ley,2)+'%':'s/i'}</td><td>${sh(x[5])}</td><td>${sh(x[6])}</td><td><b>${nf(x[1],2)}</b></td><td><b>${nf(x[2],2)}</b></td><td>${nf(x[3],1)}</td><td>${nf(x[4],1)}</td></tr>`}).join('')}</tbody></table>`:'<p class="note">No hay pilas con lecturas este día.</p>';
+  $('#plPiTab').innerHTML=act.length?`<table class="mtab"><thead><tr><th>Pila</th><th>Inicio</th><th>Días</th><th>t</th><th>Ley</th><th>Riego</th><th>Destino</th><th>Cu 07</th><th>Cu 19</th><th>H+ 07</th><th>H+ 19</th></tr></thead><tbody>${act.map(p=>{const R=p.k[0]==='R',m=ton[p.k],t=R?T_RIPIO:(m?m[0]:null),ley=R?LEY_RIPIO:(m&&m[1]?m[2]/m[1]:null),x=p.hoy;
+    return `<tr><td style="text-align:left;white-space:nowrap"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.c};margin-right:4px"></i><b>${p.k}</b>${R?'<span class="rp">ripio</span>':''}</td><td>${p.ini.slice(8)}/${p.ini.slice(5,7)}</td><td>${dd(p.ini)}</td><td>${t?nf(t):'s/i'}</td><td>${ley?nf(ley,2)+'%':'s/i'}</td><td>${sh(x[5])}</td><td>${sh(x[6])}</td><td><b>${nv(x[1],2)}</b></td><td><b>${nv(x[2],2)}</b></td><td>${nv(x[3],1)}</td><td>${nv(x[4],1)}</td></tr>`}).join('')}</tbody></table>`:'<p class="note">No hay pilas con lecturas este día.</p>';
   const tR=600*act.filter(p=>p.k[0]==='R').length,tM=act.filter(p=>p.k[0]==='P').reduce((a,p)=>a+((ton[p.k]||[0])[0]),0);
   $('#plRip').innerHTML=act.length?`<div><small>Ripio en riego</small><b>${nf(tR)} t</b><small>${nf(tR+tM?tR/(tR+tM)*100:0,1)}%</small></div><div><small>Mineral en riego</small><b>${nf(tM,1)} t</b><small>${nf(tR+tM?tM/(tR+tM)*100:0,1)}%</small></div>`:'';
   const sinI=act.filter(p=>p.k[0]==='P'&&!ton[p.k]).map(p=>p.k);
-  $('#plRipN').textContent=act.length?'% ripio = t ripio ÷ (t ripio + t pilas de mineral). Cada pila de ripio se considera de 600 t.'+(sinI.length?' s/i = sin datos en la planilla de mineral: '+sinI.join(', ')+' (no se cuentan).':''):'';
+  $('#plRipN').textContent=act.length?'% ripio = t ripio ÷ (t ripio + t pilas de mineral). Cada pila de ripio se considera de 600 t con ley 0,33%.'+(sinI.length?' s/i = sin datos en la planilla de mineral: '+sinI.join(', ')+' (no se cuentan).':''):'';
   // cobre de todas las pilas vs día de lixiviación
   const nmax=Math.max(1,...act.map(p=>dd(p.ini)));
   const serie=(p,j)=>{const v=Array(dd(p.ini)).fill(null);p.h.forEach(x=>{const a=prom([x[1+j],x[2+j]]);if(a!=null)v[dd(p.ini)-dd(x[0])]=a});return v};
@@ -1930,7 +1939,7 @@ function aplicar(d){
   window.APP_DATA=d;
   BASE=d.produccion||{kgSaco:25,dias:{}};PAL=d.calidad||null;CQ=d.control||null;MIN=d.mineral||null;AC=d.acido||null;
   _PM=null;_CHM=null;_LT=null;   // cachés calculados con los datos anteriores
-  RIPIO=ripioPorAnio(MIN&&MIN.ripio);
+  RIPIO=ripioPorAnio(ripioMeses());
   if(window.peSet)window.peSet(d.petroleo);
 }
 function syncUI(m,busy){
