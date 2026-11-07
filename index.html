@@ -877,9 +877,9 @@ function minRender(){
   // stock by mina
   const sm={};L.forEach(l=>{if(l[6]===1)return;const k=M[l[3]];sm[k]=sm[k]||{d:0,s:0,old:'9'};if(l[6]===0){sm[k].d+=l[2];if(l[1]<sm[k].old)sm[k].old=l[1]}else sm[k].s+=l[2]});
   const ks=Object.keys(sm).sort((a,b)=>(sm[b].d+sm[b].s)-(sm[a].d+sm[a].s)),mx=Math.max(1,...ks.map(k=>sm[k].d+sm[k].s));
-  $('#mStockList').innerHTML=ks.map(k=>{const o=sm[k];return `<div class="mrow"><b>${esc(title(k))}</b><span class="t">${tf(o.d+o.s)} t</span>
+  $('#mStockList').innerHTML=ks.map(k=>{const o=sm[k];return `<button class="mrow mbtn" data-smina="${esc(k)}"><b>${esc(title(k))} <span class="go">›</span></b><span class="t">${tf(o.d+o.s)} t</span>
     <span class="bar" style="display:flex"><i style="width:${o.d/mx*100}%;border-radius:4px 0 0 4px"></i><i style="width:${o.s/mx*100}%;background:var(--acc);border-radius:0 4px 4px 0"></i></span>
-    <span class="kp"><span>Por chancar <b>${tf(o.d)} t</b></span><span>Stock pile <b>${tf(o.s)} t</b></span>${o.d?`<span>Desde ${o.old.slice(8)}/${o.old.slice(5,7)}</span>`:''}</span></div>`}).join('')||'<p class="note">No hay mineral pendiente.</p>';
+    <span class="kp"><span>Por chancar <b>${tf(o.d)} t</b></span><span>Stock pile <b>${tf(o.s)} t</b></span>${o.d?`<span>Desde ${o.old.slice(8)}/${o.old.slice(5,7)}</span>`:''}</span></button>`}).join('')||'<p class="note">No hay mineral pendiente.</p>';
   // years
   const years=[...new Set(L.map(l=>+l[1].slice(0,4)))].sort();if(MY==null)MY=years[years.length-1];
   $('#mYears').innerHTML=years.map(y=>`<button data-y="${y}" aria-pressed="${y===MY}">${y}</button>`).join('');
@@ -1018,6 +1018,27 @@ function tablaMes(LY){
 function leyMes(LY){const t=Array(12).fill(0),c=Array(12).fill(0);LY.forEach(l=>{if(l[4]>0){const i=+l[1].slice(5,7)-1;t[i]+=l[2];c[i]+=l[2]*l[4]/100}});return t.map((v,i)=>v?c[i]/v*100:null)}
 $('#miLine').onclick=e=>{const b=e.target.closest('[data-l]');if(!b)return;MLINE=b.dataset.l;$('#miLine').querySelectorAll('button').forEach(o=>o.setAttribute('aria-pressed',o===b));minRender()};
 $('#mMinas').onclick=e=>{const b=e.target.closest('[data-mina]');if(b)minaDetail(b.dataset.mina)};
+$('#mStockList').onclick=e=>{const b=e.target.closest('[data-smina]');if(b)stockMinaDetail(b.dataset.smina)};
+// lotes de una mina que aún no se chancan: en cancha (sin análisis) y en stock pile (con ley)
+function stockMinaDetail(k){
+  const M=MIN.minas,L=MIN.lotes.filter(l=>M[l[3]]===k&&l[6]!==1).sort((a,b)=>a[1]<b[1]?-1:1);
+  const dias=f=>Math.round((new Date(TODAY+'T12:00:00')-new Date(f+'T12:00:00'))/864e5);
+  const tabla=(X,conLey)=>`<div style="overflow-x:auto"><table class="mtab"><thead><tr><th>Lote</th><th>Ingreso</th><th>Días</th><th>t</th>${conLey?'<th>Ley</th><th>kg/t</th>':''}</tr></thead><tbody>${X.map(l=>`<tr><td>${esc(String(l[0]))}</td><td>${l[1].slice(8)}/${l[1].slice(5,7)}/${l[1].slice(2,4)}</td><td>${dias(l[1])}</td><td>${nf(l[2],2)}</td>${conLey?`<td>${nf(l[4],2)}%</td><td>${nf(l[5],1)}</td>`:''}</tr>`).join('')}
+    <tr class="tot"><td>Total</td><td></td><td></td><td>${nf(X.reduce((a,l)=>a+l[2],0),1)}</td>${conLey?`<td>${(()=>{const t=X.reduce((a,l)=>a+l[2],0);return t?nf(X.reduce((a,l)=>a+l[2]*l[4],0)/t,2)+'%':'—'})()}</td><td></td>`:''}</tr></tbody></table></div>`;
+  const C=L.filter(l=>l[6]===0),S=L.filter(l=>l[6]===2),tC=C.reduce((a,l)=>a+l[2],0),tS=S.reduce((a,l)=>a+l[2],0);
+  const leyS=tS?S.reduce((a,l)=>a+l[2]*l[4],0)/tS:0;
+  open(`<h3>${esc(title(k))}</h3><p class="note" style="margin:0 0 12px">Mineral por chancar · ${L.length} lotes</p>
+    <div class="mstats">
+      <div><small>En cancha (sin análisis)</small><b>${nf(tC,1)} t</b><small>${C.length} lotes</small></div>
+      <div><small>Stock pile</small><b>${nf(tS,1)} t</b><small>${S.length} lotes${tS?' · ley '+nf(leyS,2)+'%':''}</small></div>
+      <div><small>Lote más antiguo</small><b>${L.length?dias(L[0][1])+' días':'—'}</b><small>${L.length?'ingresó el '+L[0][1].split('-').reverse().join('/'):''}</small></div>
+      <div><small>Total por chancar</small><b>${nf(tC+tS,1)} t</b></div>
+    </div>
+    ${C.length?`<h2 style="font-size:.98rem;margin:12px 0 0">En cancha · sin análisis</h2>${tabla(C,false)}`:''}
+    ${S.length?`<h2 style="font-size:.98rem;margin:14px 0 0">Stock pile · con análisis</h2>${tabla(S,true)}`:''}
+    <p class="note" style="margin:6px 2px 0">Días = días desde el ingreso del lote hasta hoy.</p>
+    <button class="secondary" id="smClose">Cerrar</button>`,()=>{$('#smClose').onclick=close;$('#sheet').scrollTop=0});
+}
 function minaDetail(k){
   const M=MIN.minas,L=MIN.lotes.filter(l=>M[l[3]]===k),LY=L.filter(l=>+l[1].slice(0,4)===MY);
   const mt=Array(12).fill(0),mc=Array(12).fill(0),mpa=Array(12).fill(0),mcu=Array(12).fill(0),mac=Array(12).fill(0),mco=Array(12).fill(0),mtc=Array(12).fill(0),PM=priceMap();
@@ -1970,17 +1991,52 @@ function renderCargas(C){
 
 /* ---------- detalle ---------- */
 function seriesFor(E){const K=keysOf(),v=K.keys.map(()=>0);E.forEach(e=>{const i=K.keys.indexOf(K.kf(e[0]));if(i>=0)v[i]+=e[3]});return {K,v}}
-function ccDetail(k){
-  const E=P.entregas.filter(e=>inP(e[0])&&e[4]===+k),tot=E.reduce((a,e)=>a+e[3],0),g={};
+// Centro de costos: cada máquina tiene una casilla (todas marcadas al abrir) y el panel
+// compara solo las máquinas marcadas: litros, entregas, % y un gráfico con una línea por máquina.
+const CMP=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#6250d6','#e34948'];
+function lineasMaq(K,series){
+  const W=360,H=220,Lm=42,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=K.labs.length,step=iw/n;
+  const mx=niceMax(Math.max(1,...series.flatMap(s=>s.v))),y=v=>T+ih-(v/mx)*ih,x=i=>Lm+step*i+step/2;
+  const tipM={W,L:Lm,step,c:1,x:K.tipx,s:series.map(s=>({n:s.n,v:s.v.map(L),col:s.c}))};
+  let o=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">litros</text>`;
+  for(let i=0;i<=4;i++){const yy=T+ih*i/4;o+=`<line x1="${Lm}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${Lm-5}" y="${yy+3}" text-anchor="end">${nf(mx*(1-i/4))}</text>`}
+  series.forEach(s=>{const pts=s.v.map((v,i)=>x(i).toFixed(1)+','+y(v).toFixed(1)).join(' ');o+=n>1?`<polyline fill="none" stroke="${s.c}" stroke-width="2" stroke-linejoin="round" points="${pts}"/>`:'';if(n<=16)s.v.forEach((v,i)=>o+=`<circle cx="${x(i)}" cy="${y(v)}" r="2.6" fill="${s.c}"/>`)});
+  const every=n>16?Math.ceil(n/8):1;
+  K.labs.forEach((t,i)=>{if(i%every&&i!==n-1)return;o+=`<text x="${x(i)}" y="${H-7}" text-anchor="middle">${t}</text>`});
+  return o+'</svg>';
+}
+let CCSEL=null;   // selección guardada al pasar al detalle de una máquina
+function ccDetail(k,volver){
+  const E=P.entregas.filter(e=>inP(e[0])&&e[4]===+k),g={};
   E.forEach(e=>{const o=g[e[1]]=g[e[1]]||{l:0,n:0};o.l+=e[3];o.n++});
-  const ks=Object.keys(g).sort((a,b)=>g[b].l-g[a].l),{K,v}=seriesFor(E),isE=E.length&&E[0][5]===1;
+  const ks=Object.keys(g).sort((a,b)=>g[b].l-g[a].l),isE=E.length&&E[0][5]===1,col={};
+  ks.forEach((m,i)=>col[m]=CMP[i]||'#8794A1');   // 8 colores fijos por equipo; del 9º en adelante, gris
+  const SEL=volver&&CCSEL&&CCSEL.k===k?CCSEL.s:new Set(ks);   // al abrir, todas marcadas
+  CCSEL={k,s:SEL};
   open(`<h3>${esc(title(P.cc[k]))}<span class="dtag ${isE?'dE':'dP'}">${isE?'Externo':'Planta'}</span></h3><p class="note" style="margin:0 0 10px">${periodo()}</p>
-    <div class="mstats"><div><small>Litros</small><b>${L(tot)}</b></div><div><small>Entregas</small><b>${nf(E.length)}</b></div></div>
-    <div class="card" style="margin:8px 0 0;padding:12px 8px 8px"><h2 style="font-size:.98rem">Litros por ${K.u}</h2><div class="chart">${chart({labels:K.labs,bars:v,line:v.map(()=>null),sel:-1,fmtL:x=>nf(x),fmtR:x=>nf(x),unitL:'litros',unitR:'',tipB:'Litros',tipL:'',sufB:' L',sufL:'',tipX:K.tipx})}</div></div>
-    <h2 style="font-size:.98rem;margin:14px 0 0">Máquinas</h2>
-    <table class="mtab"><thead><tr><th>Máquina</th><th>Entregas</th><th>Litros</th><th>%</th></tr></thead><tbody id="ccMaq">${ks.map(m=>`<tr data-maq="${m}" style="cursor:pointer"><td style="text-align:left;color:var(--cu);font-weight:700">${esc(title(P.maq[m]))} ›</td><td>${g[m].n}</td><td>${nf(g[m].l)}</td><td>${nf(tot?g[m].l/tot*100:0,1)}%</td></tr>`).join('')}</tbody></table>
-    <p class="note" style="margin:6px 2px 0">Toca una máquina para ver su detalle.</p>
-    <button class="secondary" id="xC">Cerrar</button>`,()=>{$('#xC').onclick=close;$('#ccMaq').onclick=e=>{const r=e.target.closest('[data-maq]');if(r)maqDetail(r.dataset.maq,k)}});
+    <div class="mstats" id="ccStats"></div>
+    <div class="card" style="margin:8px 0 0;padding:12px 8px 8px"><h2 style="font-size:.98rem" id="ccChT"></h2><div class="chart" id="ccChart"></div><div class="legend" id="ccLeg"></div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 0"><h2 style="font-size:.98rem;margin:0">Máquinas</h2>
+      <span class="chips2"><button id="ccAll">Todas</button> <button id="ccNone">Ninguna</button></span></div>
+    <table class="mtab"><thead><tr><th style="width:26px"></th><th>Máquina</th><th>Entregas</th><th>Litros</th><th>%</th></tr></thead><tbody id="ccMaq"></tbody></table>
+    <p class="note" style="margin:6px 2px 0">Marca o desmarca las casillas para comparar solo esos equipos. Toca el nombre de una máquina para ver su detalle.</p>
+    <button class="secondary" id="xC">Cerrar</button>`,()=>{
+    const pintar=()=>{
+      const S=ks.filter(m=>SEL.has(m)),ES=E.filter(e=>SEL.has(String(e[1]))),tot=ES.reduce((a,e)=>a+e[3],0),K=keysOf();
+      $('#ccStats').innerHTML=`<div><small>Litros (${S.length} de ${ks.length} equipos)</small><b>${L(tot)}</b></div><div><small>Entregas</small><b>${nf(ES.length)}</b></div>`;
+      $('#ccChT').textContent=S.length>1?'Comparación por '+K.u:'Litros por '+K.u;
+      const ser=S.slice(0,8).map(m=>{const v=K.keys.map(()=>0);E.forEach(e=>{if(String(e[1])!==m)return;const i=K.keys.indexOf(K.kf(e[0]));if(i>=0)v[i]+=e[3]});return {n:title(P.maq[m]),v,c:col[m]}});
+      $('#ccChart').innerHTML=ser.length?lineasMaq(K,ser):'<p class="note">Marca al menos un equipo para ver el gráfico.</p>';
+      $('#ccLeg').innerHTML=ser.map(s=>`<span><i style="background:${s.c}"></i>${esc(s.n)}</span>`).join('')+(S.length>8?`<span>+${S.length-8} equipos (se muestran los 8 con más litros)</span>`:'');
+      $('#ccMaq').innerHTML=ks.map(m=>{const on=SEL.has(m);return `<tr style="${on?'':'opacity:.45'}"><td><input type="checkbox" data-chk="${m}" ${on?'checked':''} aria-label="Comparar ${esc(title(P.maq[m]))}" style="width:18px;height:18px;accent-color:${col[m]}"></td><td style="text-align:left"><span data-maq="${m}" style="cursor:pointer;color:var(--cu);font-weight:700"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${col[m]};margin-right:5px"></i>${esc(title(P.maq[m]))} ›</span></td><td>${g[m].n}</td><td>${nf(g[m].l)}</td><td>${on&&tot?nf(g[m].l/tot*100,1)+'%':'—'}</td></tr>`}).join('');
+    };
+    pintar();
+    $('#ccMaq').onchange=e=>{const c=e.target.closest('[data-chk]');if(!c)return;c.checked?SEL.add(c.dataset.chk):SEL.delete(c.dataset.chk);pintar()};
+    $('#ccMaq').onclick=e=>{const r=e.target.closest('[data-maq]');if(r)maqDetail(r.dataset.maq,k)};
+    $('#ccAll').onclick=()=>{ks.forEach(m=>SEL.add(m));pintar()};
+    $('#ccNone').onclick=()=>{SEL.clear();pintar()};
+    $('#xC').onclick=close;
+  });
 }
 /* promedio mensual de una máquina: litros ÷ meses calendario del período (desde su primera entrega
    hasta el último dato). Con un mes elegido se usan los 12 meses que terminan en ese mes. */
@@ -2011,7 +2067,7 @@ function maqDetail(k,desdeCC){
     <h2 style="font-size:.98rem;margin:14px 0 0">Últimas entregas</h2>
     <table class="mtab"><thead><tr><th>Fecha</th><th style="text-align:left">Solicitante</th><th>Litros</th></tr></thead><tbody>${last.map(e=>`<tr><td>${fdate(e[0])}</td><td style="text-align:left">${esc(title(P.sol[e[2]]))}</td><td>${nf(e[3])}</td></tr>`).join('')}</tbody></table>
     ${desdeCC!=null?`<button class="secondary" id="xV">‹ Volver a ${esc(title(P.cc[desdeCC]))}</button>`:''}
-    <button class="secondary" id="xM">Cerrar</button>`,()=>{$('#xM').onclick=close;const b=$('#xV');if(b)b.onclick=()=>ccDetail(desdeCC);$('#sheet').scrollTop=0});
+    <button class="secondary" id="xM">Cerrar</button>`,()=>{$('#xM').onclick=close;const b=$('#xV');if(b)b.onclick=()=>ccDetail(desdeCC,true);$('#sheet').scrollTop=0});
 }
 
 /* ---------- reporte diario ---------- */
