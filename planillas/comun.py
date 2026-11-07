@@ -1,5 +1,5 @@
 """Funciones compartidas por los lectores de planillas."""
-import datetime, io, time, urllib.request
+import datetime, io, re, time, urllib.request
 from openpyxl import load_workbook
 
 
@@ -65,6 +65,13 @@ def num(v):
 
 def txt(v):
     return " ".join(str(v or "").upper().split())
+
+
+def pila(v):
+    """Nombre de pila normalizado: 'p1-8-2026' y 'P01-08-2026' quedan como 'P01-08-2026'; otros nombres en mayúsculas."""
+    t = txt(v)
+    m = re.fullmatch(r"([PR])\s*0*(\d+)\s*-\s*0*(\d+)\s*-\s*(\d{4})", t)
+    return f"{m.group(1)}{int(m.group(2)):02d}-{int(m.group(3)):02d}-{m.group(4)}" if m else t
 
 
 def minimo(n, minimo_, que):

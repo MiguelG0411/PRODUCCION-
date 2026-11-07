@@ -8,7 +8,7 @@ Hoja CONTROL RECHAZO: material rechazado por la parrilla (sobretamaño), pesado 
 El ripio ya está en pilas: no cuenta como mineral disponible, pero aporta cobre a la producción (recuperación)."""
 import re
 from openpyxl.utils.datetime import from_excel
-from .comun import libro, hoja, filas, fecha, num, txt, minimo
+from .comun import libro, hoja, filas, fecha, num, txt, minimo, pila as nombre_pila
 
 MESES = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"]
 
@@ -48,7 +48,7 @@ def leer(contenido):
         lotes.append([lote, fch, round(peso, 2), idx[mina], ley, cons, est])
         if fch_ch:
             valor = num(r[17])
-            pilas.append([lote, fch_ch, txt(r[13]) or "SIN PILA", idx[mina], round(peso, 2), ley, cons, round(valor) if valor else 0])
+            pilas.append([lote, fch_ch, nombre_pila(r[13]) or "SIN PILA", idx[mina], round(peso, 2), ley, cons, round(valor) if valor else 0])
     minimo(len(lotes), 50, "lotes de mineral")
     tarifas, ripio = [], {}
     if "INFORME DE PILAS" in wb.sheetnames:
@@ -66,7 +66,7 @@ def leer(contenido):
     nombre = next((n for n in wb.sheetnames if txt(n) == "CONTROL RECHAZO"), None)
     if nombre:
         for _, r in filas(wb[nombre], 3, 5):
-            pila, peso, mina = txt(r[0]), num(r[1]), txt(r[2])
+            pila, peso, mina = nombre_pila(r[0]), num(r[1]), txt(r[2])
             if not pila or not mina or not peso or peso <= 0: continue
             rechazo.append([pila, round(peso, 3), mina])
     lotes.sort(key=lambda x: (x[1], str(x[0])))
