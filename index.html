@@ -150,7 +150,10 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .rp{font-size:.66rem;background:#E7F5EC;color:#14804A;border-radius:4px;padding:1px 4px;margin-left:4px;font-weight:700}
 .pmini{border:1px solid var(--line);border-radius:12px;padding:8px 6px 2px;margin-top:8px}.pmini .mh{display:flex;justify-content:space-between;font-size:.82rem;padding:0 4px}.pmini .mh span{color:var(--muted)}
 @media (prefers-color-scheme:dark){.sc .sh small:last-child,.sc .sr b.p{background:#1d2a44}.sc .sr b.p{color:#8fb3ff}}
-.rz{color:#C0392B!important}.rzbox{border:1px dashed #E5A9A2!important;cursor:pointer}.rzbox b{color:#C0392B}
+.rz{color:#C0392B!important}
+.leyp{display:inline-flex!important;align-items:baseline;gap:5px;margin:4px 0 2px;padding:2px 9px;border-radius:999px;background:#FBEDE4;color:var(--acc)!important;font-size:.78rem!important;font-weight:700}
+.leyp b{display:inline!important;font-size:1rem!important;color:var(--acc)!important;margin:0!important}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .leyp{background:#3A2618}}:root[data-theme="dark"] .leyp{background:#3A2618}.rzbox{border:1px dashed #E5A9A2!important;cursor:pointer}.rzbox b{color:#C0392B}
 .flow.f4{grid-template-columns:1fr auto 1fr auto 1fr auto 1fr}.flow .op2{color:var(--muted);font-weight:700}
 .kv{display:flex;justify-content:space-between;align-items:flex-end;gap:6px}.kv b{white-space:nowrap}.kv .rs{text-align:right;font-size:.7rem;line-height:1.35;color:#C0392B;font-weight:700;white-space:nowrap}
 .dP{background:var(--pl)}.dE{background:var(--ex)}.dS{background:var(--muted)}
@@ -1171,8 +1174,8 @@ function pilRender(){
   const T=S('t'),PA=S('pa'),CU=S('cu'),AC=S('ac'),RM=ripioMeses(),ripY=RM.filter(r=>+r[0].slice(0,4)===PILY).reduce((a,r)=>a+r[1],0);
   // dos tarjetas: mineral fresco (con su ley media) y ripio (ley fija 0,33%), cada una con su % del tonelaje total
   const tonCard=(tm,tr,ley)=>{const tt=tm+tr,pc=v=>tt?nf(v/tt*100,1)+'% del total':'—';
-    return `<div><small>Tonelaje mineral fresco</small><b>${nf(tm,1)} t</b><small>Ley media <b style="display:inline;font-size:inherit">${ley}</b></small><small>${pc(tm)}</small></div>
-    <div><small>Tonelaje ripio</small><b>${nf(tr,1)} t</b><small>Ley media <b style="display:inline;font-size:inherit">${nf(LEY_RIPIO,2)}%</b></small><small>${pc(tr)}</small></div>`};
+    return `<div><small>Tonelaje mineral fresco</small><b>${nf(tm,1)} t</b><span class="leyp">Ley media <b>${ley}</b></span><small>${pc(tm)}</small></div>
+    <div><small>Tonelaje ripio</small><b>${nf(tr,1)} t</b><span class="leyp">Ley media <b>${nf(LEY_RIPIO,2)}%</b></span><small>${pc(tr)}</small></div>`};
   $('#pilHLbl').textContent='Pilas conformadas '+PILY;
   const nR=Y.filter(o=>o.rip).length;
   $('#pilHSub').textContent=Y.length+' pilas · '+nf(Y.reduce((a,o)=>a+o.l.length,0))+' lotes chancados'+(nR?' · incluye '+nR+(nR===1?' pila':' pilas')+' de ripio ('+T_RIPIO+' t c/u)':'');
