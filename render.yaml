@@ -20,3 +20,5 @@ services:
         sync: false
       - key: DROPBOX_URL_CALIDAD
         sync: false
+      - key: DROPBOX_URL_CONTROLQUIMICO
+        sync: false

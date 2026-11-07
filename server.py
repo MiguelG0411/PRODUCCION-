@@ -9,7 +9,7 @@ import datetime, gzip, json, logging, os, threading, time
 from concurrent.futures import ThreadPoolExecutor
 from flask import Flask, Response, abort, jsonify, request, send_from_directory
 
-from planillas import acido, calidad, mineral, petroleo, recuperacion
+from planillas import acido, calidad, control_quimico, mineral, petroleo, recuperacion
 from planillas.comun import ErrorPlanilla, descargar
 
 RAIZ = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +23,7 @@ FUENTES = {
     "petroleo": ("DROPBOX_URL_PETROLEO", "Entrega de petróleo", petroleo.leer),
     "mineral": ("DROPBOX_URL_MINERAL", "Ingreso de mineral", mineral.leer),
     "calidad": ("DROPBOX_URL_CALIDAD", "Control de calidad", calidad.leer),
+    "controlQuimico": ("DROPBOX_URL_CONTROLQUIMICO", "Control químico", control_quimico.leer),
 }
 
 log = logging.getLogger("produccion")
@@ -77,6 +78,7 @@ def _armar():
         "petroleo": c.get("petroleo"),
         "mineral": c.get("mineral"),
         "calidad": c.get("calidad"),
+        "control": c.get("controlQuimico"),
     }
     if datos["acido"] is None and "cargasAcido" in c:
         datos["acido"] = {"actualizado": "", "dias": [], "llegadas": c["cargasAcido"], "factores": [], "avisos": {}}

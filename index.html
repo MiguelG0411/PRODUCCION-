@@ -140,6 +140,16 @@ button{cursor:pointer;-webkit-tap-highlight-color:transparent}
 .lrow .kp{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:2px 12px;font-size:.82rem;color:var(--muted)}
 .lrow .kp b{color:var(--ink)}
 .dtag{display:inline-block;font-size:.7rem;font-weight:800;border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:1px;color:#fff}
+.scs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sc{border:1px solid var(--line);border-radius:12px;padding:8px 9px;font-size:.82rem}.sc .st{font-weight:800;color:var(--ink);margin-bottom:2px}
+.sc .sh,.sc .sr{display:grid;grid-template-columns:1fr 48px 52px}.sc .sh small{text-align:right;color:var(--muted);font-size:.68rem;padding:3px 6px 2px 0}
+.sc .sr span{color:var(--muted);padding:3px 0 2px}.sc .sr b{text-align:right;padding:3px 6px 2px 0}.sc .sr b.p{color:#1D4ED8}
+.sc .sh small:last-child,.sc .sr b.p{background:#EEF4FF}.sc .sh small:last-child{border-radius:6px 6px 0 0}.sc .sr:last-child b.p{border-radius:0 0 6px 6px;padding-bottom:4px}
+.sc.off{border-style:dashed;color:var(--muted)}.sc.off i{font-size:.8rem}
+.tl{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap}.tg{font-size:.72rem;font-weight:700;border-radius:5px;padding:1px 6px}.tg.g2{background:#E7F5EC;color:#14804A}.tg.r2{background:#FBEAEA;color:#C0392B}
+.rp{font-size:.66rem;background:#E7F5EC;color:#14804A;border-radius:4px;padding:1px 4px;margin-left:4px;font-weight:700}
+.pmini{border:1px solid var(--line);border-radius:12px;padding:8px 6px 2px;margin-top:8px}.pmini .mh{display:flex;justify-content:space-between;font-size:.82rem;padding:0 4px}.pmini .mh span{color:var(--muted)}
+@media (prefers-color-scheme:dark){.sc .sh small:last-child,.sc .sr b.p{background:#1d2a44}.sc .sr b.p{color:#8fb3ff}}
 .dP{background:var(--pl)}.dE{background:var(--ex)}.dS{background:var(--muted)}
 .daynav{display:grid;grid-template-columns:44px 1fr 44px;gap:8px;align-items:center;margin-bottom:10px}
 .daynav button{height:44px;border-radius:12px;border:1px solid var(--line);background:var(--surface);font-size:1.2rem}
@@ -280,7 +290,7 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
   </header>
   <div class="sync"><button id="syncBtn" type="button"><span class="spin" id="syncSpin" hidden></span><span id="syncLbl">⟳ Actualizar</span></button><small id="syncTxt" role="status">Conectando…</small></div>
   <div class="syncw" id="syncWarn" hidden></div>
-  <nav class="tabs2" role="group" aria-label="Sección"><button data-v="min" aria-pressed="false">Mineral</button><button data-v="prod" aria-pressed="true">Producción</button><button data-v="pal" aria-pressed="false">Bodega</button><button data-v="ins" aria-pressed="false">Insumos</button></nav>
+  <nav class="tabs2" role="group" aria-label="Sección"><button data-v="min" aria-pressed="false">Mineral</button><button data-v="prod" aria-pressed="true">Producción</button><button data-v="pla" aria-pressed="false">Planta</button><button data-v="pal" aria-pressed="false">Bodega</button><button data-v="ins" aria-pressed="false">Insumos</button></nav>
   <div id="vProd">
   <div class="yrs" id="pdYears" role="group" aria-label="Año" style="margin:0 -2px 12px"></div>
 
@@ -323,6 +333,23 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
     <div class="days" id="days" hidden></div>
   </section>
   <p class="note" id="note"></p>
+  </div>
+  <div id="vPla" hidden>
+    <div class="daynav"><button id="plPrev" aria-label="Día anterior">‹</button><input type="date" id="plDay" aria-label="Día"><button id="plNext" aria-label="Día siguiente">›</button></div>
+    <div class="mstats" id="plKpis"></div>
+    <section class="card"><h2>Soluciones del día · g/L</h2><div class="scs" id="plSol"></div></section>
+    <section class="card"><h2>Cobre · lecturas del día (g/L)</h2><div class="chart" id="plCu"></div><div class="legend" id="plCuL"></div></section>
+    <section class="card"><h2>Ácido · lecturas del día (g/L)</h2><div class="chart" id="plH"></div><div class="legend" id="plHL"></div></section>
+    <section class="card"><h2>pH del PLS</h2><div class="chart" id="plPh"></div><p class="note" id="plPhN" style="margin:4px 2px 0"></p></section>
+    <section class="card" id="plElCard"><h2 id="plElT">Electrolito</h2><p class="sub">Cobre (g/L)</p><div class="chart" id="plElCu"></div><p class="sub" style="margin-top:10px">Ácido (g/L)</p><div class="chart" id="plElH"></div><div class="legend" id="plElL"></div></section>
+    <section class="card"><h2 id="plMesT">PLS vs REF SX del mes</h2><p class="sub">Promedio diario de cobre (g/L)</p><div class="chart" id="plMes"></div><div class="legend" id="plMesL"></div></section>
+    <section class="card"><h2 id="plSacT">Sacos esperados vs producidos</h2><div class="mstats" id="plSacK"></div><div class="chart" id="plSac"></div><div class="legend"><span><i style="background:#2a78d6"></i>Esperados</span><span><i style="background:#eb6834"></i>Producidos</span></div>
+      <p class="note" style="margin:6px 2px 0">Sacos esperados de cada tren en operación = PLS × 175 L/min × 1.440 × 3,92 ÷ 1000 × 1,06 × extracción del tren ÷ 25.</p></section>
+    <section class="card"><h2 id="plPiT">Pilas en riego</h2><p class="sub">Cu y H+ en g/L · lecturas de las 07:00 y 19:00</p><div style="overflow-x:auto" id="plPiTab"></div><div class="mstats" id="plRip" style="margin-top:10px"></div><p class="note" id="plRipN" style="margin:4px 2px 0"></p></section>
+    <section class="card"><h2>Cobre de las pilas vs días de lixiviación</h2><div class="chart" id="plPiCh"></div><div class="legend" id="plPiL"></div></section>
+    <section class="card"><h2>Cada pila · cobre y ácido vs días</h2><div id="plMinis"></div><div class="legend"><span><i style="background:#2a78d6"></i>Cobre</span><span><i style="background:#eda100"></i>Ácido</span></div></section>
+    <section class="card" id="plSinCard"><h2>Pilas sin cruce con la planilla de mineral</h2><p class="sub">Nombres de pilas del control químico que no aparecen en la hoja BD de mineral (posible error de tipeo). Se muestran sin tonelaje ni ley.</p><div id="plSin"></div></section>
+    <p class="note" id="plNote"></p>
   </div>
   <div id="vMin" hidden>
     <section class="hero heroP" aria-label="Mineral disponible para chancar">
@@ -1486,7 +1513,7 @@ $('#salList').onclick=e=>{const b=e.target.closest('[data-k]');if(b)dsDetail(b.d
 $('#pYears').onclick=e=>{const b=e.target.closest('[data-y]');if(!b)return;PY=+b.dataset.y;palRender()};
 document.querySelector('.tabs2').onclick=e=>{const b=e.target.closest('[data-v]');if(!b)return;const v=b.dataset.v;
   document.querySelectorAll('.tabs2 button').forEach(o=>o.setAttribute('aria-pressed',o===b));
-  $('#vProd').hidden=v!=='prod';$('#vPal').hidden=v!=='pal';$('#vMin').hidden=v!=='min';$('#vIns').hidden=v!=='ins';$('#addBtn').hidden=v!=='prod';if(v==='pal')palRender();if(v==='min')minRender();if(v==='ins')insRender();window.scrollTo(0,0)};
+  $('#vPla').hidden=v!=='pla';$('#vProd').hidden=v!=='prod';$('#vPal').hidden=v!=='pal';$('#vMin').hidden=v!=='min';$('#vIns').hidden=v!=='ins';$('#addBtn').hidden=v!=='prod';if(v==='pal')palRender();if(v==='min')minRender();if(v==='pla')plaRender();if(v==='ins')insRender();window.scrollTo(0,0)};
 
 
 /* ---------- barra deslizable sobre los gráficos ---------- */
@@ -1752,6 +1779,120 @@ $('#acYrs').onclick=e=>{const b=e.target.closest('[data-y]');if(!b)return;ACY=+b
 $('#acMos').onclick=e=>{const b=e.target.closest('[data-m]');if(!b||b.disabled)return;ACM=+b.dataset.m;acRender()};
 $('#acDBtn').onclick=()=>{ACD=!ACD;acRender()};
 $('#acLlBtn').onclick=()=>{ACLL=!ACLL;acRender()};
+
+/* ---------- Planta: control químico (soluciones, extracción, sacos esperados y pilas) ---------- */
+let CQ=null,PLD=null;
+const PCAT=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#6250d6','#e34948'];
+const HUMEDAD=1.06,FLUJO=175,HORAS4=['07:00','11:00','15:00','19:00'];
+const prom=a=>{const v=(a||[]).filter(x=>x!=null);return v.length?v.reduce((s,x)=>s+x,0)/v.length:null};
+const NOMS={'PLS':'PLS','ILS LIX':'ILS','REF LIX':'REF LIX','REF SX 1':'REF SX 1','REF SX 2':'REF SX 2','ELECTROLITO 1':'Electrolito 1','ELECTROLITO 2':'Electrolito 2'};
+function cuDia(d,k){const o=CQ.soluciones[d]&&CQ.soluciones[d][k];return o?prom(o[0]):null}
+// extracción de cada tren con los promedios del día; null = tren sin muestras (detenido)
+function extraccion(d){const p=cuDia(d,'PLS'),r=[cuDia(d,'REF SX 1'),cuDia(d,'REF SX 2')];return r.map(x=>p&&x!=null?(p-x)/p:null)}
+function sacosEsp(d){const p=cuDia(d,'PLS');if(!p)return null;return extraccion(d).reduce((a,e)=>a+(e!=null?p*FLUJO*1440*3.92/1000*HUMEDAD*e/25:0),0)}
+function lineas({labels,series,unit,tipX,every}){
+  const W=360,H=200,Lm=40,R=8,T=18,B=22,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n;
+  // máximo con 4 divisiones redondas (ej. 0-60-120-180-240)
+  const vals=series.flatMap(s=>s.v).filter(v=>v!=null),tick=v=>{if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));return [1,1.5,2,2.5,3,4,5,6,8,10].find(k=>v/p<=k+1e-9)*p};
+  const mx=tick((Math.max(...vals,0)||1)*1.05/4)*4,dec=mx<4?2:mx<20?1:0;
+  const x=i=>Lm+step*i+step/2,y=v=>T+ih-v/mx*ih;
+  const tip={W,L:Lm,step,c:1,x:tipX||labels,s:series.map(s=>({n:s.n,v:s.v.map(v=>v==null?'—':nf(v,v<10?2:1)),col:s.c}))};
+  let o=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tip))}"><text x="${Lm-5}" y="10" text-anchor="end" style="font-weight:700">${unit}</text>`;
+  for(let i=0;i<=4;i++){const yy=T+ih*i/4;o+=`<line x1="${Lm}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${Lm-5}" y="${yy+3}" text-anchor="end">${nf(mx*(1-i/4),dec)}</text>`}
+  series.forEach(s=>{const pts=[];s.v.forEach((v,i)=>{if(v==null)return;pts.push(x(i).toFixed(1)+','+y(v).toFixed(1));if(n<=31)o+=`<circle cx="${x(i)}" cy="${y(v)}" r="${n<=6?3.2:2.2}" fill="${s.c}"/>`});
+    if(pts.length>1)o+=`<polyline fill="none" stroke="${s.c}" stroke-width="2" stroke-linejoin="round" points="${pts.join(' ')}"/>`});
+  const ev=every||(n>16?Math.ceil(n/8):1);
+  labels.forEach((t,i)=>{if(i!==n-1&&(i%ev||n-1-i<ev*.6))return;o+=`<text x="${x(i)}" y="${H-6}" text-anchor="middle">${t}</text>`});
+  return o+'</svg>';
+}
+function barras2({labels,a,b,na,nb,tipX}){
+  const W=360,H=180,Lm=36,R=8,T=18,B=22,iw=W-Lm-R,ih=H-T-B,n=labels.length,st=iw/n,bw=Math.max(1.5,Math.min(9,st*.36));
+  const mx=niceMax(Math.max(1,...a,...b)),y=v=>T+ih-v/mx*ih;
+  const tip={W,L:Lm,step:st,c:1,x:tipX||labels,s:[{n:na,v:a.map(v=>nf(v)),col:'#2a78d6'},{n:nb,v:b.map(v=>nf(v)),col:'#eb6834'}]};
+  let o=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tip))}"><text x="${Lm-5}" y="10" text-anchor="end" style="font-weight:700">sacos</text>`;
+  for(let i=0;i<=4;i++){const yy=T+ih*i/4;o+=`<line x1="${Lm}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="var(--line)"/><text x="${Lm-5}" y="${yy+3}" text-anchor="end">${nf(mx*(1-i/4))}</text>`}
+  labels.forEach((t,i)=>{const cx=Lm+st*i+st/2;o+=`<rect x="${cx-bw-.5}" y="${y(a[i])}" width="${bw}" height="${T+ih-y(a[i])}" rx="1.5" fill="#2a78d6"/><rect x="${cx+.5}" y="${y(b[i])}" width="${bw}" height="${T+ih-y(b[i])}" rx="1.5" fill="#eb6834"/>`;
+    if(i%3===0||i===n-1)o+=`<text x="${cx}" y="${H-6}" text-anchor="middle">${t}</text>`});
+  return o+'</svg>';
+}
+const leyendaL=s=>s.map(x=>`<span><i style="background:${x.c}"></i>${esc(x.n)}</span>`).join('');
+const fdd=f=>f.slice(8)+'/'+f.slice(5,7)+'/'+f.slice(0,4);
+function plaRender(){
+  if(!CQ){$('#plNote').textContent='Sin datos de control químico todavía. Revisa que la variable DROPBOX_URL_CONTROLQUIMICO esté en Render.';return}
+  const fechas=Object.keys(CQ.soluciones);
+  if(!PLD||!CQ.soluciones[PLD])PLD=fechas[fechas.length-1];
+  const d=PLD,S=CQ.soluciones[d]||{},D=DIAS(),mes=d.slice(0,7),mn=MES[+d.slice(5,7)-1];
+  $('#plDay').value=d;$('#plDay').min=fechas[0];$('#plDay').max=fechas[fechas.length-1];
+  // indicadores
+  const kg=kgOf(D[d]),sp=kg/25,se=sacosEsp(d),ex=extraccion(d),op=ex.filter(e=>e!=null),eg=op.length?op.reduce((a,b)=>a+b,0)/op.length:null;
+  const kgMes=Object.keys(D).filter(k=>k.startsWith(mes)&&k<=d).reduce((a,k)=>a+kgOf(D[k]),0);
+  const dif=se?sp-se:null;
+  $('#plKpis').innerHTML=`<div><small>Producción del día</small><b>${D[d]?nf(kg)+' kg':'—'}</b><small>${D[d]?nf(sp)+' sacos':'sin registro'}</small></div>
+    <div><small>Acumulado ${mn}</small><b>${nf(kgMes/1000,1)} t</b><small>al ${d.slice(8)}/${d.slice(5,7)}</small></div>
+    <div><small>Producidos / esperados</small><b>${D[d]?nf(sp):'—'} <span style="font-size:.8rem;color:var(--muted)">/ ${se!=null?nf(se):'—'} sacos</span></b>${D[d]&&se?`<small class="${dif>=0?'up':'dn'}">${dif>=0?'▲ +':'▼ −'}${nf(Math.abs(dif))} · ${nf(sp/se*100,0)}% de lo esperado</small>`:''}</div>
+    <div><small>Extracción global</small><b>${eg!=null?nf(eg*100,1)+'%':'—'}</b><span class="tl">${ex.map((e,i)=>`<span class="tg ${e!=null?'g2':'r2'}">T${i+1} · ${e!=null?nf(e*100,1)+'%':'detenido'}</span>`).join('')}</span></div>`;
+  // tarjetas de soluciones
+  $('#plSol').innerHTML=Object.keys(NOMS).map(k=>{const o=S[k];if(!o||prom(o[0])==null&&prom(o[1])==null)return `<div class="sc off"><div class="st">${NOMS[k]}</div><i>Sin operación</i></div>`;
+    const ult=a=>{const v=a.filter(x=>x!=null);return v.length?v[v.length-1]:null},dc=(prom(o[0])||0)<10?2:1;
+    const fila=(t,a,dd)=>`<div class="sr"><span>${t}</span><b>${nf(ult(a),dd)}</b><b class="p">${nf(prom(a),dd)}</b></div>`;
+    return `<div class="sc"><div class="st">${NOMS[k]}</div><div class="sh"><span></span><small>Último</small><small>Prom.</small></div>${fila('Cobre',o[0],dc)}${fila('Ácido',o[1],1)}${prom(o[2])!=null?fila('pH',o[2],2):''}</div>`}).join('');
+  // lecturas del día
+  const S3=[['PLS',PCAT[0]],['REF SX 2',PCAT[1]],['REF SX 1',PCAT[6]],['REF LIX',PCAT[2]]].filter(([k])=>S[k]&&prom(S[k][0])!=null);
+  const ser=i=>S3.map(([k,c])=>({n:NOMS[k],v:S[k][i],c}));
+  $('#plCu').innerHTML=lineas({labels:HORAS4,series:ser(0),unit:'g/L'});$('#plCuL').innerHTML=leyendaL(ser(0));
+  $('#plH').innerHTML=lineas({labels:HORAS4,series:ser(1),unit:'g/L'});$('#plHL').innerHTML=leyendaL(ser(1));
+  const ph=S.PLS?S.PLS[2]:[];$('#plPh').innerHTML=lineas({labels:HORAS4,series:[{n:'pH PLS',v:ph,c:PCAT[0]}],unit:'pH'});
+  $('#plPhN').textContent=prom(ph)!=null?'Promedio del día: '+nf(prom(ph),2):'Sin lecturas de pH este día.';
+  const EL=[['ELECTROLITO 2',PCAT[6]],['ELECTROLITO 1',PCAT[3]]].filter(([k])=>S[k]&&prom(S[k][0])!=null);
+  $('#plElCard').hidden=!EL.length;
+  if(EL.length){$('#plElT').textContent=EL.length>1?'Electrolito tren 1 y tren 2':NOMS[EL[0][0]];
+    $('#plElCu').innerHTML=lineas({labels:HORAS4,series:EL.map(([k,c])=>({n:NOMS[k],v:S[k][0],c})),unit:'g/L'});
+    $('#plElH').innerHTML=lineas({labels:HORAS4,series:EL.map(([k,c])=>({n:NOMS[k],v:S[k][1],c})),unit:'g/L'});
+    $('#plElL').innerHTML=leyendaL(EL.map(([k,c])=>({n:NOMS[k],c})))}
+  // mes en curso hasta el día elegido
+  const dm=fechas.filter(f=>f.startsWith(mes)&&f<=d),lab=dm.map(f=>String(+f.slice(8))),tx=dm.map(f=>+f.slice(8)+' '+mn);
+  const msr=[['PLS',PCAT[0]],['REF SX 2',PCAT[1]],['REF SX 1',PCAT[6]]].filter(([k])=>dm.some(f=>cuDia(f,k)!=null)).map(([k,c])=>({n:NOMS[k],v:dm.map(f=>cuDia(f,k)),c}));
+  $('#plMesT').textContent='PLS vs REF SX · '+mn+' '+d.slice(0,4);
+  $('#plMes').innerHTML=lineas({labels:lab,series:msr,unit:'g/L',tipX:tx});$('#plMesL').innerHTML=leyendaL(msr);
+  const esp=dm.map(f=>sacosEsp(f)||0),pro=dm.map(f=>kgOf(D[f])/25),tE=esp.reduce((a,b)=>a+b,0),tP=pro.reduce((a,b)=>a+b,0);
+  $('#plSacT').textContent='Sacos esperados vs producidos · '+mn;
+  $('#plSacK').innerHTML=`<div><small>Cumplimiento del mes</small><b class="${tP>=tE?'up':'dn'}">${tE?nf(tP/tE*100,1)+'%':'—'}</b></div><div><small>Producidos / esperados</small><b>${nf(tP)} / ${nf(tE)}</b></div>`;
+  $('#plSac').innerHTML=barras2({labels:lab,a:esp,b:pro,na:'Esperados',nb:'Producidos',tipX:tx});
+  plaPilas(d);
+  $('#plNote').textContent='Datos de la planilla CONTROL QUÍMICO hasta el '+fdd(CQ.actualizado)+'. Promedios calculados con las muestras disponibles de cada día. Extracción de cada tren = (Cu PLS − Cu REF SX del tren) ÷ Cu PLS; un tren sin muestras se considera detenido. Producción del día de la planilla RECUPERACION.';
+}
+function plaPilas(d){
+  const M=MIN||{pilas:[]},ton={};(M.pilas||[]).forEach(p=>{const o=ton[p[2]]=ton[p[2]]||[0,0,0];o[0]+=p[4];if(p[5]>0){o[1]+=p[4];o[2]+=p[4]*p[5]}});
+  const dd=f=>Math.round((new Date(d+'T12:00:00')-new Date(f+'T12:00:00'))/864e5)+1;
+  const act=Object.entries(CQ.pilas).filter(([,r])=>r.some(x=>x[0]===d)).map(([k,r])=>{const h=r.filter(x=>x[0]<=d),hoy=r.find(x=>x[0]===d);return {k,h,hoy,ini:h[0][0]}}).sort((a,b)=>a.ini<b.ini?-1:1);
+  act.forEach((p,i)=>p.c=PCAT[i%8]);
+  $('#plPiT').textContent='Pilas en riego · '+fdd(d)+' ('+act.length+')';
+  const sh=x=>(x||'—').replace(' LIX','');
+  $('#plPiTab').innerHTML=act.length?`<table class="mtab"><thead><tr><th>Pila</th><th>Inicio</th><th>Días</th><th>t</th><th>Ley</th><th>Riego</th><th>Destino</th><th>Cu 07</th><th>Cu 19</th><th>H+ 07</th><th>H+ 19</th></tr></thead><tbody>${act.map(p=>{const R=p.k[0]==='R',m=ton[p.k],t=R?600:(m?m[0]:null),ley=!R&&m&&m[1]?m[2]/m[1]:null,x=p.hoy;
+    return `<tr><td style="text-align:left;white-space:nowrap"><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.c};margin-right:4px"></i><b>${p.k}</b>${R?'<span class="rp">ripio</span>':''}</td><td>${p.ini.slice(8)}/${p.ini.slice(5,7)}</td><td>${dd(p.ini)}</td><td>${t?nf(t):'s/i'}</td><td>${ley?nf(ley,2)+'%':'s/i'}</td><td>${sh(x[5])}</td><td>${sh(x[6])}</td><td><b>${nf(x[1],2)}</b></td><td><b>${nf(x[2],2)}</b></td><td>${nf(x[3],1)}</td><td>${nf(x[4],1)}</td></tr>`}).join('')}</tbody></table>`:'<p class="note">No hay pilas con lecturas este día.</p>';
+  const tR=600*act.filter(p=>p.k[0]==='R').length,tM=act.filter(p=>p.k[0]==='P').reduce((a,p)=>a+((ton[p.k]||[0])[0]),0);
+  $('#plRip').innerHTML=act.length?`<div><small>Ripio en riego</small><b>${nf(tR)} t</b><small>${nf(tR+tM?tR/(tR+tM)*100:0,1)}%</small></div><div><small>Mineral en riego</small><b>${nf(tM,1)} t</b><small>${nf(tR+tM?tM/(tR+tM)*100:0,1)}%</small></div>`:'';
+  const sinI=act.filter(p=>p.k[0]==='P'&&!ton[p.k]).map(p=>p.k);
+  $('#plRipN').textContent=act.length?'% ripio = t ripio ÷ (t ripio + t pilas de mineral). Cada pila de ripio se considera de 600 t.'+(sinI.length?' s/i = sin datos en la planilla de mineral: '+sinI.join(', ')+' (no se cuentan).':''):'';
+  // cobre de todas las pilas vs día de lixiviación
+  const nmax=Math.max(1,...act.map(p=>dd(p.ini)));
+  const serie=(p,j)=>{const v=Array(dd(p.ini)).fill(null);p.h.forEach(x=>{const a=prom([x[1+j],x[2+j]]);if(a!=null)v[dd(p.ini)-dd(x[0])]=a});return v};
+  const cs=act.map(p=>({n:p.k,v:serie(p,0).concat(Array(nmax-dd(p.ini)).fill(null)),c:p.c}));
+  $('#plPiCh').innerHTML=act.length?lineas({labels:Array.from({length:nmax},(_,i)=>String(i+1)),series:cs,unit:'g/L',tipX:Array.from({length:nmax},(_,i)=>'Día '+(i+1))}):'';
+  $('#plPiL').innerHTML=leyendaL(cs);
+  $('#plMinis').innerHTML=act.map(p=>{const n=dd(p.ini),lb=Array.from({length:n},(_,i)=>String(i+1));
+    return `<div class="pmini"><div class="mh"><b><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.c};margin-right:5px"></i>${p.k}</b><span>${p.k[0]==='R'?'Ripio':'Mineral'} · ${n} ${n===1?'día':'días'}</span></div>
+    <div class="chart">${lineas({labels:lb,series:[{n:'Cobre',v:serie(p,0),c:'#2a78d6'},{n:'Ácido',v:p.h.length?serie({...p},2):[],c:'#eda100'}],unit:'g/L',tipX:lb.map(x=>'Día '+x)})}</div></div>`}).join('');
+  // pilas del control químico que no calzan con la planilla de mineral (últimos 12 meses, solo P)
+  const desde=new Date(new Date(d+'T12:00:00')-365*864e5).toISOString().slice(0,10);
+  const sin=Object.entries(CQ.pilas).filter(([k,r])=>k[0]==='P'&&!ton[k]&&r.some(x=>x[0]>=desde&&x[0]<=d)).map(([k,r])=>[k,r[0][0],r[r.length-1][0]]);
+  $('#plSinCard').hidden=!sin.length;
+  $('#plSin').innerHTML=sin.length?`<table class="mtab"><thead><tr><th>Pila</th><th>Primer dato</th><th>Último dato</th></tr></thead><tbody>${sin.map(x=>`<tr><td style="text-align:left"><b>${x[0]}</b></td><td>${fdd(x[1])}</td><td>${fdd(x[2])}</td></tr>`).join('')}</tbody></table>`:'';
+}
+function plaMover(n){const f=Object.keys(CQ.soluciones),i=f.indexOf(PLD)+n;if(i>=0&&i<f.length){PLD=f[i];plaRender()}}
+$('#plPrev').onclick=()=>CQ&&plaMover(-1);$('#plNext').onclick=()=>CQ&&plaMover(1);
+$('#plDay').onchange=()=>{const v=$('#plDay').value;if(!CQ||!v)return;const f=Object.keys(CQ.soluciones);PLD=f.includes(v)?v:(f.filter(x=>x<=v).pop()||f[0]);plaRender()};
+
 /* ---------- datos del servidor ----------
    El servidor descarga las planillas de Dropbox al iniciar y cuando se presiona "Actualizar". */
 const pausa=ms=>new Promise(r=>setTimeout(r,ms));
@@ -1759,7 +1900,7 @@ async function getJSON(u,o){const r=await fetch(u,{cache:'no-store',...o});if(!r
 const fhora=iso=>{const d=new Date(iso);return d.toLocaleDateString('es-CL',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+d.toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'})};
 function aplicar(d){
   window.APP_DATA=d;
-  BASE=d.produccion||{kgSaco:25,dias:{}};PAL=d.calidad||null;MIN=d.mineral||null;AC=d.acido||null;
+  BASE=d.produccion||{kgSaco:25,dias:{}};PAL=d.calidad||null;CQ=d.control||null;MIN=d.mineral||null;AC=d.acido||null;
   _PM=null;_CHM=null;_LT=null;   // cachés calculados con los datos anteriores
   RIPIO=ripioPorAnio(MIN&&MIN.ripio);
   if(window.peSet)window.peSet(d.petroleo);
@@ -1786,7 +1927,7 @@ async function esperarServidor(){
 }
 function rerender(){
   const v=(document.querySelector('.tabs2 [aria-pressed="true"]')||{}).dataset?.v||'prod';
-  if(v==='prod')render();else if(v==='pal')palRender();else if(v==='min')minRender();else insRender();
+  if(v==='prod')render();else if(v==='pla')plaRender();else if(v==='pal')palRender();else if(v==='min')minRender();else insRender();
 }
 let SYNC=false;
 function mesInicial(){YEAR=+TODAY.slice(0,4);MON=+TODAY.slice(5,7)-1;const all=Object.keys(DIAS()).sort(),last=all[all.length-1];
