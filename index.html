@@ -435,7 +435,14 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
       <div class="flow"><div><small>Producidos</small><b id="pProd">0</b></div><span class="op">−</span><div><small>Despachados</small><b id="pOut">0</b></div><span class="op">=</span><div><small>Quedan</small><b id="pLeft">0</b></div></div>
     </section>
     <div class="yrs" id="pYears" role="group" aria-label="Año"></div>
-    <section class="card">
+    <section class="card" id="pHist" hidden>
+      <h2 id="phTitle">Producción</h2>
+      <p class="sub">Año sin detalle por lote en el Excel de control de calidad: solo el total, para comparar.</p>
+      <div class="mstats" id="phKpi"></div>
+      <h2 style="font-size:.98rem;margin:12px 0 0">Comparación por año</h2>
+      <div id="phTabla"></div>
+    </section>
+    <section class="card pdat">
       <h2 id="ceTitle">Evolución por categoría</h2>
       <p class="sub" id="ceSub"></p>
       <div class="ctabs" id="ceCats" role="group" aria-label="Categoría" style="margin:0 0 10px"></div>
@@ -445,18 +452,18 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
       <div class="legend" id="ceLegAll" hidden></div>
       <div class="catlist" id="catList"></div>
     </section>
-    <section class="card">
+    <section class="card pdat">
       <h2 id="pmTitle">Movimiento de pallets</h2>
       <p class="sub" id="pmSub">Pallets producidos y despachados cada mes, y cuántos quedan en bodega</p>
       <div class="chart" id="cMov"></div>
       <div class="legend"><span><i style="background:var(--cu-2)"></i>Producidos</span><span><i style="background:var(--acc)"></i>Despachados</span><span><i class="ln" style="border-color:var(--ink)"></i>Quedan en bodega</span></div>
     </section>
-    <section class="card">
+    <section class="card pdat">
       <h2>Stock por categoría</h2>
       <p class="sub">Lotes que figuran como ALMACENADO en el Excel</p>
       <div class="catlist" id="stockList"></div>
     </section>
-    <section class="card">
+    <section class="card pdat">
       <h2 id="opTitle">Operadores</h2>
       <p class="sub" id="opSub"></p>
       <div class="months" id="opMonths" role="group" aria-label="Mes" style="margin:2px -2px 8px"></div>
@@ -470,7 +477,7 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
       <div id="opList"></div>
       <p class="note" id="opNote"></p>
     </section>
-    <section class="card">
+    <section class="card pdat">
       <h2 id="dsTitle">Despachos</h2>
       <p class="sub" id="dsSub"></p>
       <div class="months" id="dsMonths" role="group" aria-label="Mes" style="margin:2px -2px 8px"></div>
@@ -832,6 +839,8 @@ $('#menuBtn').onclick=()=>open(`<h3>Opciones</h3>
 let PAL=null,PY=null;
 const CATN={1:'Categoría 1',2:'Categoría 2',3:'Categoría 3',4:'Categoría 4',0:'Sin categoría'};
 const CATC={1:'#1F8A5B',2:'#2F6FA8',3:'#C88A2A',4:'#B9442F',0:'#8A96A3'};
+// Producción anual informada (toneladas) para años sin detalle por lote en el Excel de control de calidad
+const PROD_HIST={2021:1047.34};
 function palRender(){
   if(!PAL){$('#pNote').textContent='Sin datos de control de calidad todavía.';return}
   const L=PAL.lotes,S=PAL.salidas,tp=+PAL.tonPallet||1.25;
@@ -840,8 +849,21 @@ function palRender(){
   $('#pProd').textContent=nf(prod);$('#pOut').textContent=nf(out);$('#pLeft').textContent=nf(left);
   const years=[...new Set(L.map(l=>+l[1].slice(0,4)).concat(S.map(s=>+s[1].slice(0,4))))].sort();
   if(PY==null)PY=years[years.length-1];
-  $('#pYears').innerHTML=years.map(y=>`<button data-y="${y}" aria-pressed="${y===PY}">${y}</button>`).join('')+`<button data-y="0" aria-pressed="${PY===0}">Todos</button>`;
+  const yrsTab=[...new Set(years.concat(Object.keys(PROD_HIST).map(Number)))].sort();
+  $('#pYears').innerHTML=yrsTab.map(y=>`<button data-y="${y}" aria-pressed="${y===PY}">${y}</button>`).join('')+`<button data-y="0" aria-pressed="${PY===0}">Todos</button>`;
   {const c=$('#pYears'),s=c.querySelector('[aria-pressed="true"]');if(s)c.scrollLeft=s.offsetLeft-c.clientWidth/2+s.clientWidth/2}
+  // año con solo el total de producción (sin lotes en el Excel): se muestra el número y una comparación por año
+  const soloTotal=PY&&PROD_HIST[PY]!=null&&!years.includes(PY);
+  $('#pHist').hidden=!soloTotal;document.querySelectorAll('#vPal .pdat').forEach(e=>e.hidden=soloTotal);
+  if(soloTotal){
+    const t=PROD_HIST[PY],porAnio=yrsTab.map(y=>{const n=PROD_HIST[y]!=null&&!years.includes(y)?PROD_HIST[y]/tp:L.filter(l=>+l[1].slice(0,4)===y).length;return [y,n,n*tp,PROD_HIST[y]!=null&&!years.includes(y)]});
+    $('#phTitle').textContent='Producción '+PY;
+    $('#phKpi').innerHTML=`<div><small>Producción ${PY}</small><b>${nf(t,2)} t</b></div><div><small>Equivale a</small><b>${nf(t/tp)} pallets</b><small>${nf(tp,2)} t por pallet</small></div>`;
+    $('#phTabla').innerHTML=`<table class="mtab"><thead><tr><th style="text-align:left">Año</th><th>Pallets</th><th>Toneladas</th></tr></thead><tbody>${porAnio.map(([y,n,tt,h])=>`<tr${y===PY?' style="font-weight:800"':''}><td style="text-align:left">${y}${h?' <small style="color:var(--muted)">solo total</small>':''}</td><td>${nf(n)}</td><td>${nf(tt,1)}</td></tr>`).join('')}</tbody></table>
+      <p class="note" style="margin:6px 2px 0">Pallets de los demás años = lotes del Excel de control de calidad (1 lote = 1 pallet). ${new Date().getFullYear()} está en curso.</p>`;
+    $('#pNote').textContent='Producción '+PY+' informada por la planta: '+nf(t,2)+' t ÷ '+nf(tp,2)+' t por pallet = '+nf(t/tp,1)+' pallets.';
+    return;
+  }
   const inY=d=>PY===0||+d.slice(0,4)===PY;
   const LY=L.filter(l=>inY(l[1])),SY=S.filter(s=>inY(s[1]));
   // categories chart: stacked by month (or by year when Todos)
