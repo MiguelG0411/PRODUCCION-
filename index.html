@@ -841,10 +841,14 @@ const CATN={1:'Categoría 1',2:'Categoría 2',3:'Categoría 3',4:'Categoría 4',
 const CATC={1:'#1F8A5B',2:'#2F6FA8',3:'#C88A2A',4:'#B9442F',0:'#8A96A3'};
 // Producción anual informada (toneladas) para años sin detalle por lote en el Excel de control de calidad
 const PROD_HIST={2021:1047.34};
+// producción de arrastre (stock que venía de un año anterior), se muestra en la pestaña del año indicado
+const ARRASTRE={2021:{de:2020,t:504.87}};
+// toneladas históricas sin lotes en el Excel: entran como pallets producidos al stock de bodega
+const T_HIST=()=>Object.values(PROD_HIST).reduce((a,b)=>a+b,0)+Object.values(ARRASTRE).reduce((a,o)=>a+o.t,0);
 function palRender(){
   if(!PAL){$('#pNote').textContent='Sin datos de control de calidad todavía.';return}
   const L=PAL.lotes,S=PAL.salidas,tp=+PAL.tonPallet||1.25;
-  const prod=L.length,out=S.length,left=prod-out;
+  const hist=Math.round(T_HIST()/tp),prod=L.length+hist,out=S.length,left=prod-out;   // incluye 2021 y arrastre 2020
   $('#pStock').textContent=nf(left);$('#pStockT').textContent='≈ '+nf(left*tp,1)+' t · '+nf(left*tp*40)+' sacos de 25 kg';
   $('#pProd').textContent=nf(prod);$('#pOut').textContent=nf(out);$('#pLeft').textContent=nf(left);
   const years=[...new Set(L.map(l=>+l[1].slice(0,4)).concat(S.map(s=>+s[1].slice(0,4))))].sort();
@@ -853,15 +857,18 @@ function palRender(){
   $('#pYears').innerHTML=yrsTab.map(y=>`<button data-y="${y}" aria-pressed="${y===PY}">${y}</button>`).join('')+`<button data-y="0" aria-pressed="${PY===0}">Todos</button>`;
   {const c=$('#pYears'),s=c.querySelector('[aria-pressed="true"]');if(s)c.scrollLeft=s.offsetLeft-c.clientWidth/2+s.clientWidth/2}
   // año con solo el total de producción (sin lotes en el Excel): se muestra el número y una comparación por año
-  const soloTotal=PY&&PROD_HIST[PY]!=null&&!years.includes(PY);
+  const conLotes=y=>L.some(l=>+l[1].slice(0,4)===y);   // un despacho con fecha de ese año no cuenta como producción
+  const soloTotal=PY&&PROD_HIST[PY]!=null&&!conLotes(PY);
   $('#pHist').hidden=!soloTotal;document.querySelectorAll('#vPal .pdat').forEach(e=>e.hidden=soloTotal);
   if(soloTotal){
-    const t=PROD_HIST[PY],porAnio=yrsTab.map(y=>{const n=PROD_HIST[y]!=null&&!years.includes(y)?PROD_HIST[y]/tp:L.filter(l=>+l[1].slice(0,4)===y).length;return [y,n,n*tp,PROD_HIST[y]!=null&&!years.includes(y)]});
+    const t=PROD_HIST[PY],ar=ARRASTRE[PY],porAnio=yrsTab.map(y=>{const h=PROD_HIST[y]!=null&&!conLotes(y),n=h?PROD_HIST[y]/tp:L.filter(l=>+l[1].slice(0,4)===y).length;return [y,n,n*tp,h]});
+    if(ar)porAnio.unshift([ar.de+' (arrastre)',ar.t/tp,ar.t,true]);
     $('#phTitle').textContent='Producción '+PY;
-    $('#phKpi').innerHTML=`<div><small>Producción ${PY}</small><b>${nf(t,2)} t</b></div><div><small>Equivale a</small><b>${nf(t/tp)} pallets</b><small>${nf(tp,2)} t por pallet</small></div>`;
+    $('#phKpi').innerHTML=`<div><small>Producción ${PY}</small><b>${nf(t,2)} t</b><small>${nf(t/tp)} pallets</small></div>${ar?`<div><small>Arrastre ${ar.de}</small><b>${nf(ar.t,2)} t</b><small>${nf(ar.t/tp)} pallets</small></div>
+      <div><small>Total en bodega ${PY}</small><b>${nf(t+ar.t,2)} t</b><small>${nf((t+ar.t)/tp)} pallets · ${nf(tp,2)} t por pallet</small></div>`:''}`;
     $('#phTabla').innerHTML=`<table class="mtab"><thead><tr><th style="text-align:left">Año</th><th>Pallets</th><th>Toneladas</th></tr></thead><tbody>${porAnio.map(([y,n,tt,h])=>`<tr${y===PY?' style="font-weight:800"':''}><td style="text-align:left">${y}${h?' <small style="color:var(--muted)">solo total</small>':''}</td><td>${nf(n)}</td><td>${nf(tt,1)}</td></tr>`).join('')}</tbody></table>
       <p class="note" style="margin:6px 2px 0">Pallets de los demás años = lotes del Excel de control de calidad (1 lote = 1 pallet). ${new Date().getFullYear()} está en curso.</p>`;
-    $('#pNote').textContent='Producción '+PY+' informada por la planta: '+nf(t,2)+' t ÷ '+nf(tp,2)+' t por pallet = '+nf(t/tp,1)+' pallets.';
+    $('#pNote').textContent='Producción '+PY+' informada por la planta: '+nf(t,2)+' t ÷ '+nf(tp,2)+' t por pallet = '+nf(t/tp,1)+' pallets.'+(ar?' Arrastre '+ar.de+': '+nf(ar.t,2)+' t = '+nf(ar.t/tp,1)+' pallets. Ambos se suman a los pallets producidos del stock de bodega.':'');
     return;
   }
   const inY=d=>PY===0||+d.slice(0,4)===PY;
@@ -880,7 +887,7 @@ function palRender(){
   LY.forEach(l=>{const i=keys.indexOf(keyOf(l[1]));if(i>=0)pm[i]++});SY.forEach(s=>{const i=keys.indexOf(keyOf(s[1]));if(i>=0)om[i]++});
   const lastD=[...L.map(l=>l[1]),...S.map(s=>s[1])].sort().pop();
   const bal=keys.map(k=>{const lim=PY===0?k+'-12-31':PY+'-'+k+'-31';if((PY===0?k+'-01-01':PY+'-'+k+'-01')>lastD)return null;
-    return L.filter(l=>l[1]<=lim).length-S.filter(s=>s[1]<=lim).length});
+    return hist+L.filter(l=>l[1]<=lim).length-S.filter(s=>s[1]<=lim).length});
   $('#pmTitle').textContent='Movimiento de pallets '+(PY||'por año');$('#pmSub').textContent='Pallets producidos y despachados cada '+(PY?'mes':'año')+', y cuántos quedan en bodega al cierre';
   $('#cMov').innerHTML=grouped(lab,pm,om,bal);
   // stock by category (ALMACENADO)
@@ -890,7 +897,7 @@ function palRender(){
   // data quality notes
   const sinLote=S.filter(s=>!s[0]).length,seen={};let dup=0;S.forEach(s=>{if(s[0]){if(seen[s[0]])dup++;seen[s[0]]=1}});
   $('#pWarn').innerHTML=`<b>Por qué los números no coinciden:</b> el Excel tiene <b>${nf(stot)}</b> lotes como ALMACENADO, pero al restar los despachos quedan <b>${nf(left)}</b>. La diferencia se debe a ${nf(sinLote)} despachos registrados como "SIN LOTE" (no se sabe qué lote salió, así que ese lote sigue figurando como almacenado)${dup?` y ${nf(dup)} lotes que aparecen despachados más de una vez`:''}. El conteo de bodega usa la resta simple: producidos − despachados.`;
-  $('#pNote').textContent='Datos del Excel CONTROL_DE_CALIDAD hasta el '+PAL.actualizado.split('-').reverse().join('/')+'. 1 lote = 1 pallet = '+nf(tp,2)+' t.';
+  $('#pNote').textContent='Datos del Excel CONTROL_DE_CALIDAD hasta el '+PAL.actualizado.split('-').reverse().join('/')+'. 1 lote = 1 pallet = '+nf(tp,2)+' t. Los pallets producidos incluyen '+nf(hist)+' pallets históricos sin lotes en el Excel (producción 2021 y arrastre 2020).';
 }
 function stacked(labels,st,cats){
   const W=360,H=210,L=34,R=10,T=20,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(4,Math.min(24,step*.62));
