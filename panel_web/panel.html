@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel Minera Anita</title><meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="/icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/panel/panel.css">
+</head><body>
+<aside class="side" id="side">
+ <div class="brand"><img src="/icons/icon-192.png" alt=""><div>Minera Anita<small>Panel de gestión</small></div></div>
+ <nav id="nav">
+  <div class="navt">GENERAL</div>
+  <button class="nav" data-v="resumen"><i></i>Resumen</button>
+  <button class="nav" data-v="simulador"><i></i>Simulador de planta</button>
+  <button class="nav" data-v="reportes"><i></i>Reportes</button>
+  <div class="navt">OPERACIÓN</div>
+  <button class="nav" data-v="prod"><i></i>Producción</button>
+  <button class="nav" data-v="pla"><i></i>Planta · control químico</button>
+  <button class="nav" data-v="min"><i></i>Mineral y pilas</button>
+  <button class="nav" data-v="pal"><i></i>Bodega y despachos</button>
+  <button class="nav" data-v="ins"><i></i>Insumos</button>
+  <div class="navt adm" hidden>ADMINISTRACIÓN</div>
+  <button class="nav adm" data-v="usuarios" hidden><i></i>Usuarios y accesos</button>
+ </nav>
+ <div class="foot">Diseñado por BG Solutions</div>
+</aside>
+<div class="main">
+ <header class="top">
+  <button class="menu" id="menuBtn" aria-label="Menú">☰</button>
+  <div class="tt"><h2 id="tTitle">Resumen</h2><div class="sub" id="tSub"></div></div>
+  <div class="sp"></div>
+  <div class="daynav" id="dayNav" hidden><button id="dPrev" aria-label="Día anterior">‹</button><input type="date" id="dDay" aria-label="Día"><button id="dNext" aria-label="Día siguiente">›</button></div>
+  <span class="pill" id="sync">Conectando…</span>
+  <button class="btn g" id="updBtn">⟳ Actualizar</button>
+  <div class="user"><div class="av" id="uAv">·</div><div><span id="uName">…</span><small id="uRol"></small></div>
+   <button class="out" id="outBtn" title="Cerrar sesión">Salir</button></div>
+ </header>
+ <div class="warn" id="warn" hidden></div>
+ <section class="view" id="vResumen"></section>
+ <section class="view" id="vSimulador" hidden></section>
+ <section class="view" id="vReportes" hidden></section>
+ <section class="view" id="vUsuarios" hidden></section>
+ <section class="view frame" id="vApp" hidden><iframe id="app" title="Datos de producción" src="/panel/app/?embed=1"></iframe></section>
+ <div class="loading" id="loading"><div class="spin"></div><span id="loadTxt">Cargando datos de las planillas…</span></div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+<script src="/panel/panel.js" nonce="{{NONCE}}"></script>
+</body></html>

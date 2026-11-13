@@ -11,6 +11,7 @@ from flask import Flask, Response, abort, jsonify, request, send_from_directory
 
 from planillas import acido, calidad, control_quimico, mineral, petroleo, recuperacion
 from planillas.comun import ErrorPlanilla, descargar
+import panel as panel_gestion
 
 RAIZ = os.path.dirname(os.path.abspath(__file__))
 ESPERA_MIN = 20   # segundos mínimos entre dos actualizaciones
@@ -123,6 +124,7 @@ def iniciar_actualizacion():
 
 
 app = Flask(__name__, static_folder=None)
+panel_gestion.configurar(app)
 
 
 @app.get("/")
@@ -178,6 +180,8 @@ def _arrancar():
         _estado.update(cargando=False, inicio=0.0)   # estado copiado de otro proceso: se reinicia
     iniciar_actualizacion()
 
+
+panel_gestion.registrar_app(app, api_datos, api_estado, api_actualizar, inicio)
 
 _armar()   # deja disponible al menos el histórico mientras descarga
 

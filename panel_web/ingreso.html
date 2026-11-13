@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Panel Minera Anita</title><meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="/icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;font-family:Inter,system-ui,sans-serif;color:#101B33;display:flex;align-items:center;justify-content:center;padding:16px;
+ background:radial-gradient(1100px 650px at 20% 10%,#1B3FA0 0,#0A1A5C 45%,#050D33 100%);position:relative;overflow:hidden}
+.glow{position:absolute;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(22,211,255,.22),transparent 65%);right:6%;bottom:-160px;pointer-events:none}
+.card{position:relative;width:100%;max-width:420px;background:rgba(255,255,255,.97);border-radius:24px;padding:40px 32px 32px;text-align:center;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+.card img{width:84px;height:84px;border-radius:20px}
+h1{font-size:24px;margin:18px 0 4px}p{color:#64708A;margin:0 0 26px;font-size:14px}
+#gbtn{display:flex;justify-content:center;min-height:44px}
+.note{font-size:12px;color:#64708A;margin-top:20px;line-height:1.55}
+.err{display:none;margin-top:16px;background:#FBEAEA;color:#9B2C22;border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600}
+.dev{margin-top:12px;font:600 13px Inter;border:1px dashed #9AA6B8;background:#fff;border-radius:10px;padding:10px 14px;cursor:pointer}
+</style></head><body><div class="glow"></div>
+<main class="card">
+ <img src="/icons/icon-192.png" alt="Minera Anita SpA">
+ <h1>Panel de gestión</h1><p>Minera Anita SpA · Producción de sulfato de cobre</p>
+ <div id="gbtn"></div>
+ <div class="err" id="err" role="alert"></div>
+ <div class="note">Solo las cuentas autorizadas por el administrador pueden ingresar.<br>La sesión se cierra sola después de un tiempo sin uso.</div>
+</main>
+<script nonce="{{NONCE}}">
+(function(){
+const CID="{{CLIENT_ID}}",NONCE="{{GNONCE}}",DEV="{{DEV}}",err=document.getElementById('err');
+function mal(t){err.textContent=t;err.style.display='block'}
+async function enviar(body){
+  try{const r=await fetch('/panel/ingresar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),credentials:'same-origin'});
+    if(r.ok){location.replace('/panel');return}
+    const j=await r.json().catch(()=>({}));mal(j.error||'No se pudo ingresar.');if(r.status===401)setTimeout(()=>location.reload(),2500)}
+  catch(e){mal('Sin conexión con el servidor.')}
+}
+if(DEV){const b=document.createElement('button');b.className='dev';b.textContent='Ingresar (modo prueba local)';b.onclick=()=>enviar({dev:1});document.querySelector('.card').insertBefore(b,err)}
+if(!CID){if(!DEV)mal('El ingreso con Google aún no está configurado (falta GOOGLE_CLIENT_ID).');return}
+const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;s.nonce='{{NONCE}}';
+s.onload=()=>{google.accounts.id.initialize({client_id:CID,nonce:NONCE,callback:r=>enviar({credential:r.credential}),auto_select:false,ux_mode:'popup',itp_support:true});
+  google.accounts.id.renderButton(document.getElementById('gbtn'),{theme:'outline',size:'large',text:'signin_with',shape:'rectangular',locale:'es',width:320})};
+s.onerror=()=>mal('No se pudo cargar el botón de Google. Revisa la conexión.');
+document.head.appendChild(s);
+})();
+</script></body></html>

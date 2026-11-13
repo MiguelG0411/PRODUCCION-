@@ -8,6 +8,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#FFFFFF">
 <title>Producción de Sulfato · Minera Anita SpA</title>
+<script>/* dentro del panel de gestión: sin encabezado propio, tema claro y vista elegida por el panel */
+if(/[?&]embed=1/.test(location.search)){document.documentElement.classList.add('embed');document.documentElement.setAttribute('data-theme','light')}</script>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
@@ -285,6 +287,18 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
 .syncw{background:#FFF4E5;color:#8A4B00;border:1px solid #F3CF9B;border-radius:12px;padding:10px 12px;margin:0 0 12px;font-size:.85rem;line-height:1.4}
 @media (prefers-color-scheme:dark){.syncw{background:#3A2A12;color:#F6CE8E;border-color:#6B4A1A}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}.spin{animation-duration:2.4s}}
+/* ---------- dentro del panel de gestión ---------- */
+.embed body{background:#F3F6FB}
+.embed .top,.embed .sync,.embed .tabs2,.embed .credit,.embed #addBtn{display:none!important}
+.embed .wrap{max-width:1240px;padding:22px 26px 60px}
+.embed .daynav{max-width:440px}
+.embed .card,.embed .hero{border-radius:16px;border-color:#E3E9F2}
+@media (min-width:980px){
+  .embed #vProd,.embed #vPla,.embed #vMin,.embed #vPal,.embed #vIns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px;align-items:start}
+  .embed #vProd>*,.embed #vPla>*,.embed #vMin>*,.embed #vPal>*,.embed #vIns>*{grid-column:1/-1}
+  .embed #vProd>.card,.embed #vPla>.card,.embed #vMin>.card,.embed #vPal>.card{grid-column:auto}
+  .embed [hidden]{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -2090,10 +2104,42 @@ async function actualizar(primera){
   finally{SYNC=false;syncUI(m,false);if(!m)$('#syncTxt').textContent='Sin respuesta del servidor. Presiona Actualizar para reintentar.'}
 }
 $('#syncBtn').onclick=()=>actualizar(false);
+/* ---------- conexión con el panel de gestión (misma página, sin datos nuevos) ---------- */
+function resumenDia(d){
+  const D=DIAS(),fc=CQ?Object.keys(CQ.soluciones):[],fp=Object.keys(D).sort();
+  d=d||fc[fc.length-1]||fp[fp.length-1]||TODAY;
+  const mes=d.slice(0,7),kg=kgOf(D[d]),kgMes=Object.keys(D).filter(k=>k.startsWith(mes)&&k<=d).reduce((a,k)=>a+kgOf(D[k]),0);
+  const S=CQ&&CQ.soluciones[d]||{},sol={};Object.keys(NOMS).forEach(k=>{const o=S[k];if(o)sol[k]={cu:prom(o[0]),h:prom(o[1]),ph:prom(o[2]),cu4:o[0],h4:o[1]}});
+  const dm=fc.filter(f=>f.startsWith(mes)&&f<=d),serie=dm.map(f=>[f,CQ?sacosEsp(f)||0:0,kgOf(D[f])/KG()]);
+  const dd=f=>Math.round((new Date(d+'T12:00:00')-new Date(f+'T12:00:00'))/864e5)+1;
+  const pilas=CQ?Object.entries(CQ.pilas).filter(([,r])=>r.some(x=>x[0]===d)).map(([k,r])=>{const x=r.find(y=>y[0]===d),ini=r[0][0];return {k,ini,dias:dd(ini),cu:prom([x[1],x[2]]),h:prom([x[3],x[4]]),riego:x[5],destino:x[6],ripio:k[0]==='R'}}).sort((a,b)=>a.ini<b.ini?-1:1):[];
+  let mineral=null;
+  if(MIN){const L=MIN.lotes,ing=L.reduce((a,l)=>a+l[2],0),ch=L.filter(l=>l[6]===1).reduce((a,l)=>a+l[2],0),sp=L.filter(l=>l[6]===2).reduce((a,l)=>a+l[2],0);
+    const hoy=(MIN.pilas||[]).filter(p=>p[1]===d),th=hoy.reduce((a,p)=>a+p[4],0),cl=hoy.filter(p=>p[5]>0),tl=cl.reduce((a,p)=>a+p[4],0);
+    const chMes=(MIN.pilas||[]).filter(p=>p[1]&&p[1].startsWith(mes)&&p[1]<=d).reduce((a,p)=>a+p[4],0);
+    mineral={disp:ing-ch-sp,stockPile:sp,camiones:L.filter(l=>l[6]===0).length,rechazo:rechazo().stock,chancadoDia:th,leyDia:tl?cl.reduce((a,p)=>a+p[4]*p[5],0)/tl:null,chancadoMes:chMes}}
+  let acido=null;
+  if(AC&&AC.dias&&AC.dias.length){const X=AC.dias.filter(r=>r[0]<=d),u=X[X.length-1];if(u){const c=X.slice(-30).filter(r=>r[1]>0).slice(-7);
+    acido={fecha:u[0],total:u[5],tk3:u[4][2],tk4:u[4][3],consumoProm:c.length?c.reduce((a,r)=>a+r[1],0)/c.length:null,consumoDia:(AC.dias.find(r=>r[0]===d)||[])[1]??null}}}
+  let bodega=null;
+  if(PAL){const tp=+PAL.tonPallet||1.25,prod=PAL.lotes.length+Math.round(T_HIST()/tp),left=prod-PAL.salidas.length;
+    bodega={pallets:left,ton:left*tp,despMes:PAL.salidas.filter(x=>x[1]&&x[1].startsWith(mes)).length}}
+  const P=window.peRaw?window.peRaw():null;let petroleo=null;
+  if(P&&P.entregas){const E=P.entregas.filter(e=>e[0]&&e[0].startsWith(mes)&&e[0]<=d);petroleo={mes:E.reduce((a,e)=>a+(+e[3]||0),0),dia:E.filter(e=>e[0]===d).reduce((a,e)=>a+(+e[3]||0),0)}}
+  return {dia:d,dias:fc,kgSaco:KG(),prod:{registrado:!!D[d],kg,sacos:kg/KG(),kgMes,esperados:CQ?sacosEsp(d):null,extraccion:CQ?extraccion(d):[null,null]},
+    serie,sol,pilas,mineral,acido,bodega,petroleo,cqHasta:CQ?CQ.actualizado:null,flujo:FLUJO,humedad:HUMEDAD};
+}
+window.APP={
+  vista:v=>{const b=document.querySelector('.tabs2 [data-v="'+v+'"]');if(b)b.click()},
+  recargar:()=>actualizar(true),
+  listo:()=>!!window.APP_DATA,
+  resumen:resumenDia,
+};
 /* ---------- start ---------- */
 render();
-actualizar(true);
-if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+{const v=(location.search.match(/[?&]v=(\w+)/)||[])[1];if(v&&v!=='prod')window.APP.vista(v)}
+actualizar(true).then(()=>{window.dispatchEvent(new Event('app-listo'))});
+if(!document.documentElement.classList.contains('embed')&&'serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>
 <script>

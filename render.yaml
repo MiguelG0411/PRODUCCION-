@@ -22,3 +22,10 @@ services:
         sync: false
       - key: DROPBOX_URL_CONTROLQUIMICO
         sync: false
+      # Panel de gestión (ingreso con Google). Los valores se escriben solo en Render, nunca en el repositorio.
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PANEL_USUARIOS
+        sync: false
