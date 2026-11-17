@@ -739,7 +739,7 @@ function agg(yr){
 /* ---------- charts (SVG) ---------- */
 function niceMax(v){if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
 function chart({labels,bars,line,sel,fmtL,fmtR,unitL,unitR,onTap,dimFrom,dots,tipB,tipL,sufB,sufL,tipX,same}){
-  const W=(window.CW||360),H=220,L=40,R=44,T=24,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*0.62));
+  const W=(window.CW||360),H=220,L=40,R=44,T=30,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*0.62));
   let mb=niceMax(Math.max(...bars,0)),ml=niceMax(Math.max(...line.filter(v=>v!=null),0));if(same){mb=ml=Math.max(mb,ml)};
   const yb=v=>T+ih-(v/mb)*ih,yl=v=>T+ih-(v/ml)*ih;
   const hasL=line.some(v=>v!=null);
@@ -959,7 +959,7 @@ function palRender(){
   $('#pNote').textContent='Datos del Excel CONTROL_DE_CALIDAD hasta el '+PAL.actualizado.split('-').reverse().join('/')+'. 1 lote = 1 pallet = '+nf(tp,2)+' t. Los pallets producidos incluyen '+nf(hist)+' pallets históricos sin lotes en el Excel (producción 2021 y arrastre 2020).';
 }
 function stacked(labels,st,cats){
-  const W=(window.CW||360),H=210,L=34,R=10,T=20,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(4,Math.min(24,step*.62));
+  const W=(window.CW||360),H=210,L=34,R=10,T=30,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(4,Math.min(24,step*.62));
   const mx=niceMax(Math.max(1,...st.map(o=>cats.reduce((a,c)=>a+o[c],0))));const y=v=>T+ih-(v/mx)*ih;
   const tipM={W,L,step,c:1,x:labels,s:cats.filter(c=>st.some(o=>o[c])).map(c=>({n:CATN[c],v:st.map(o=>nf(o[c])+' pallets'),col:CATC[c]})).concat([{n:'Total',v:st.map(o=>nf(cats.reduce((a,c)=>a+o[c],0))+' pallets')}])};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">pallets</text>`;
@@ -970,7 +970,7 @@ function stacked(labels,st,cats){
   return s+'</svg>';
 }
 function grouped(labels,a,b,line){
-  const W=(window.CW||360),H=220,L=36,R=40,T=24,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(11,step*.32));
+  const W=(window.CW||360),H=220,L=36,R=40,T=30,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(11,step*.32));
   const mb=niceMax(Math.max(1,...a,...b)),ml=niceMax(Math.max(1,...line.filter(v=>v!=null)));
   const yb=v=>T+ih-(v/mb)*ih,yl=v=>T+ih-(Math.max(0,v)/ml)*ih;
   const tipM={W,L,step,c:1,x:labels,s:[{n:'Producidos',v:a.map(v=>nf(v)),k:'b'},{n:'Despachados',v:b.map(v=>nf(v)),col:'var(--acc)'},{n:'Quedan en bodega',v:line.map(v=>v==null?'—':nf(v)),k:'l'}]};
@@ -1406,7 +1406,7 @@ function tarRender(){
   simSetup(last[0]);
 }
 function histChart(keys,vals,yr,sel){
-  const W=(window.CW||360),H=200,L=50,R=10,T=14,B=24,iw=W-L-R,ih=H-T-B,n=keys.length,step=iw/Math.max(1,n-1);
+  const W=(window.CW||360),H=200,L=50,R=10,T=30,B=24,iw=W-L-R,ih=H-T-B,n=keys.length,step=iw/Math.max(1,n-1);
   const mx=niceMax(Math.max(...vals)),y=v=>T+ih-(v/mx)*ih,x=i=>L+step*i;
   const tipM={W,L,step,c:0,x:keys.map(k=>MES[+k.slice(5,7)-1]+' '+k.slice(0,4)),s:[{n:TN[TLINE],v:vals.map(v=>'$'+nf(v)),k:'l'}]};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}">`;
@@ -1482,7 +1482,7 @@ function ceRender(LY,keys,lab,keyOf,tp,st,allc){
   $('#cCe').innerHTML=catChart(lab,cnt,pct,CATC[CECAT],PY?keys.map((k,i)=>MES[i]+' '+PY):lab);
 }
 function catChart(labels,bars,line,col,tipx){
-  const W=(window.CW||360),H=210,L=34,R=40,T=22,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(4,Math.min(22,step*.6));
+  const W=(window.CW||360),H=210,L=34,R=40,T=30,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(4,Math.min(22,step*.6));
   const mb=niceMax(Math.max(1,...bars)),yb=v=>T+ih-(v/mb)*ih,yl=v=>T+ih-(v/100)*ih;
   const tipM={W,L,step,c:1,x:tipx,s:[{n:'Pallets',v:bars.map(v=>nf(v)),col},{n:'% del total',v:line.map(v=>v==null?'—':nf(v,1)+'%'),col:'var(--ink)'}]};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">pallets</text><text x="${W-R+5}" y="10" style="font-weight:700;fill:var(--ink)">% total</text>`;
@@ -1513,7 +1513,7 @@ function opAgg(LY){
 const av=(o,k,d)=>o.s[k][1]?nf(o.s[k][0]/o.s[k][1],d):'—';
 
 function turnoChart(labels,a,b,tipx,unit,ca,cb){
-  const W=(window.CW||360),H=210,L=34,R=40,T=20,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*.36));
+  const W=(window.CW||360),H=210,L=34,R=40,T=30,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*.36));
   const mb=niceMax(Math.max(1,...a.filter(v=>v!=null),...b.filter(v=>v!=null))),y=v=>T+ih-(v/mb)*ih;
   const mc=niceMax(Math.max(1,...ca.filter(v=>v!=null),...cb.filter(v=>v!=null))),yc=v=>T+ih-(v/mc)*ih;
   const tipM={W,L,step,c:1,x:tipx,s:[{n:'Turno A',v:a.map(v=>v==null?'—':nf(v)+' '+unit),col:'#2F6FA8'},{n:'Turno B',v:b.map(v=>v==null?'—':nf(v)+' '+unit),col:'#C0652F'},{n:'Acumulado A',v:ca.map(v=>v==null?'—':nf(v)+' '+unit),col:'#2F6FA8'},{n:'Acumulado B',v:cb.map(v=>v==null?'—':nf(v)+' '+unit),col:'#C0652F'},{n:'Diferencia acum. A−B',v:ca.map((v,i)=>v==null?'—':(v-cb[i]>0?'+':'')+nf(v-cb[i])),col:'var(--muted)'}]};
@@ -1762,7 +1762,7 @@ let _CHM=null,CHY=null,CHMO=-1;
 function chMap(){if(_CHM)return _CHM;_CHM={};if(MIN&&MIN.pilas)MIN.pilas.forEach(r=>{_CHM[r[1]]=(_CHM[r[1]]||0)+r[4]});return _CHM}
 function daysBetween(a,b){const out=[];let d=new Date(a+'T12:00:00');const e=new Date(b+'T12:00:00');while(d<=e){out.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1)}return out}
 function cmpChart(labels,a,b,tipx,unit,cnt){
-  const W=(window.CW||360),H=200,Lm=40,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*.36));
+  const W=(window.CW||360),H=200,Lm=40,R=8,T=30,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*.36));
   const mb=niceMax(Math.max(1e-9,...a.filter(v=>v!=null),...b.filter(v=>v!=null))),y=v=>T+ih-((v||0)/mb)*ih;
   const tipM={W,L:Lm,step,c:1,x:tipx,s:[{n:'Con chancado',v:a.map((v,i)=>v==null?'—':nf(v,unit==='t/día'?2:0)+' '+unit+(cnt?' ('+cnt[i][0]+' d)':'')),col:'#1E6FA8'},{n:'Sin chancado',v:b.map((v,i)=>v==null?'—':nf(v,unit==='t/día'?2:0)+' '+unit+(cnt?' ('+cnt[i][1]+' d)':'')),col:'#A7B4C0'}]};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">${unit}</text>`;
@@ -1772,7 +1772,7 @@ function cmpChart(labels,a,b,tipx,unit,cnt){
   return s+'</svg>';
 }
 function dayBars(labels,v,flag,tipx,unit){
-  const W=(window.CW||360),H=200,Lm=40,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(14,step*.62));
+  const W=(window.CW||360),H=200,Lm=40,R=8,T=30,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(14,step*.62));
   const mb=niceMax(Math.max(1e-9,...v.filter(x=>x!=null))),y=x=>T+ih-((x||0)/mb)*ih;
   const tipM={W,L:Lm,step,c:1,x:tipx,s:[{n:'Consumo',v:v.map(x=>x==null?'—':nf(x,unit==='t'?2:0)+' '+unit),col:'var(--ink)'},{n:'Día',v:flag.map(f=>f==null?'—':f?'con chancado':'sin chancado'),col:'var(--muted)'}]};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">${unit}</text>`;
@@ -1959,7 +1959,7 @@ function acRender(){
 const fdmY=s=>s.slice(8)+'/'+s.slice(5,7)+'/'+s.slice(2,4);
 let ACLL=false;
 function acLvChart(labels,lv,cs,st,tipx){
-  const W=(window.CW||360),H=220,Lm=40,R=44,T=24,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*0.36));
+  const W=(window.CW||360),H=220,Lm=40,R=44,T=30,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*0.36));
   const mb=niceMax(Math.max(1,...lv,...cs)),ms=niceMax(Math.max(1,...st.filter(x=>x!=null))),y=x=>T+ih-(Math.max(0,x)/mb)*ih,ys=x=>T+ih-(x/ms)*ih;
   const t=x=>nf(x,1)+' t';
   const tipM={W,L:Lm,step,c:1,x:tipx,s:[{n:'Llegado',v:lv.map(t),col:'#1F8A5B'},{n:'Consumo',v:cs.map(t),col:'#8E5BB5'},{n:'En estanques',v:st.map(x=>x==null?'—':t(x)),col:'var(--acc)'}]};
@@ -1990,7 +1990,7 @@ function cuDia(d,k){const o=CQ.soluciones[d]&&CQ.soluciones[d][k];return o?prom(
 function extraccion(d){const p=cuDia(d,'PLS'),r=[cuDia(d,'REF SX 1'),cuDia(d,'REF SX 2')];return r.map(x=>p&&x!=null?(p-x)/p:null)}
 function sacosEsp(d){const p=cuDia(d,'PLS');if(!p)return null;return extraccion(d).reduce((a,e)=>a+(e!=null?p*FLUJO*1440*3.92/1000*HUMEDAD*e/25:0),0)}
 function lineas({labels,series,unit,tipX,every}){
-  const W=(window.CW||360),H=200,Lm=40,R=8,T=18,B=22,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n;
+  const W=(window.CW||360),H=200,Lm=40,R=8,T=30,B=22,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n;
   // máximo con 4 divisiones redondas (ej. 0-60-120-180-240)
   const vals=series.flatMap(s=>s.v).filter(v=>v!=null),tick=v=>{if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));return [1,1.5,2,2.5,3,4,5,6,8,10].find(k=>v/p<=k+1e-9)*p};
   const mx=tick((Math.max(...vals,0)||1)*1.05/4)*4,dec=mx<4?2:mx<20?1:0;
@@ -2005,7 +2005,7 @@ function lineas({labels,series,unit,tipX,every}){
   return o+'</svg>';
 }
 function barras2({labels,a,b,na,nb,tipX}){
-  const W=(window.CW||360),H=180,Lm=36,R=8,T=18,B=22,iw=W-Lm-R,ih=H-T-B,n=labels.length,st=iw/n,bw=Math.max(1.5,Math.min(9,st*.36));
+  const W=(window.CW||360),H=180,Lm=36,R=8,T=30,B=22,iw=W-Lm-R,ih=H-T-B,n=labels.length,st=iw/n,bw=Math.max(1.5,Math.min(9,st*.36));
   const mx=niceMax(Math.max(1,...a,...b)),y=v=>T+ih-v/mx*ih;
   const tip={W,L:Lm,step:st,c:1,x:tipX||labels,s:[{n:na,v:a.map(v=>nf(v)),col:'#2a78d6'},{n:nb,v:b.map(v=>nf(v)),col:'#eb6834'}]};
   let o=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tip))}"><text x="${Lm-5}" y="10" text-anchor="end" style="font-weight:700">sacos</text>`;
@@ -2214,7 +2214,7 @@ function close(){$('#bg').classList.remove('open');$('#sheet').classList.remove(
 $('#bg').onclick=close;
 function niceMax(v){if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
 function chart({labels,bars,line,sel,fmtL,fmtR,unitL,unitR,onTap,dimFrom,dots,tipB,tipL,sufB,sufL,tipX}){
-  const W=(window.CW||360),H=220,L=40,R=44,T=24,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*0.62));
+  const W=(window.CW||360),H=220,L=40,R=44,T=30,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*0.62));
   const mb=niceMax(Math.max(...bars,0)),ml=niceMax(Math.max(...line.filter(v=>v!=null),0));
   const yb=v=>T+ih-(v/mb)*ih,yl=v=>T+ih-(v/ml)*ih;
   const hasL=line.some(v=>v!=null);
@@ -2249,7 +2249,7 @@ function keysOf(){
 
 /* ---------- gráfico consumo ---------- */
 function mainChart(labels,pl,ex,ca,tipx){
-  const W=(window.CW||360),H=220,Lm=42,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*.62));
+  const W=(window.CW||360),H=220,Lm=42,R=8,T=30,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*.62));
   const tot=pl.map((v,i)=>v+ex[i]);const mb=niceMax(Math.max(1,...tot,...ca.filter(v=>v!=null))),y=v=>T+ih-(v/mb)*ih;
   const tipM={W,L:Lm,step,c:1,x:tipx,s:[{n:'Planta',v:pl.map(L),col:'#1E6FA8'},{n:'Externos',v:ex.map(L),col:'#C0652F'},{n:'Total',v:tot.map(L),col:'var(--ink)'},{n:'Cargas',v:ca.map(v=>v==null?'—':L(v)),col:'#1F8A5B'}]};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">litros</text>`;
@@ -2379,7 +2379,7 @@ function seriesFor(E){const K=keysOf(),v=K.keys.map(()=>0);E.forEach(e=>{const i
 // compara solo las máquinas marcadas: litros, entregas, % y un gráfico con una línea por máquina.
 const CMP=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#6250d6','#e34948'];
 function lineasMaq(K,series){
-  const W=(window.CW||360),H=220,Lm=42,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=K.labs.length,step=iw/n;
+  const W=(window.CW||360),H=220,Lm=42,R=8,T=30,B=24,iw=W-Lm-R,ih=H-T-B,n=K.labs.length,step=iw/n;
   const mx=niceMax(Math.max(1,...series.flatMap(s=>s.v))),y=v=>T+ih-(v/mx)*ih,x=i=>Lm+step*i+step/2;
   const tipM={W,L:Lm,step,c:1,x:K.tipx,s:series.map(s=>({n:s.n,v:s.v.map(L),col:s.c}))};
   let o=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">litros</text>`;

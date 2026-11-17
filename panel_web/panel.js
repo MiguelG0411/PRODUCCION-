@@ -107,7 +107,7 @@ function mini4(v,c){const p=(v||[]).map((x,i)=>x==null?null:[6+i*17.3,0,x]).filt
 
 /* ---------- RESUMEN ---------- */
 const SOLS=[['PLS','PLS','var(--c1)'],['ILS LIX','ILS','var(--c5)'],['REF LIX','REF LIX','var(--c3)'],['REF SX 1','REF SX 1','var(--c8)'],['REF SX 2','REF SX 2','var(--c2)'],['ELECTROLITO 1','Electrolito 1','var(--c4)'],['ELECTROLITO 2','Electrolito 2','var(--c7)']];
-const ACIDO_MIN=30,PET_MIN=5000;   // bajo estos valores se avisa "pedir ácido" / "pedir petróleo"
+const ACIDO_MIN=30,PET_MIN=5000,PET_CAP=15000;   // PET_CAP: capacidad referencial del estanque de petróleo (por confirmar)   // bajo estos valores se avisa "pedir ácido" / "pedir petróleo"
 // stock de petróleo medido (punto de partida): las cargas y despachos posteriores se suman y restan
 const PETK='panel-petroleo-base';
 function petBase(){try{const o=JSON.parse(localStorage.getItem(PETK)||'null');return o&&o.f&&o.L!=null?o:null}catch(e){return null}}
@@ -164,12 +164,12 @@ function resumen(){
   </div>
   <div class="g3c">
    <div class="card"><h3>Pilas en riego<span>${R.pilas.length} ${R.pilas.length===1?'pila':'pilas'} · ${fc(DIA)}</span></h3>
-    ${R.pilas.length?`<table><tr><th>Pila</th><th>Días</th><th>Cu g/L</th><th>Destino</th></tr>${R.pilas.map(x=>{const d=(x.destino||'').toUpperCase(),dp=d.includes('PLS')?'<span class="tg b2">PLS</span>':d.includes('ILS')?'<span class="tg p2">ILS</span>':'<span class="tg">'+esc(x.destino||'—')+'</span>';
-      return `<tr><td>${esc(x.k)}${x.ripio?' <span class="tg c2">ripio</span>':''}</td><td>${x.dias}</td><td><b>${nf(x.cu,2)}</b><span class="minibar"><i style="width:${Math.min(100,Math.sqrt((x.cu||0)/mxCu)*100)}%;background:${(x.cu||0)>=0.8?'var(--vit)':'#9AA6B8'}"></i></span></td><td>${dp}</td></tr>`}).join('')}</table>`:'<p class="empty">Sin pilas con lecturas este día.</p>'}</div>
+    ${R.pilas.length?`<div class="tscroll"><table class="tpilas"><tr><th>Pila</th><th>Días</th><th>Cu g/L</th><th>Drena a</th></tr>${R.pilas.map(x=>{const d=(x.destino||'').toUpperCase(),dp=d.includes('PLS')?'<span class="tg b2">PLS</span>':d.includes('ILS')?'<span class="tg p2">ILS</span>':'<span class="tg">'+esc(x.destino||'—')+'</span>';
+      return `<tr><td>${esc(x.k)}${x.ripio?' <span class="tg c2">ripio</span>':''}</td><td>${x.dias}</td><td><b style="color:${(x.cu||0)>=0.8?'var(--vit)':'var(--mut)'}">${nf(x.cu,2)}</b></td><td>${dp}</td></tr>`}).join('')}</table></div>`:'<p class="empty">Sin pilas con lecturas este día.</p>'}</div>
    <div class="card"><h3>Soluciones del día<span>Cu promedio del día</span></h3>
     ${Object.keys(R.sol).length?`<div class="sols">${SOLS.filter(s=>R.sol[s[0]]&&R.sol[s[0]].cu!=null).map(s=>{const o=R.sol[s[0]];return `<div class="sol"><div class="n"><i class="dot" style="background:${s[2]}"></i>${s[1]}<small>H+ ${nf(o.h,1)} g/L${o.ph!=null?' · pH '+nf(o.ph,2):''}</small></div>${mini4(o.cu4,s[2])}<div class="v">${nf(o.cu,o.cu<10?2:1)}<small>g/L Cu</small></div></div>`}).join('')}</div>`:'<p class="empty">Sin muestras este día.</p>'}</div>
    <div class="card"><h3>Insumos y bodega<span>${A?'ácido al '+fc(A.fecha):''}</span></h3>
-    <div class="tanks">${A?A.tks.map(t=>tanque(t.n,t.t,t.cap,'t',A.activo<ACIDO_MIN?'bajo':'')).join(''):''}${Pe&&Pe.stock!=null?tanque('Petróleo',Pe.stock,Math.max(PET_MIN*3,Pe.stock),'L',Pe.stock<PET_MIN?'bajo':'pet'):''}</div>
+    <div class="tanks">${A?A.tks.map(t=>tanque(t.n,t.t,t.cap,'t',A.activo<ACIDO_MIN?'bajo':'')).join(''):''}${Pe?(Pe.stock!=null?tanque('Petróleo',Pe.stock,Math.max(PET_CAP,Pe.stock),'L',Pe.stock<PET_MIN?'bajo':'pet'):`<div class="tank"><div class="tv pet"><i style="height:0"></i><em style="font-size:11px;color:var(--mut)">sin medir</em></div><small>Petróleo<b>—</b></small></div>`):''}</div>
     ${A?`<div class="row" style="margin-top:8px"><span>Ácido en servicio</span><b class="${A.activo<ACIDO_MIN?'dn':''}">${nf(A.activo,1)} t${diasAc!=null?' <small>≈ '+nf(diasAc)+' días de consumo</small>':''}</b></div>`:''}
     ${Pe&&Pe.stock!=null?`<div class="row"><span>Petróleo en estanque <small>medido ${fc(pb.f)}</small></span><b class="${Pe.stock<PET_MIN?'dn':''}">${nf(Pe.stock)} L <small><a href="#" id="petEdit">cambiar</a></small></b></div>`:''}
     <form id="petForm" ${Pe&&Pe.stock!=null?'hidden':''} style="margin:8px 0 4px"><div class="ins-t" style="margin-bottom:6px">Stock medido de petróleo</div>

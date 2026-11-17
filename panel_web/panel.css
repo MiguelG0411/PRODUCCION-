@@ -152,3 +152,5 @@ svg text{font-family:var(--f-txt)}
  .g2c,.g3c{grid-template-columns:1fr}.user .un{display:none}
 }
 @media (max-width:520px){.k4{grid-template-columns:1fr}.kpi b{font-size:28px}}
+
+.tscroll{overflow-x:auto}.tpilas td,.tpilas th{padding-left:5px;padding-right:5px}.tpilas td:first-child{font-size:12.5px}
