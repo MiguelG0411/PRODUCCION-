@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#FFFFFF">
 <title>Producción de Sulfato · Minera Anita SpA</title>
 <script>/* dentro del panel de gestión: sin encabezado propio, tema claro y vista elegida por el panel */
-if(/[?&]embed=1/.test(location.search)){document.documentElement.classList.add('embed');document.documentElement.setAttribute('data-theme','light')}</script>
+if(/[?&]embed=1/.test(location.search)){document.documentElement.classList.add('embed');document.documentElement.setAttribute('data-theme','light');window.CW=600}</script>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
@@ -287,17 +287,33 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
 .syncw{background:#FFF4E5;color:#8A4B00;border:1px solid #F3CF9B;border-radius:12px;padding:10px 12px;margin:0 0 12px;font-size:.85rem;line-height:1.4}
 @media (prefers-color-scheme:dark){.syncw{background:#3A2A12;color:#F6CE8E;border-color:#6B4A1A}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}.spin{animation-duration:2.4s}}
-/* ---------- dentro del panel de gestión ---------- */
+/* ---------- dentro del panel de gestión (pantalla de computador) ---------- */
 .embed body{background:#F3F6FB}
 .embed .top,.embed .sync,.embed .tabs2,.embed .credit,.embed #addBtn{display:none!important}
-.embed .wrap{max-width:1240px;padding:22px 26px 60px}
-.embed .daynav{max-width:440px}
+.embed .wrap{max-width:1320px;padding:22px 26px 60px}
 .embed .card,.embed .hero{border-radius:16px;border-color:#E3E9F2}
+.embed .daynav{max-width:440px}
 @media (min-width:980px){
-  .embed #vProd,.embed #vPla,.embed #vMin,.embed #vPal,.embed #vIns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px;align-items:start}
-  .embed #vProd>*,.embed #vPla>*,.embed #vMin>*,.embed #vPal>*,.embed #vIns>*{grid-column:1/-1}
-  .embed #vProd>.card,.embed #vPla>.card,.embed #vMin>.card,.embed #vPal>.card{grid-column:auto}
+  .embed #vProd,.embed #vPla,.embed #vMin,.embed #vPal,.embed #insPe,.embed #insAc,.embed #insCh{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:18px;row-gap:18px;align-items:start}
+  .embed #vProd>*,.embed #vPla>*,.embed #vMin>*,.embed #vPal>*,.embed #insPe>*,.embed #insAc>*,.embed #insCh>*{grid-column:1/-1;margin-top:0;margin-bottom:0}
+  .embed #vProd>.card,.embed #vPla>.card,.embed #vMin>.card,.embed #vPal>.card,.embed #insPe>.card,.embed #insAc>.card,.embed #insCh>.card{grid-column:auto}
   .embed [hidden]{display:none!important}
+  .embed .hero{padding:22px 26px}
+  .embed .stats,.embed .mstats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+  .embed .chart svg{max-height:440px}
+  .embed .card h2{font-size:1.12rem}
+  .embed .chart text{font-size:13px}
+  .embed #pe_kList,.embed #salList{max-height:620px;overflow:auto;padding-right:4px}
+  .embed #plSin{max-height:520px;overflow:auto}
+  /* tarjetas con tablas anchas o muchas pilas: a todo el ancho */
+  .embed #vPla>.card:has(#plPiTab),.embed #vPla>.card:has(#plMinis){grid-column:1/-1}
+  .embed #plMinis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  /* detalle del mes de producción: indicadores a la izquierda y gráfico a la derecha */
+  .embed #vProd>#mCard{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr);column-gap:28px;align-items:start}
+  .embed #mCard>*{grid-column:1/-1}
+  .embed #mCard>.mstats{grid-column:1;grid-row:3/span 2;grid-template-columns:1fr 1fr;align-self:start}
+  .embed #mCard>.chart{grid-column:2;grid-row:3}
+  .embed #mCard>.legend{grid-column:2;grid-row:4}
 }
 </style>
 </head>
@@ -694,7 +710,7 @@ function agg(yr){
 /* ---------- charts (SVG) ---------- */
 function niceMax(v){if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
 function chart({labels,bars,line,sel,fmtL,fmtR,unitL,unitR,onTap,dimFrom,dots,tipB,tipL,sufB,sufL,tipX,same}){
-  const W=360,H=220,L=40,R=44,T=24,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*0.62));
+  const W=(window.CW||360),H=220,L=40,R=44,T=24,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*0.62));
   let mb=niceMax(Math.max(...bars,0)),ml=niceMax(Math.max(...line.filter(v=>v!=null),0));if(same){mb=ml=Math.max(mb,ml)};
   const yb=v=>T+ih-(v/mb)*ih,yl=v=>T+ih-(v/ml)*ih;
   const hasL=line.some(v=>v!=null);
@@ -914,7 +930,7 @@ function palRender(){
   $('#pNote').textContent='Datos del Excel CONTROL_DE_CALIDAD hasta el '+PAL.actualizado.split('-').reverse().join('/')+'. 1 lote = 1 pallet = '+nf(tp,2)+' t. Los pallets producidos incluyen '+nf(hist)+' pallets históricos sin lotes en el Excel (producción 2021 y arrastre 2020).';
 }
 function stacked(labels,st,cats){
-  const W=360,H=210,L=34,R=10,T=20,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(4,Math.min(24,step*.62));
+  const W=(window.CW||360),H=210,L=34,R=10,T=20,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(4,Math.min(24,step*.62));
   const mx=niceMax(Math.max(1,...st.map(o=>cats.reduce((a,c)=>a+o[c],0))));const y=v=>T+ih-(v/mx)*ih;
   const tipM={W,L,step,c:1,x:labels,s:cats.filter(c=>st.some(o=>o[c])).map(c=>({n:CATN[c],v:st.map(o=>nf(o[c])+' pallets'),col:CATC[c]})).concat([{n:'Total',v:st.map(o=>nf(cats.reduce((a,c)=>a+o[c],0))+' pallets')}])};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">pallets</text>`;
@@ -925,7 +941,7 @@ function stacked(labels,st,cats){
   return s+'</svg>';
 }
 function grouped(labels,a,b,line){
-  const W=360,H=220,L=36,R=40,T=24,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(11,step*.32));
+  const W=(window.CW||360),H=220,L=36,R=40,T=24,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(11,step*.32));
   const mb=niceMax(Math.max(1,...a,...b)),ml=niceMax(Math.max(1,...line.filter(v=>v!=null)));
   const yb=v=>T+ih-(v/mb)*ih,yl=v=>T+ih-(Math.max(0,v)/ml)*ih;
   const tipM={W,L,step,c:1,x:labels,s:[{n:'Producidos',v:a.map(v=>nf(v)),k:'b'},{n:'Despachados',v:b.map(v=>nf(v)),col:'var(--acc)'},{n:'Quedan en bodega',v:line.map(v=>v==null?'—':nf(v)),k:'l'}]};
@@ -1361,7 +1377,7 @@ function tarRender(){
   simSetup(last[0]);
 }
 function histChart(keys,vals,yr,sel){
-  const W=360,H=200,L=50,R=10,T=14,B=24,iw=W-L-R,ih=H-T-B,n=keys.length,step=iw/Math.max(1,n-1);
+  const W=(window.CW||360),H=200,L=50,R=10,T=14,B=24,iw=W-L-R,ih=H-T-B,n=keys.length,step=iw/Math.max(1,n-1);
   const mx=niceMax(Math.max(...vals)),y=v=>T+ih-(v/mx)*ih,x=i=>L+step*i;
   const tipM={W,L,step,c:0,x:keys.map(k=>MES[+k.slice(5,7)-1]+' '+k.slice(0,4)),s:[{n:TN[TLINE],v:vals.map(v=>'$'+nf(v)),k:'l'}]};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}">`;
@@ -1437,7 +1453,7 @@ function ceRender(LY,keys,lab,keyOf,tp,st,allc){
   $('#cCe').innerHTML=catChart(lab,cnt,pct,CATC[CECAT],PY?keys.map((k,i)=>MES[i]+' '+PY):lab);
 }
 function catChart(labels,bars,line,col,tipx){
-  const W=360,H=210,L=34,R=40,T=22,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(4,Math.min(22,step*.6));
+  const W=(window.CW||360),H=210,L=34,R=40,T=22,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(4,Math.min(22,step*.6));
   const mb=niceMax(Math.max(1,...bars)),yb=v=>T+ih-(v/mb)*ih,yl=v=>T+ih-(v/100)*ih;
   const tipM={W,L,step,c:1,x:tipx,s:[{n:'Pallets',v:bars.map(v=>nf(v)),col},{n:'% del total',v:line.map(v=>v==null?'—':nf(v,1)+'%'),col:'var(--ink)'}]};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">pallets</text><text x="${W-R+5}" y="10" style="font-weight:700;fill:var(--ink)">% total</text>`;
@@ -1468,7 +1484,7 @@ function opAgg(LY){
 const av=(o,k,d)=>o.s[k][1]?nf(o.s[k][0]/o.s[k][1],d):'—';
 
 function turnoChart(labels,a,b,tipx,unit,ca,cb){
-  const W=360,H=210,L=34,R=40,T=20,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*.36));
+  const W=(window.CW||360),H=210,L=34,R=40,T=20,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*.36));
   const mb=niceMax(Math.max(1,...a.filter(v=>v!=null),...b.filter(v=>v!=null))),y=v=>T+ih-(v/mb)*ih;
   const mc=niceMax(Math.max(1,...ca.filter(v=>v!=null),...cb.filter(v=>v!=null))),yc=v=>T+ih-(v/mc)*ih;
   const tipM={W,L,step,c:1,x:tipx,s:[{n:'Turno A',v:a.map(v=>v==null?'—':nf(v)+' '+unit),col:'#2F6FA8'},{n:'Turno B',v:b.map(v=>v==null?'—':nf(v)+' '+unit),col:'#C0652F'},{n:'Acumulado A',v:ca.map(v=>v==null?'—':nf(v)+' '+unit),col:'#2F6FA8'},{n:'Acumulado B',v:cb.map(v=>v==null?'—':nf(v)+' '+unit),col:'#C0652F'},{n:'Diferencia acum. A−B',v:ca.map((v,i)=>v==null?'—':(v-cb[i]>0?'+':'')+nf(v-cb[i])),col:'var(--muted)'}]};
@@ -1717,7 +1733,7 @@ let _CHM=null,CHY=null,CHMO=-1;
 function chMap(){if(_CHM)return _CHM;_CHM={};if(MIN&&MIN.pilas)MIN.pilas.forEach(r=>{_CHM[r[1]]=(_CHM[r[1]]||0)+r[4]});return _CHM}
 function daysBetween(a,b){const out=[];let d=new Date(a+'T12:00:00');const e=new Date(b+'T12:00:00');while(d<=e){out.push(d.toISOString().slice(0,10));d.setDate(d.getDate()+1)}return out}
 function cmpChart(labels,a,b,tipx,unit,cnt){
-  const W=360,H=200,Lm=40,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*.36));
+  const W=(window.CW||360),H=200,Lm=40,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*.36));
   const mb=niceMax(Math.max(1e-9,...a.filter(v=>v!=null),...b.filter(v=>v!=null))),y=v=>T+ih-((v||0)/mb)*ih;
   const tipM={W,L:Lm,step,c:1,x:tipx,s:[{n:'Con chancado',v:a.map((v,i)=>v==null?'—':nf(v,unit==='t/día'?2:0)+' '+unit+(cnt?' ('+cnt[i][0]+' d)':'')),col:'#1E6FA8'},{n:'Sin chancado',v:b.map((v,i)=>v==null?'—':nf(v,unit==='t/día'?2:0)+' '+unit+(cnt?' ('+cnt[i][1]+' d)':'')),col:'#A7B4C0'}]};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">${unit}</text>`;
@@ -1727,7 +1743,7 @@ function cmpChart(labels,a,b,tipx,unit,cnt){
   return s+'</svg>';
 }
 function dayBars(labels,v,flag,tipx,unit){
-  const W=360,H=200,Lm=40,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(14,step*.62));
+  const W=(window.CW||360),H=200,Lm=40,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(14,step*.62));
   const mb=niceMax(Math.max(1e-9,...v.filter(x=>x!=null))),y=x=>T+ih-((x||0)/mb)*ih;
   const tipM={W,L:Lm,step,c:1,x:tipx,s:[{n:'Consumo',v:v.map(x=>x==null?'—':nf(x,unit==='t'?2:0)+' '+unit),col:'var(--ink)'},{n:'Día',v:flag.map(f=>f==null?'—':f?'con chancado':'sin chancado'),col:'var(--muted)'}]};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">${unit}</text>`;
@@ -1914,7 +1930,7 @@ function acRender(){
 const fdmY=s=>s.slice(8)+'/'+s.slice(5,7)+'/'+s.slice(2,4);
 let ACLL=false;
 function acLvChart(labels,lv,cs,st,tipx){
-  const W=360,H=220,Lm=40,R=44,T=24,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*0.36));
+  const W=(window.CW||360),H=220,Lm=40,R=44,T=24,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(1.5,Math.min(11,step*0.36));
   const mb=niceMax(Math.max(1,...lv,...cs)),ms=niceMax(Math.max(1,...st.filter(x=>x!=null))),y=x=>T+ih-(Math.max(0,x)/mb)*ih,ys=x=>T+ih-(x/ms)*ih;
   const t=x=>nf(x,1)+' t';
   const tipM={W,L:Lm,step,c:1,x:tipx,s:[{n:'Llegado',v:lv.map(t),col:'#1F8A5B'},{n:'Consumo',v:cs.map(t),col:'#8E5BB5'},{n:'En estanques',v:st.map(x=>x==null?'—':t(x)),col:'var(--acc)'}]};
@@ -1945,7 +1961,7 @@ function cuDia(d,k){const o=CQ.soluciones[d]&&CQ.soluciones[d][k];return o?prom(
 function extraccion(d){const p=cuDia(d,'PLS'),r=[cuDia(d,'REF SX 1'),cuDia(d,'REF SX 2')];return r.map(x=>p&&x!=null?(p-x)/p:null)}
 function sacosEsp(d){const p=cuDia(d,'PLS');if(!p)return null;return extraccion(d).reduce((a,e)=>a+(e!=null?p*FLUJO*1440*3.92/1000*HUMEDAD*e/25:0),0)}
 function lineas({labels,series,unit,tipX,every}){
-  const W=360,H=200,Lm=40,R=8,T=18,B=22,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n;
+  const W=(window.CW||360),H=200,Lm=40,R=8,T=18,B=22,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n;
   // máximo con 4 divisiones redondas (ej. 0-60-120-180-240)
   const vals=series.flatMap(s=>s.v).filter(v=>v!=null),tick=v=>{if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));return [1,1.5,2,2.5,3,4,5,6,8,10].find(k=>v/p<=k+1e-9)*p};
   const mx=tick((Math.max(...vals,0)||1)*1.05/4)*4,dec=mx<4?2:mx<20?1:0;
@@ -1960,7 +1976,7 @@ function lineas({labels,series,unit,tipX,every}){
   return o+'</svg>';
 }
 function barras2({labels,a,b,na,nb,tipX}){
-  const W=360,H=180,Lm=36,R=8,T=18,B=22,iw=W-Lm-R,ih=H-T-B,n=labels.length,st=iw/n,bw=Math.max(1.5,Math.min(9,st*.36));
+  const W=(window.CW||360),H=180,Lm=36,R=8,T=18,B=22,iw=W-Lm-R,ih=H-T-B,n=labels.length,st=iw/n,bw=Math.max(1.5,Math.min(9,st*.36));
   const mx=niceMax(Math.max(1,...a,...b)),y=v=>T+ih-v/mx*ih;
   const tip={W,L:Lm,step:st,c:1,x:tipX||labels,s:[{n:na,v:a.map(v=>nf(v)),col:'#2a78d6'},{n:nb,v:b.map(v=>nf(v)),col:'#eb6834'}]};
   let o=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tip))}"><text x="${Lm-5}" y="10" text-anchor="end" style="font-weight:700">sacos</text>`;
@@ -2105,10 +2121,12 @@ async function actualizar(primera){
 }
 $('#syncBtn').onclick=()=>actualizar(false);
 /* ---------- conexión con el panel de gestión (misma página, sin datos nuevos) ---------- */
-function resumenDia(d){
+function resumenDia(d,opc){
   const D=DIAS(),fc=CQ?Object.keys(CQ.soluciones):[],fp=Object.keys(D).sort();
   d=d||fc[fc.length-1]||fp[fp.length-1]||TODAY;
   const mes=d.slice(0,7),kg=kgOf(D[d]),kgMes=Object.keys(D).filter(k=>k.startsWith(mes)&&k<=d).reduce((a,k)=>a+kgOf(D[k]),0);
+  const diasMes=Object.keys(D).filter(k=>k.startsWith(mes)&&k<=d&&kgOf(D[k])>0).length,kgAnio=Object.keys(D).filter(k=>k.startsWith(d.slice(0,4))&&k<=d).reduce((a,k)=>a+kgOf(D[k]),0);
+  const ultProd=Object.keys(D).filter(k=>k<=d).sort().pop()||null;
   const S=CQ&&CQ.soluciones[d]||{},sol={};Object.keys(NOMS).forEach(k=>{const o=S[k];if(o)sol[k]={cu:prom(o[0]),h:prom(o[1]),ph:prom(o[2]),cu4:o[0],h4:o[1]}});
   const dm=fc.filter(f=>f.startsWith(mes)&&f<=d),serie=dm.map(f=>[f,CQ?sacosEsp(f)||0:0,kgOf(D[f])/KG()]);
   const dd=f=>Math.round((new Date(d+'T12:00:00')-new Date(f+'T12:00:00'))/864e5)+1;
@@ -2120,14 +2138,20 @@ function resumenDia(d){
     mineral={disp:ing-ch-sp,stockPile:sp,camiones:L.filter(l=>l[6]===0).length,rechazo:rechazo().stock,chancadoDia:th,leyDia:tl?cl.reduce((a,p)=>a+p[4]*p[5],0)/tl:null,chancadoMes:chMes}}
   let acido=null;
   if(AC&&AC.dias&&AC.dias.length){const X=AC.dias.filter(r=>r[0]<=d),u=X[X.length-1];if(u){const c=X.slice(-30).filter(r=>r[1]>0).slice(-7);
-    acido={fecha:u[0],total:u[5],tk3:u[4][2],tk4:u[4][3],consumoProm:c.length?c.reduce((a,r)=>a+r[1],0)/c.length:null,consumoDia:(AC.dias.find(r=>r[0]===d)||[])[1]??null}}}
+    // estanques en servicio y su capacidad de referencia (máximo nivel registrado desde que TK3 pasó a ser la cisterna, 26-02-2026)
+    const tks=[[2,'TK3 · cisterna'],[3,'TK4']].map(([i,n])=>{const mx=Math.max(...AC.dias.filter(r=>r[0]>='2026-02-26').map(r=>+r[4][i]||0));return {n,t:+u[4][i]||0,cap:Math.ceil(mx)}});
+    acido={fecha:u[0],total:u[5],tks,activo:tks.reduce((a,x)=>a+x.t,0),consumoProm:c.length?c.reduce((a,r)=>a+r[1],0)/c.length:null,consumoDia:(AC.dias.find(r=>r[0]===d)||[])[1]??null}}}
   let bodega=null;
   if(PAL){const tp=+PAL.tonPallet||1.25,prod=PAL.lotes.length+Math.round(T_HIST()/tp),left=prod-PAL.salidas.length;
     bodega={pallets:left,ton:left*tp,despMes:PAL.salidas.filter(x=>x[1]&&x[1].startsWith(mes)).length}}
   const P=window.peRaw?window.peRaw():null;let petroleo=null;
-  if(P&&P.entregas){const E=P.entregas.filter(e=>e[0]&&e[0].startsWith(mes)&&e[0]<=d);petroleo={mes:E.reduce((a,e)=>a+(+e[3]||0),0),dia:E.filter(e=>e[0]===d).reduce((a,e)=>a+(+e[3]||0),0)}}
+  if(P&&P.entregas){const E=P.entregas.filter(e=>e[0]&&e[0].startsWith(mes)&&e[0]<=d);petroleo={mes:E.reduce((a,e)=>a+(+e[3]||0),0),dia:E.filter(e=>e[0]===d).reduce((a,e)=>a+(+e[3]||0),0),actualizado:P.actualizado};
+    // stock = stock medido en una fecha + cargas al estanque − despachos (planta y externos) desde esa fecha
+    if(opc&&opc.petBase&&opc.petBase.f){const b=opc.petBase,hasta=P.actualizado;
+      const ca=P.cargas.filter(c=>c[0]>b.f&&c[0]<=hasta).reduce((a,c)=>a+c[1],0),de=P.entregas.filter(e=>e[0]>b.f&&e[0]<=hasta&&(e[5]===0||e[5]===1)).reduce((a,e)=>a+e[3],0);
+      petroleo.stock=b.L+ca-de;petroleo.cargas=ca;petroleo.despachos=de;petroleo.base=b}}
   return {dia:d,dias:fc,kgSaco:KG(),prod:{registrado:!!D[d],kg,sacos:kg/KG(),kgMes,esperados:CQ?sacosEsp(d):null,extraccion:CQ?extraccion(d):[null,null]},
-    serie,sol,pilas,mineral,acido,bodega,petroleo,cqHasta:CQ?CQ.actualizado:null,flujo:FLUJO,humedad:HUMEDAD};
+    serie,sol,pilas,mineral,acido,bodega,petroleo,kgAnio,diasMes,ultProd,cqHasta:CQ?CQ.actualizado:null,flujo:FLUJO,humedad:HUMEDAD};
 }
 window.APP={
   vista:v=>{const b=document.querySelector('.tabs2 [data-v="'+v+'"]');if(b)b.click()},
@@ -2158,7 +2182,7 @@ function close(){$('#bg').classList.remove('open');$('#sheet').classList.remove(
 $('#bg').onclick=close;
 function niceMax(v){if(v<=0)return 1;const p=Math.pow(10,Math.floor(Math.log10(v)));const n=v/p;return (n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
 function chart({labels,bars,line,sel,fmtL,fmtR,unitL,unitR,onTap,dimFrom,dots,tipB,tipL,sufB,sufL,tipX}){
-  const W=360,H=220,L=40,R=44,T=24,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*0.62));
+  const W=(window.CW||360),H=220,L=40,R=44,T=24,B=24,iw=W-L-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*0.62));
   const mb=niceMax(Math.max(...bars,0)),ml=niceMax(Math.max(...line.filter(v=>v!=null),0));
   const yb=v=>T+ih-(v/mb)*ih,yl=v=>T+ih-(v/ml)*ih;
   const hasL=line.some(v=>v!=null);
@@ -2193,7 +2217,7 @@ function keysOf(){
 
 /* ---------- gráfico consumo ---------- */
 function mainChart(labels,pl,ex,ca,tipx){
-  const W=360,H=220,Lm=42,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*.62));
+  const W=(window.CW||360),H=220,Lm=42,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=labels.length,step=iw/n,bw=Math.max(2,Math.min(22,step*.62));
   const tot=pl.map((v,i)=>v+ex[i]);const mb=niceMax(Math.max(1,...tot,...ca.filter(v=>v!=null))),y=v=>T+ih-(v/mb)*ih;
   const tipM={W,L:Lm,step,c:1,x:tipx,s:[{n:'Planta',v:pl.map(L),col:'#1E6FA8'},{n:'Externos',v:ex.map(L),col:'#C0652F'},{n:'Total',v:tot.map(L),col:'var(--ink)'},{n:'Cargas',v:ca.map(v=>v==null?'—':L(v)),col:'#1F8A5B'}]};
   let s=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">litros</text>`;
@@ -2323,7 +2347,7 @@ function seriesFor(E){const K=keysOf(),v=K.keys.map(()=>0);E.forEach(e=>{const i
 // compara solo las máquinas marcadas: litros, entregas, % y un gráfico con una línea por máquina.
 const CMP=['#2a78d6','#eb6834','#1baf7a','#eda100','#e87ba4','#008300','#6250d6','#e34948'];
 function lineasMaq(K,series){
-  const W=360,H=220,Lm=42,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=K.labs.length,step=iw/n;
+  const W=(window.CW||360),H=220,Lm=42,R=8,T=20,B=24,iw=W-Lm-R,ih=H-T-B,n=K.labs.length,step=iw/n;
   const mx=niceMax(Math.max(1,...series.flatMap(s=>s.v))),y=v=>T+ih-(v/mx)*ih,x=i=>Lm+step*i+step/2;
   const tipM={W,L:Lm,step,c:1,x:K.tipx,s:series.map(s=>({n:s.n,v:s.v.map(L),col:s.c}))};
   let o=`<svg viewBox="0 0 ${W} ${H}" role="img" data-tip="${esc(JSON.stringify(tipM))}"><text x="2" y="10" style="font-weight:700">litros</text>`;

@@ -74,7 +74,7 @@ $('#dDay').addEventListener('change',()=>{const v=$('#dDay').value;if(!R||!v)ret
 function pintar(){
   if(!APP)return;
   if(!NATIVAS.includes(VISTA)){APP.vista(VISTA);$('#tSub').textContent='Datos de las planillas de Dropbox';return}
-  R=APP.resumen(DIA);DIA=R.dia;
+  R=APP.resumen(DIA,{petBase:petBase()});DIA=R.dia;
   const dd=$('#dDay');dd.value=DIA;if(R.dias.length){dd.min=R.dias[0];dd.max=R.dias[R.dias.length-1]}
   $('#tSub').textContent=VISTAS[VISTA][1]?fl(DIA):'';
   if(VISTA==='resumen')resumen();else if(VISTA==='simulador')simulador();else if(VISTA==='reportes')reportes();else usuarios();
@@ -95,29 +95,39 @@ function barras(serie){
 
 /* ---------- RESUMEN ---------- */
 const SOLS=[['PLS','PLS','var(--c1)'],['ILS LIX','ILS','var(--c5)'],['REF LIX','REF LIX','var(--c3)'],['REF SX 1','REF SX 1','var(--c8)'],['REF SX 2','REF SX 2','var(--c2)'],['ELECTROLITO 1','Electrolito 1','var(--c4)'],['ELECTROLITO 2','Electrolito 2','var(--c7)']];
+const ACIDO_MIN=30,PET_MIN=5000;   // bajo estos valores se avisa "pedir ácido" / "pedir petróleo"
+// stock de petróleo medido (punto de partida): las cargas y despachos posteriores se suman y restan
+const PETK='panel-petroleo-base';
+function petBase(){try{const o=JSON.parse(localStorage.getItem(PETK)||'null');return o&&o.f&&o.L!=null?o:null}catch(e){return null}}
+function guardarPetBase(o){try{localStorage.setItem(PETK,JSON.stringify(o))}catch(e){toast('No se pudo guardar el stock')}}
 function resumen(){
   const p=R.prod,ex=p.extraccion,op=ex.filter(e=>e!=null),eg=op.length?op.reduce((a,b)=>a+b,0)/op.length:null,M=R.mineral,A=R.acido,B=R.bodega,Pe=R.petroleo;
-  const dif=p.esperados!=null&&p.registrado?p.sacos-p.esperados:null;
-  const tE=R.serie.reduce((a,s)=>a+s[1],0),tP=R.serie.reduce((a,s)=>a+s[2],0),mes=MES[+DIA.slice(5,7)-1];
-  const diasAc=A&&A.consumoProm?A.total/A.consumoProm:null;
+  const dif=p.esperados!=null&&p.registrado?p.sacos-p.esperados:null,kgS=R.kgSaco||25;
+  const tE=R.serie.reduce((a,s)=>a+s[1],0),tP=R.serie.reduce((a,s)=>a+s[2],0),mes=MES[+DIA.slice(5,7)-1],anio=DIA.slice(0,4);
+  const diasAc=A&&A.consumoProm?A.activo/A.consumoProm:null;
   // avisos
   const av=[];
+  if(A&&A.activo<ACIDO_MIN)av.push(['r','Pedir ácido','Quedan '+nf(A.activo,1)+' t en los estanques en servicio ('+A.tks.map(t=>t.n.split(' ')[0]).join(' y ')+'), bajo el mínimo de '+ACIDO_MIN+' t.']);
+  if(Pe&&Pe.stock!=null&&Pe.stock<PET_MIN)av.push(['r','Pedir petróleo','Quedan '+nf(Pe.stock)+' L en el estanque, bajo el mínimo de '+nf(PET_MIN)+' L.']);
   ex.forEach((e,i)=>{if(e==null)av.push(['r','Tren '+(i+1)+' detenido','Sin muestras de REF SX '+(i+1)+' este día.'])});
   if(dif!=null&&p.esperados>0&&p.sacos<p.esperados*.9)av.push(['w','Producción bajo lo esperado',nf(p.sacos)+' de '+nf(p.esperados)+' sacos esperados ('+nf(p.sacos/p.esperados*100)+'%).']);
   if(p.esperados&&!p.registrado)av.push(['w','Sin producción registrada','La planilla RECUPERACIÓN no tiene este día.']);
   const ref=R.sol['REF LIX']&&R.sol['REF LIX'].cu,baja=ref!=null?R.pilas.filter(x=>x.cu!=null&&x.cu-ref<0.4):[];
   if(baja.length)av.push(['w','Pilas con poco cobre',baja.map(x=>x.k.slice(0,6)).join(', ')+' entregan menos de 0,4 g/L sobre el refino ('+nf(ref,2)+' g/L).']);
-  if(diasAc!=null&&diasAc<7)av.push(['w','Ácido: stock para '+nf(diasAc)+' días',nf(A.total,1)+' t en estanques · consumo promedio '+nf(A.consumoProm,1)+' t/día.']);
+  if(Pe&&Pe.stock==null)av.push(['w','Falta el stock medido de petróleo','Ingrésalo en la tarjeta de insumos para calcular cuánto queda.']);
   const bad=ESTADO?Object.values(ESTADO.fuentes||{}).filter(f=>f.ok===false):[];
   bad.forEach(f=>av.push(['r','Planilla con error: '+f.nombre,'Se muestran sus últimos datos buenos.']));
   if(!av.length)av.push(['o','Todo en orden','Sin avisos para este día.']);
+  av.sort((x,y)=>({r:0,w:1,o:2})[x[0]]-({r:0,w:1,o:2})[y[0]]);
   const ico={r:'!',w:'!',o:'✓'};
+  const barra=(v,cap,mal)=>`<div class="bar"><i style="width:${Math.max(2,Math.min(100,cap?v/cap*100:0))}%;${mal?'background:var(--bad)':''}"></i></div>`;
+  const pb=Pe&&Pe.base;
   $('#vResumen').innerHTML=`
   <div class="k4">
-   <div class="card kpi hero"><small>Producción del día</small><b>${p.registrado?nf(p.kg)+' kg':'—'}</b><em>${p.registrado?nf(p.sacos)+' sacos · ':''}acumulado ${mes} ${nf(p.kgMes/1000,1)} t</em></div>
-   <div class="card kpi"><small>Producidos / esperados</small><b>${p.registrado?nf(p.sacos):'—'} <span>/ ${nf(p.esperados)} sacos</span></b>${dif!=null&&p.esperados?`<em class="${dif>=0?'up':'dn'}">${dif>=0?'▲ +':'▼ −'}${nf(Math.abs(dif))} · ${nf(p.sacos/p.esperados*100)}% de lo esperado</em>`:'<em>esperados según control químico</em>'}</div>
-   <div class="card kpi"><small>Extracción global SX</small><b>${eg!=null?nf(eg*100,1)+'%':'—'}</b><em>${ex.map((e,i)=>`<span class="tg ${e!=null?'g2':'r2'}">T${i+1} · ${e!=null?nf(e*100,1)+'%':'detenido'}</span>`).join('')}</em></div>
-   <div class="card kpi"><small>Mineral por chancar</small><b>${M?nf(M.disp,1)+' t':'—'}</b><em>${M?'stock pile '+nf(M.stockPile)+' t · rechazo '+nf(M.rechazo)+' t':'sin datos de mineral'}</em></div>
+   <div class="card kpi hero"><small>Producción acumulada de ${mes}</small><b>${nf(p.kgMes/1000,1)} t</b><em>${nf(p.kgMes/kgS)} sacos · ${R.diasMes} ${R.diasMes===1?'día':'días'} con producción${R.ultProd&&R.ultProd<DIA?' · registrada hasta el '+fc(R.ultProd):''}</em></div>
+   <div class="card kpi"><small>Producción acumulada ${anio}</small><b>${nf(R.kgAnio/1000,1)} t</b><em>${nf(R.kgAnio/kgS)} sacos de ${kgS} kg</em></div>
+   <div class="card kpi"><small>Mineral disponible para chancar</small><b>${M?nf(M.disp,1)+' t':'—'}</b><em>${M?'stock pile '+nf(M.stockPile)+' t · rechazo '+nf(M.rechazo)+' t':'sin datos de mineral'}</em></div>
+   <div class="card kpi"><small>Extracción de la planta · ${fc(DIA)}</small><b>${eg!=null?nf(eg*100,1)+'%':'—'}</b><em>${ex.map((e,i)=>`<span class="tg ${e!=null?'g2':'r2'}">T${i+1} · ${e!=null?nf(e*100,1)+'%':'detenido'}</span>`).join('')}</em></div>
   </div>
   <div class="g2c">
    <div class="card"><h3>Producción de ${mes} <span>sacos esperados vs producidos, hasta el ${fc(DIA)}</span></h3>
@@ -128,21 +138,25 @@ function resumen(){
     ${av.map(a=>`<div class="al"><div class="ic ${a[0]}">${ico[a[0]]}</div><div><b>${esc(a[1])}</b><span>${esc(a[2])}</span></div></div>`).join('')}</div>
   </div>
   <div class="g3c">
-   <div class="card"><h3>Soluciones del día <span>promedio g/L</span></h3>
-    ${Object.keys(R.sol).length?`<table><tr><th>Solución</th><th>Cu</th><th>H+</th><th>pH</th></tr>${SOLS.filter(s=>R.sol[s[0]]&&R.sol[s[0]].cu!=null).map(s=>{const o=R.sol[s[0]];return `<tr><td><i class="dot" style="background:${s[2]}"></i>${s[1]}</td><td><b>${nf(o.cu,o.cu<10?2:1)}</b></td><td>${nf(o.h,1)}</td><td>${o.ph!=null?nf(o.ph,2):'—'}</td></tr>`}).join('')}</table>`:'<p class="empty">Sin muestras este día.</p>'}</div>
    <div class="card"><h3>Pilas en riego <span>${R.pilas.length} ${R.pilas.length===1?'pila':'pilas'}</span></h3>
     ${R.pilas.length?`<table><tr><th>Pila</th><th>Días</th><th>Cu g/L</th><th>Destino</th></tr>${R.pilas.map(x=>`<tr><td>${esc(x.k)} ${x.ripio?'<span class="tg b2">ripio</span>':''}</td><td>${x.dias}</td><td><b>${nf(x.cu,2)}</b></td><td>${esc((x.destino||'—').replace(' LIX',''))}</td></tr>`).join('')}</table>`:'<p class="empty">Sin pilas con lecturas este día.</p>'}</div>
+   <div class="card"><h3>Soluciones del día <span>promedio g/L</span></h3>
+    ${Object.keys(R.sol).length?`<table><tr><th>Solución</th><th>Cu</th><th>H+</th><th>pH</th></tr>${SOLS.filter(s=>R.sol[s[0]]&&R.sol[s[0]].cu!=null).map(s=>{const o=R.sol[s[0]];return `<tr><td><i class="dot" style="background:${s[2]}"></i>${s[1]}</td><td><b>${nf(o.cu,o.cu<10?2:1)}</b></td><td>${nf(o.h,1)}</td><td>${o.ph!=null?nf(o.ph,2):'—'}</td></tr>`}).join('')}</table>`:'<p class="empty">Sin muestras este día.</p>'}</div>
    <div class="card"><h3>Insumos y bodega</h3>
-    <div class="row"><span>Ácido en estanques</span><b>${A?nf(A.total,1)+' t':'—'}</b></div>
-    ${A?`<div class="row" style="margin-top:4px;color:var(--mut)"><span>TK3 ${nf(A.tk3,1)} t · TK4 ${nf(A.tk4,1)} t</span><span>${diasAc!=null?'≈ '+nf(diasAc)+' días de consumo':''}</span></div>`:''}
-    <div class="row"><span>Ácido consumido el día</span><b>${A&&A.consumoDia!=null?nf(A.consumoDia,1)+' t':'—'}</b></div>
-    <div class="row"><span>Mineral chancado el día</span><b>${M&&M.chancadoDia?nf(M.chancadoDia,1)+' t':'—'}</b></div>
-    <div class="row"><span>Mineral chancado en ${mes}</span><b>${M?nf(M.chancadoMes,1)+' t':'—'}</b></div>
-    <div class="row"><span>Petróleo entregado en ${mes}</span><b>${Pe?nf(Pe.mes)+' L':'—'}</b></div>
+    <div class="ins-t">Ácido en estanques en servicio <span>${A?'registro del '+fc(A.fecha):''}</span></div>
+    ${A?A.tks.map(t=>`<div class="row"><span>${t.n}</span><b>${nf(t.t,1)} t <small>de ≈ ${nf(t.cap)} t</small></b></div>${barra(t.t,t.cap,A.activo<ACIDO_MIN)}`).join('')+`<div class="row" style="margin-top:8px"><span>Total en servicio</span><b class="${A.activo<ACIDO_MIN?'dn':''}">${nf(A.activo,1)} t${diasAc!=null?' <small>≈ '+nf(diasAc)+' días</small>':''}</b></div>`:'<p class="note">Sin datos de ácido.</p>'}
+    <div class="ins-t" style="margin-top:14px">Petróleo <span>${Pe?'planilla al '+fc(Pe.actualizado):''}</span></div>
+    ${Pe&&Pe.stock!=null?`<div class="row"><span>Stock en estanque</span><b class="${Pe.stock<PET_MIN?'dn':''}">${nf(Pe.stock)} L</b></div>${barra(Pe.stock,Math.max(PET_MIN*3,Pe.stock),Pe.stock<PET_MIN)}
+      <p class="note" style="margin-top:4px">Medido ${nf(pb.L)} L el ${fc(pb.f)} + cargas ${nf(Pe.cargas)} L − despachos ${nf(Pe.despachos)} L · <a href="#" id="petEdit">cambiar medición</a></p>`:''}
+    <form id="petForm" ${Pe&&Pe.stock!=null?'hidden':''} style="margin-top:6px"><p class="note" style="margin:0 0 6px">Ingresa el stock medido en el estanque y su fecha; desde ahí se suman las cargas y se restan los despachos de la planilla.</p>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><input id="petL" type="number" min="0" step="1" placeholder="Litros" value="${pb?pb.L:''}" style="width:96px" class="inp"><input id="petF" type="date" value="${pb?pb.f:(Pe?Pe.actualizado:DIA)}" class="inp"><button class="btn" type="submit" style="padding:6px 10px">Guardar</button></div></form>
+    <div class="row" style="margin-top:10px"><span>Petróleo entregado en ${mes}</span><b>${Pe?nf(Pe.mes)+' L':'—'}</b></div>
     <div class="row"><span>Pallets en bodega</span><b>${B?nf(B.pallets)+' · '+nf(B.ton,1)+' t':'—'}</b></div>
     <div class="row"><span>Despachos en ${mes}</span><b>${B?nf(B.despMes)+' pallets':'—'}</b></div></div>
   </div>
-  <p class="note">Datos de las planillas de Dropbox. Control químico hasta el ${R.cqHasta?fc(R.cqHasta)+'/'+R.cqHasta.slice(0,4):'—'}. Sacos esperados = Cu PLS × ${R.flujo} L/min × 1.440 min × extracción de cada tren × 3,92 × ${nf(R.humedad,2)} ÷ 25 kg.</p>`;
+  <p class="note">Datos de las planillas de Dropbox. Control químico hasta el ${R.cqHasta?fc(R.cqHasta)+'/'+R.cqHasta.slice(0,4):'—'}. Capacidad de cada estanque de ácido = nivel máximo registrado desde el 26/02/2026. Avisos: pedir ácido bajo ${ACIDO_MIN} t en servicio; pedir petróleo bajo ${nf(PET_MIN)} L.</p>`;
+  const fm=$('#petForm');if(fm)fm.addEventListener('submit',e=>{e.preventDefault();const l=+$('#petL').value,f=$('#petF').value;if(!f||!(l>=0)){toast('Ingresa los litros y la fecha');return}guardarPetBase({L:l,f});pintar();toast('Stock de petróleo guardado')});
+  const pe=$('#petEdit');if(pe)pe.addEventListener('click',e=>{e.preventDefault();$('#petForm').hidden=false});
 }
 
 /* ---------- SIMULADOR ---------- */
