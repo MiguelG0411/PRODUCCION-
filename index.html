@@ -319,7 +319,6 @@ html.embed{--bg:#F1F4F8;--surface:#FFFFFF;--ink:#0F1B2D;--muted:#5B6A80;--line:#
   .embed .card h2{font-size:1.12rem}
   .embed .chart text{font-size:12.5px}
   .embed .chart svg{overflow:visible}
-  .embed #pe_kList,.embed #salList{max-height:620px;overflow:auto;padding-right:4px}
   .embed #plSin{max-height:520px;overflow:auto}
   /* tarjetas con tablas anchas o muchas pilas: a todo el ancho */
   .embed #vPla>.card:has(#plPiTab),.embed #vPla>.card:has(#plMinis){grid-column:1/-1}
@@ -342,7 +341,20 @@ html.embed{--bg:#F1F4F8;--surface:#FFFFFF;--ink:#0F1B2D;--muted:#5B6A80;--line:#
   /* Mineral y pilas: gráficos y listas a lo ancho */
   .embed .vcont>.card:has(#cIng),.embed .vcont>.card:has(#mStockList),.embed .vcont>.card:has(#mCardTabs){grid-column:1/-1}
   .embed #mStockList{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:26px}
-  .embed #mMinas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));column-gap:26px}
+  /* listas tipo ranking (minas, operadores, despachos): tarjetas separadas con su número de puesto */
+  .embed #mMinas,.embed #opList,.embed #salList{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;counter-reset:rk;margin-top:10px}
+  .embed #mMinas>*,.embed #opList>*,.embed #salList>*{counter-increment:rk;position:relative;border:1px solid #E1E7EF!important;border-radius:12px;background:#FAFBFD;padding:12px 14px 12px 42px!important;margin:0;transition:border-color .15s,box-shadow .15s}
+  .embed #mMinas>*:hover,.embed #opList>*:hover,.embed #salList>*:hover{border-color:#9CC8EE!important;box-shadow:0 2px 10px rgba(22,119,201,.08);background:#fff}
+  .embed #mMinas>*::before,.embed #opList>*::before,.embed #salList>*::before{content:counter(rk);position:absolute;left:11px;top:12px;min-width:21px;height:21px;padding:0 4px;border-radius:7px;background:#E6EDF6;color:#3A4A62;font:700 11px "Archivo",Inter,sans-serif;display:grid;place-items:center}
+  .embed #mMinas>*:nth-child(-n+3)::before,.embed #opList>*:nth-child(-n+3)::before{background:#0B1B33;color:#fff}
+  .embed #salList>p,.embed #mMinas>p,.embed #opList>p{grid-column:1/-1;border:0!important;background:none;padding:0!important}
+  .embed #salList>p::before,.embed #mMinas>p::before,.embed #opList>p::before{display:none}
+  /* Bodega: todo a lo ancho */
+  .embed #vPal .vcont>.card{grid-column:1/-1}
+  /* Insumos: gráficos a lo ancho y el resto de a dos, del mismo alto, con desplazamiento propio */
+  .embed #insPe .vcont>.card:has(.chart>svg,#pe_cMain),.embed #insAc .vcont>.card:has(#acChart),.embed #insAc .vcont>.card:has(#acLvChart){grid-column:1/-1;height:auto;overflow:visible}
+  .embed #insPe .vcont>.card,.embed #insAc .vcont>.card{height:600px;overflow:auto;scrollbar-width:thin}
+  .embed #insAc .vcont>.card{height:440px}
   .embed #mKpi{grid-template-columns:repeat(6,minmax(0,1fr))}
   /* Planta: orden y anchos pedidos */
   .embed #vPla>*{order:20}
