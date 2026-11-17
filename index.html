@@ -325,7 +325,8 @@ html.embed{--bg:#F1F4F8;--surface:#FFFFFF;--ink:#0F1B2D;--muted:#5B6A80;--line:#
   .embed #vPla>.card:has(#plPiTab),.embed #vPla>.card:has(#plMinis){grid-column:1/-1}
   .embed #plMinis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
   /* columna lateral de filtros */
-  .embed .conrail:not([hidden]){display:grid!important;grid-template-columns:112px minmax(0,1fr);column-gap:22px;align-items:start}
+  .embed .conrail:not([hidden]){display:grid!important;grid-template-columns:minmax(0,1fr) 112px;column-gap:22px;align-items:start}
+  .embed .conrail>.rail{grid-column:2;grid-row:1}.embed .conrail>.vcont{grid-column:1;grid-row:1}
   .embed .rail{position:sticky;top:14px;display:flex;flex-direction:column;gap:14px;max-height:calc(100vh - 28px);overflow:auto;padding:12px 10px;background:#fff;border:1px solid #E1E7EF;border-radius:14px;box-shadow:0 1px 2px rgba(15,27,45,.04)}
   .embed .rail::before{content:"Filtrar";font:700 10.5px Inter,sans-serif;letter-spacing:1px;text-transform:uppercase;color:#1677C9;padding:0 2px}
   .embed .rail .yrs,.embed .rail .months{display:grid;grid-template-columns:1fr;gap:5px;margin:0!important;padding:0;overflow:visible}
