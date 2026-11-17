@@ -137,7 +137,7 @@ function resumen(){
   const mt=M?M.disp+M.stockPile+M.rechazo:0,comp=M?[[M.disp,'#1677C9','Por chancar'],[M.stockPile,'#B9622F','Stock pile'],[M.rechazo,'#9AA6B8','Rechazo']]:[];
   // pilas
   const mxCu=Math.max(2,...R.pilas.map(x=>x.cu||0));
-  const tanque=(n,v,cap,u,cls)=>`<div class="tank"><div class="tv ${cls||''}"><i style="height:${Math.max(3,Math.min(100,cap?v/cap*100:0))}%"></i><em>${cap?nf(Math.max(0,v)/cap*100)+'%':''}</em></div><small>${n}<b>${nf(Math.max(0,v),u==='L'?0:1)} ${u}</b></small></div>`;
+  const tanque=(n,v,cap,u,cls,extra)=>{const pc=cap?Math.max(0,Math.min(100,v/cap*100)):0;return `<div class="tank"><div class="tv ${cls||''}"><i style="height:${Math.max(3,pc)}%"></i></div><div class="tn"><b>${n}</b><small>${extra||('capacidad '+nf(cap)+' '+u)}</small></div><div class="tq"><b class="${cls==='bajo'?'dn':''}">${nf(Math.max(0,v),u==='L'?0:1)} ${u}</b><small>${nf(pc)} %</small></div></div>`};
   const pb=Pe&&Pe.base;
   $('#vResumen').innerHTML=`
   <div class="k4">
@@ -169,7 +169,7 @@ function resumen(){
    <div class="card"><h3>Soluciones del día<span>Cu promedio del día</span></h3>
     ${Object.keys(R.sol).length?`<div class="sols">${SOLS.filter(s=>R.sol[s[0]]&&R.sol[s[0]].cu!=null).map(s=>{const o=R.sol[s[0]];return `<div class="sol"><div class="n"><i class="dot" style="background:${s[2]}"></i>${s[1]}<small>H+ ${nf(o.h,1)} g/L${o.ph!=null?' · pH '+nf(o.ph,2):''}</small></div>${mini4(o.cu4,s[2])}<div class="v">${nf(o.cu,o.cu<10?2:1)}<small>g/L Cu</small></div></div>`}).join('')}</div>`:'<p class="empty">Sin muestras este día.</p>'}</div>
    <div class="card"><h3>Insumos y bodega<span>${A?'ácido al '+fc(A.fecha):''}</span></h3>
-    <div class="tanks">${A?A.tks.map(t=>tanque(t.n,t.t,t.cap,'t',A.activo<ACIDO_MIN?'bajo':'')).join(''):''}${Pe?(Pe.stock!=null?tanque('Petróleo',Pe.stock,PET_CAP,'L',Pe.stock<PET_MIN?'bajo':'pet'):`<div class="tank"><div class="tv pet"><i style="height:0"></i><em style="font-size:11px;color:var(--mut)">sin medir</em></div><small>Petróleo<b>—</b></small></div>`):''}</div>
+    <div class="tanks">${A?A.tks.map(t=>tanque(t.n,t.t,t.cap,'t',A.activo<ACIDO_MIN?'bajo':'','ácido · capacidad ≈ '+nf(t.cap)+' t')).join(''):''}${Pe?(Pe.stock!=null?tanque('Petróleo',Pe.stock,PET_CAP,'L',Pe.stock<PET_MIN?'bajo':'pet','medido el '+fc(Pe.base.f)+' · capacidad '+nf(PET_CAP)+' L'):`<div class="tank"><div class="tv pet"><i style="height:0"></i></div><div class="tn"><b>Petróleo</b><small>capacidad ${nf(PET_CAP)} L</small></div><div class="tq"><b>—</b><small>sin medir</small></div></div>`):''}</div>
     ${A?`<div class="row" style="margin-top:8px"><span>Ácido en servicio</span><b class="${A.activo<ACIDO_MIN?'dn':''}">${nf(A.activo,1)} t${diasAc!=null?' <small>≈ '+nf(diasAc)+' días de consumo</small>':''}</b></div>`:''}
     ${Pe&&Pe.stock!=null?`<div class="row"><span>Petróleo en estanque <small>medido ${fc(pb.f)}</small></span><b class="${Pe.stock<PET_MIN?'dn':''}">${nf(Pe.stock)} L <small><a href="#" id="petEdit">cambiar</a></small></b></div>`:''}
     <form id="petForm" ${Pe&&Pe.stock!=null?'hidden':''} style="margin:8px 0 4px"><div class="ins-t" style="margin-bottom:6px">Stock medido de petróleo</div>
