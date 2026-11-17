@@ -375,6 +375,21 @@ html.embed{--bg:#F1F4F8;--surface:#FFFFFF;--ink:#0F1B2D;--muted:#5B6A80;--line:#
   .embed #vPla>.card:has(#plPiTab){order:10}.embed #vPla>.card:has(#plPiCh){order:11;grid-column:1/-1}
   .embed #vPla>.card:has(#plMinis){order:12}.embed #vPla>#plSinCard{order:13}.embed #vPla>#plNote{order:14}
   .embed #plSol{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  /* tarjetas con franja de color a la izquierda (mismo estilo que Mantención) */
+  .embed #plSol .sc{background:#FAFBFD;border:1px solid #E1E7EF;border-left:4px solid var(--sc,#1677C9);border-radius:12px;padding:12px 14px;font-size:.86rem}
+  .embed #plSol .sc .st{font:700 .95rem "Archivo",Inter,sans-serif;color:var(--sc,#0F1B2D);margin-bottom:6px}
+  .embed #plSol .sc:nth-child(1){--sc:#2a78d6}.embed #plSol .sc:nth-child(2){--sc:#eb6834}.embed #plSol .sc:nth-child(3){--sc:#1baf7a}.embed #plSol .sc:nth-child(4){--sc:#d3609a}
+  .embed #plSol .sc:nth-child(5){--sc:#6250d6}.embed #plSol .sc:nth-child(6){--sc:#e34948}.embed #plSol .sc:nth-child(7){--sc:#c58a00}
+  .embed #plSol .sc.off{--sc:#B4BECC;border-style:solid;border-color:#E6EBF2;border-left-color:#C8D0DB;background:#F7F9FB}.embed #plSol .sc.off .st{color:#7A879B}
+  .embed #vPla .mstats>div{background:#FAFBFD;border:1px solid #E1E7EF;border-left:4px solid #1677C9;border-radius:12px}
+  .embed #plKpis>div:nth-child(2){border-left-color:#B9622F}.embed #plKpis>div:nth-child(3){border-left-color:#1baf7a}.embed #plKpis>div:nth-child(4){border-left-color:#6250d6}
+  .embed #plRip>div:first-child{border-left-color:#1baf7a}
+  .embed #mMinas>*,.embed #mStockList>*{border-left:4px solid #1677C9!important}
+  .embed #mMinas>*:nth-child(-n+3){border-left-color:#B9622F!important}
+  .embed #mStockList>*{border:1px solid #E1E7EF;border-radius:12px;background:#FAFBFD;padding:12px 14px!important}
+  .embed #mStockList{gap:12px}
+  .embed #opList>*{border-left:4px solid #1677C9!important}
+  .embed #opList>*:has(.tB){border-left-color:#B9622F!important}
   .embed .card:has(#plSac) .mstats{grid-template-columns:repeat(2,minmax(0,220px))}
   /* detalle del mes de producción: indicadores a la izquierda y gráfico a la derecha */
   .embed .vcont>#mCard{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr);column-gap:28px;align-items:start}
