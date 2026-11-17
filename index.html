@@ -355,6 +355,11 @@ html.embed{--bg:#F1F4F8;--surface:#FFFFFF;--ink:#0F1B2D;--muted:#5B6A80;--line:#
   .embed #insPe .vcont>.card:has(.chart>svg,#pe_cMain),.embed #insAc .vcont>.card:has(#acChart),.embed #insAc .vcont>.card:has(#acLvChart){grid-column:1/-1;height:auto;overflow:visible}
   .embed #insPe .vcont>.card,.embed #insAc .vcont>.card{height:600px;overflow:auto;scrollbar-width:thin}
   .embed #insAc .vcont>.card{height:440px}
+  /* Insumos · chancado: las tres comparaciones a lo ancho, con el mismo formato (datos a la izquierda, gráfico a la derecha) */
+  .embed #insCh .vcont>.card{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.55fr);column-gap:28px;row-gap:8px;grid-auto-flow:row dense;align-items:start;min-height:380px}
+  .embed #insCh .vcont>.card>*{grid-column:1/-1;margin-top:0}
+  .embed #insCh .vcont>.card>.tcmp,.embed #insCh .vcont>.card>.mstats,.embed #insCh .vcont>.card>.note{grid-column:1}
+  .embed #insCh .vcont>.card>.chart{grid-column:2;grid-row:span 3}.embed #insCh .vcont>.card>.legend{grid-column:2}
   .embed #mKpi{grid-template-columns:repeat(6,minmax(0,1fr))}
   /* Planta: orden y anchos pedidos */
   .embed #vPla>*{order:20}
