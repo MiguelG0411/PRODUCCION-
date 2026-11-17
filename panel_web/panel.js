@@ -51,16 +51,16 @@ $('#updBtn').addEventListener('click',async()=>{
 });
 
 /* ---------- navegación ---------- */
-const VISTAS={resumen:['Resumen',1],simulador:['Simulador de planta',1],reportes:['Reportes',0],usuarios:['Usuarios y accesos',0],
+const VISTAS={resumen:['Resumen',1],simulador:['Simulador de planta',1],reportes:['Reportes',0],usuarios:['Usuarios y accesos',0],mantencion:['Mantención',0],
   prod:['Producción',0],pla:['Planta · control químico',0],min:['Mineral y pilas',0],pal:['Bodega y despachos',0],ins:['Insumos',0]};
-const NATIVAS=['resumen','simulador','reportes','usuarios'];
+const NATIVAS=['resumen','simulador','reportes','usuarios','mantencion'];
 let VISTA='resumen',DIA=null,R=null;
 function ir(v){
   if(!VISTAS[v]||(v==='usuarios'&&(!YO||YO.rol!=='admin')))v='resumen';
   VISTA=v;history.replaceState(null,'','#'+v);
   document.querySelectorAll('.nav').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   $('#tTitle').textContent=VISTAS[v][0];$('#dayNav').hidden=!VISTAS[v][1];
-  ['Resumen','Simulador','Reportes','Usuarios'].forEach(n=>$('#v'+n).hidden=v!==n.toLowerCase());
+  ['Resumen','Simulador','Reportes','Usuarios','Mantencion'].forEach(n=>$('#v'+n).hidden=v!==n.toLowerCase());
   $('#vApp').hidden=NATIVAS.includes(v);
   $('#side').classList.remove('open');
   pintar();
@@ -76,8 +76,8 @@ function pintar(){
   if(!NATIVAS.includes(VISTA)){APP.vista(VISTA);$('#tSub').textContent='Datos de las planillas de Dropbox';return}
   R=APP.resumen(DIA,{petBase:petBase()});DIA=R.dia;
   const dd=$('#dDay');dd.value=DIA;if(R.dias.length){dd.min=R.dias[0];dd.max=R.dias[R.dias.length-1]}
-  $('#tSub').textContent=VISTAS[VISTA][1]?fl(DIA):'';
-  if(VISTA==='resumen')resumen();else if(VISTA==='simulador')simulador();else if(VISTA==='reportes')reportes();else usuarios();
+  $('#tSub').textContent=VISTAS[VISTA][1]?fl(DIA):VISTA==='mantencion'?'Maqueta · equipos del control de petróleo 2026 con destino planta':'';
+  if(VISTA==='resumen')resumen();else if(VISTA==='simulador')simulador();else if(VISTA==='reportes')reportes();else if(VISTA==='mantencion')mantencion();else usuarios();
 }
 
 /* ---------- gráficos ---------- */
@@ -274,6 +274,63 @@ function simCalc(){
   $('#rMin').textContent=nf(pot,1)+' t de sulfato';
   $('#rMin2').textContent=nf(S.t*S.ley/100*1000)+' kg de cobre fino'+(sx>0?' · equivale a '+nf(pot*1000/sx,1)+' días de producción al ritmo simulado':'');
 }
+
+/* ---------- MANTENCIÓN (maqueta) ----------
+   Real: equipos y petróleo 2026 con destino PLANTA (planilla de petróleo).
+   Ejemplo: horómetros, horas desde la última mantención y su historial, hasta que exista la planilla de mantención. */
+const TIPOS=[[/VIELCO|LUREYE|GENERADOR/i,'Generador',15,'i-ins'],[/CARGADOR/i,'Cargador frontal',10,'i-min'],[/MACK|SCANIA|CAMION/i,'Camión',12,'i-pal'],
+  [/EXCAVADORA|MOTONIVELADORA|GRUA/i,'Maquinaria',11,'i-min'],[/COMPRESOR/i,'Compresor',4,'i-man'],[/GREAT WALL|MITSUBISHI|NISSAN|TOYOTA|MINI BUS/i,'Camioneta / bus',3,'i-pal'],
+  [/DOSSAN|TERRAU/i,'Equipo (por confirmar)',8,'i-man']];
+const NO_EQUIPO=/BIDON|AOSIF|ESTACI[OÓ]N|VILLALOBOS|CAMILO PALMA/i;
+function mantencion(){
+  const v=$('#vMantencion'),P=APP.petroleo&&APP.petroleo();
+  if(!P){v.innerHTML='<p class="empty">Sin datos de petróleo.</p>';return}
+  const g={};P.entregas.forEach(e=>{if(e[0]<'2026-01-01'||e[5]!==0)return;const o=g[e[1]]=g[e[1]]||{L:0,n:0,ult:'',cc:{}};o.L+=e[3];o.n++;if(e[0]>o.ult)o.ult=e[0];o.cc[e[4]]=(o.cc[e[4]]||0)+1});
+  const otros=[],eq=[];
+  Object.entries(g).sort((a,b)=>b[1].L-a[1].L).forEach(([k,o],i)=>{const nom=P.maq[k]||'?';if(NO_EQUIPO.test(nom)){otros.push([nom,o]);return}
+    const t=TIPOS.find(x=>x[0].test(nom))||[null,'Equipo',8,'i-man'],cc=P.cc[Object.entries(o.cc).sort((a,b)=>b[1]-a[1])[0][0]]||'—';
+    const horas=o.L/t[2],inter=t[1].startsWith('Camioneta')?300:250;        // ejemplo: horas estimadas con un consumo típico por tipo
+    const j=eq.length;let desde=Math.round((horas*0.37+j*53)%(inter*0.85));   // ejemplo: algunos vencidos y próximos para ver cómo se ve
+    if(j%7===2)desde=inter+12+j;else if(j%5===4)desde=inter-8-j;
+    const estado=j===6?'taller':desde>=inter?'vencida':desde>=inter-30?'proxima':'ok';
+    eq.push({nom,cc,tipo:t[1],ico:t[3],L:o.L,n:o.n,ult:o.ult,horo:Math.round(1800+horas*1.6+eq.length*97),horas,lh:t[2]*(0.9+((eq.length*7)%5)/20),inter,desde,estado})});
+  const tl=n=>n.toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase());
+  const cnt=k=>eq.filter(e=>e.estado===k).length,disp=(eq.length-cnt('taller'))/Math.max(1,eq.length);
+  const EST={ok:['g2','Operativo'],proxima:['w2','Próxima mantención'],vencida:['r2','Mantención vencida'],taller:['b2','En taller']};
+  const prox=eq.filter(e=>e.estado!=='ok').sort((a,b)=>(b.desde/b.inter)-(a.desde/a.inter));
+  const hist=[['03/11','Cargador Clinton','Preventiva 250 h','Cambio de aceite y filtros','4 h'],['28/10','Vielco','Preventiva 250 h','Filtros de aire y combustible','3 h'],['21/10','Mack Aljibe','Correctiva','Fuga en manguera hidráulica','9 h'],['15/10','Lureye 2','Preventiva 500 h','Cambio de correas','6 h'],['09/10','Great Wall Lpcv52','Preventiva 10.000 km','Mantención de concesionario','8 h']];
+  const tot=eq.reduce((a,e)=>a+e.L,0);
+  v.innerHTML=`
+  <div class="maq-banner"><b>Maqueta para revisar.</b> Los equipos y el petróleo son reales (planilla de petróleo 2026, destino planta). Los horómetros, horas desde la última mantención, estados e historial son <b>de ejemplo</b> hasta que exista la planilla de mantención.</div>
+  <div class="k4">
+   <div class="card kpi hero"><div class="kh"><i><svg><use href="#i-man"/></svg></i><small>Equipos de planta</small></div><b>${eq.length}</b><em>con carga de petróleo en 2026 · ${nf(tot)} L</em></div>
+   <div class="card kpi"><div class="kh"><i><svg><use href="#i-res"/></svg></i><small>Disponibilidad</small></div><b>${nf(disp*100,1)}<u>%</u></b><em>${eq.length-cnt('taller')} operativos · ${cnt('taller')} en taller</em></div>
+   <div class="card kpi"><div class="kh"><i style="background:var(--bad-s);color:var(--bad)"><svg><use href="#i-man"/></svg></i><small>Mantenciones vencidas</small></div><b class="${cnt('vencida')?'dn':''}">${cnt('vencida')}</b><em>superaron su intervalo de horas</em></div>
+   <div class="card kpi"><div class="kh"><i style="background:var(--warn-s);color:var(--warn)"><svg><use href="#i-man"/></svg></i><small>Próximas (menos de 30 h)</small></div><b>${cnt('proxima')}</b><em>programar esta semana</em></div>
+  </div>
+  <div class="g2c">
+   <div class="card"><h3>Equipos<span>ordenados por petróleo consumido en 2026</span></h3>
+    <div class="eqgrid">${eq.map(e=>{const pc=Math.min(100,e.desde/e.inter*100),st=EST[e.estado];
+      return `<div class="eq ${e.estado}"><div class="eqh"><i><svg><use href="#${e.ico}"/></svg></i><div><b>${esc(tl(e.nom))}</b><small>${esc(e.tipo)} · ${esc(tl(cc2(e.cc)))}</small></div><span class="tg ${st[0]}">${st[1]}</span></div>
+        <div class="eqd"><span>Horómetro<b>${nf(e.horo)} h</b></span><span>Petróleo<b>${nf(e.L)} L</b></span><span>Consumo<b>${nf(e.lh,1)} L/h</b></span><span>Últ. carga<b>${fc(e.ult)}</b></span></div>
+        <div class="eqp"><div class="bar"><i style="width:${pc}%;background:${e.estado==='vencida'?'var(--bad)':e.estado==='proxima'?'#E0A23A':'linear-gradient(90deg,var(--vit),var(--vit-2))'}"></i></div>
+        <small>${e.estado==='taller'?'En taller desde el 12/11 · repuesto pendiente':e.desde>=e.inter?'Vencida hace '+nf(e.desde-e.inter)+' h':'Faltan '+nf(e.inter-e.desde)+' h para la mantención de '+nf(e.inter)+' h'}</small></div></div>`}).join('')}</div>
+    ${otros.length?`<p class="note">Registros de la planilla de petróleo que no parecen equipos (se dejaron fuera): ${otros.map(o=>esc(tl(o[0]))).join(', ')}.</p>`:''}</div>
+   <div style="display:grid;gap:18px;align-content:start">
+    <div class="card"><h3>Próximas mantenciones<span>por urgencia</span></h3>
+     ${prox.map(e=>`<div class="al ${e.estado==='vencida'?'r':e.estado==='taller'?'o':'w'}"><div class="ic">${e.estado==='taller'?'⚙':'!'}</div><div><b>${esc(tl(e.nom))}</b><span>${e.estado==='taller'?'En taller':e.estado==='vencida'?'Vencida hace '+nf(e.desde-e.inter)+' h':'Faltan '+nf(e.inter-e.desde)+' h'} · preventiva ${nf(e.inter)} h</span></div></div>`).join('')}</div>
+    <div class="card"><h3>Últimas mantenciones<span>ejemplo</span></h3>
+     <div class="hist">${hist.map(h=>`<div class="hi"><span class="hf">${h[0]}</span><div><b>${h[1]}</b> ${h[2].startsWith('Correctiva')?'<span class="tg r2">Correctiva</span>':'<span class="tg b2">'+h[2]+'</span>'}<small>${h[3]} · ${h[4]} detenido</small></div></div>`).join('')}</div></div>
+   </div>
+  </div>
+  <div class="card"><h3>Propuesta de planilla de mantención<span>3 hojas en el mismo Excel, en OneDrive</span></h3>
+   <div class="g3c">
+    <div class="ph"><b>1 · EQUIPOS</b><small>Una fila por equipo, se llena una vez</small><ul><li>Código y nombre (igual que en la planilla de petróleo)</li><li>Tipo y centro de costo</li><li>Marca, modelo, patente o serie</li><li>Intervalo de mantención (ej. 250 h o 10.000 km)</li><li>Horómetro u odómetro inicial</li></ul></div>
+    <div class="ph"><b>2 · HORÓMETROS</b><small>Una fila por lectura (diaria o semanal)</small><ul><li>Fecha</li><li>Equipo</li><li>Lectura del horómetro (h) u odómetro (km)</li><li>Operador</li></ul><small style="margin-top:8px">Con esto el panel calcula las horas trabajadas y el consumo real en L/h, cruzando con el petróleo.</small></div>
+    <div class="ph"><b>3 · MANTENCIONES</b><small>Una fila por trabajo realizado</small><ul><li>Fecha de inicio y de término</li><li>Equipo y horómetro al momento</li><li>Tipo: preventiva o correctiva (falla)</li><li>Descripción y repuestos</li><li>Costo y responsable</li><li>Horas detenido</li></ul></div>
+   </div></div>`;
+}
+function cc2(x){return x||'—'}
 
 /* ---------- REPORTES ---------- */
 function reportes(){

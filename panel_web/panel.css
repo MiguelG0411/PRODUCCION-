@@ -152,3 +152,19 @@ svg text{font-family:var(--f-txt)}
 @media (max-width:520px){.k4{grid-template-columns:1fr}.kpi b{font-size:28px}}
 
 .tscroll{overflow-x:auto}.tpilas td,.tpilas th{padding-left:5px;padding-right:5px}.tpilas td:first-child{font-size:12.5px}
+
+/* mantención (maqueta) */
+.navtag{margin-left:auto;font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;background:rgba(237,161,0,.18);color:#F3C766;border-radius:6px;padding:2px 6px}
+.maq-banner{background:var(--warn-s);border:1px solid #F0D7A6;color:#6B4708;border-radius:12px;padding:11px 14px;font-size:13px;line-height:1.5}
+.w2{background:var(--warn-s);color:var(--warn)}
+.eqgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.eq{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:#FAFBFD;display:grid;gap:10px;border-left:3px solid var(--vit)}
+.eq.vencida{border-left-color:var(--bad)}.eq.proxima{border-left-color:#E0A23A}.eq.taller{border-left-color:#6B7A92}
+.eqh{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;align-items:center}
+.eqh i{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;background:var(--vit-s);color:var(--vit)}.eqh i svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.eqh b{display:block;font:700 14px var(--f-num)}.eqh small{display:block;color:var(--mut);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.eqd{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}.eqd span{font-size:11px;color:var(--mut);font-weight:600}.eqd b{display:block;font:700 13px var(--f-num);color:var(--ink);margin-top:1px}
+.eqp small{display:block;font-size:11.5px;color:var(--mut);margin-top:5px}.eqp .bar{margin-top:0}
+.ph{border:1px solid var(--line);border-radius:12px;padding:14px 16px;background:#FAFBFD}.ph b{font:700 14px var(--f-num);color:var(--vit)}.ph>small{display:block;color:var(--mut);font-size:12px;margin-top:2px}
+.ph ul{margin:10px 0 0;padding-left:18px;font-size:13px;line-height:1.7}
+.hist{display:grid}.hi{display:grid;grid-template-columns:44px minmax(0,1fr);gap:10px;padding:9px 0;border-bottom:1px solid var(--line2);font-size:13px}.hi:last-child{border-bottom:0}.hi .hf{font:700 12.5px var(--f-num);color:var(--mut)}.hi b{font-weight:700}.hi small{display:block;color:var(--mut);font-size:11.5px;margin-top:2px}

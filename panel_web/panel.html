@@ -15,6 +15,7 @@
  <symbol id="i-pal" viewBox="0 0 24 24"><path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/></symbol>
  <symbol id="i-ins" viewBox="0 0 24 24"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></symbol>
  <symbol id="i-usr" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 20a6.5 6.5 0 0 0-2.5-5.2"/></symbol>
+ <symbol id="i-man" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/></symbol>
  <symbol id="i-ref" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></symbol>
  <symbol id="i-out" viewBox="0 0 24 24"><path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 16l-4-4 4-4M6 12h11"/></symbol>
 </svg>
@@ -31,6 +32,7 @@
   <button class="nav" data-v="min"><svg><use href="#i-min"/></svg>Mineral y pilas</button>
   <button class="nav" data-v="pal"><svg><use href="#i-pal"/></svg>Bodega y despachos</button>
   <button class="nav" data-v="ins"><svg><use href="#i-ins"/></svg>Insumos</button>
+  <button class="nav" data-v="mantencion"><svg><use href="#i-man"/></svg>Mantención <span class="navtag">maqueta</span></button>
   <div class="navt adm" hidden>Administración</div>
   <button class="nav adm" data-v="usuarios" hidden><svg><use href="#i-usr"/></svg>Usuarios y accesos</button>
  </nav>
@@ -51,6 +53,7 @@
  <section class="view" id="vSimulador" hidden></section>
  <section class="view" id="vReportes" hidden></section>
  <section class="view" id="vUsuarios" hidden></section>
+ <section class="view" id="vMantencion" hidden></section>
  <section class="view frame" id="vApp" hidden><iframe id="app" title="Datos de producción" src="/panel/app/?embed=1"></iframe></section>
  <div class="loading" id="loading"><div class="spin"></div><span id="loadTxt">Cargando datos de las planillas…</span></div>
 </div>
