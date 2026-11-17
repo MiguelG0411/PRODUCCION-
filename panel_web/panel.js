@@ -43,11 +43,11 @@ function verEstado(m){
 let ESTADO=null,UPD=false;
 async function esperarDescarga(){let m;for(let i=0;i<200;i++){m=await api('/panel/app/api/estado');verEstado(m);if(!m.cargando)return m;await pausa(1500)}return m}
 $('#updBtn').addEventListener('click',async()=>{
-  if(UPD)return;UPD=true;const b=$('#updBtn');b.disabled=true;b.textContent='Actualizando…';
+  if(UPD)return;UPD=true;const b=$('#updBtn');b.disabled=true;b.querySelector('span').textContent='Actualizando…';
   try{await api('/panel/app/api/actualizar',{method:'POST'});await pausa(600);const m=await esperarDescarga();await APP.recargar();pintar();
     toast(Object.values(m.fuentes).some(f=>f.ok===false)?'Actualizado con avisos':'Datos actualizados')}
   catch(e){toast('No se pudo actualizar')}
-  finally{UPD=false;b.disabled=false;b.textContent='⟳ Actualizar'}
+  finally{UPD=false;b.disabled=false;b.querySelector('span').textContent='Actualizar'}
 });
 
 /* ---------- navegación ---------- */
@@ -80,18 +80,30 @@ function pintar(){
   if(VISTA==='resumen')resumen();else if(VISTA==='simulador')simulador();else if(VISTA==='reportes')reportes();else usuarios();
 }
 
-/* ---------- gráfico de barras: esperados vs producidos ---------- */
+/* ---------- gráficos ---------- */
+const COL={esp:'#B5D4F1',pro:'#1677C9',cu:'#B9622F',grid:'#E9EEF5',txt:'#7A879B'};
 function barras(serie){
-  const W=760,H=200,L=36,Rm=8,T=14,B=24,iw=W-L-Rm,ih=H-T-B,n=Math.max(serie.length,1),st=iw/n,bw=Math.max(3,Math.min(16,st*.36));
+  const W=760,H=210,L=34,Rm=6,T=12,B=24,iw=W-L-Rm,ih=H-T-B,n=Math.max(serie.length,1),st=iw/n,bw=Math.max(3,Math.min(13,st*.34));
   const top=v=>{const p=Math.pow(10,Math.floor(Math.log10(v||1)));return [1,1.5,2,2.5,3,4,5,6,8,10].find(k=>v/p<=k)*p};
   const mx=top(Math.max(10,...serie.flatMap(s=>[s[1],s[2]]))*1.02/4)*4,y=v=>T+ih-v/mx*ih;
   let o=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Sacos esperados y producidos por día">`;
-  for(let i=0;i<=4;i++){const yy=T+ih*i/4;o+=`<line x1="${L}" x2="${W-Rm}" y1="${yy}" y2="${yy}" stroke="${i===4?'#E3E9F2':'#EEF2F8'}"/><text x="${L-6}" y="${yy+3}" text-anchor="end" font-size="10" fill="#64708A">${nf(mx*(1-i/4))}</text>`}
-  serie.forEach(([f,e,p],i)=>{const cx=L+st*i+st/2;
-    o+=`<g><title>${fc(f)} · esperados ${nf(e)} · producidos ${nf(p)} sacos</title><rect x="${cx-bw-1}" y="${y(e)}" width="${bw}" height="${T+ih-y(e)}" rx="2.5" fill="var(--c1)"/><rect x="${cx+1}" y="${y(p)}" width="${bw}" height="${T+ih-y(p)}" rx="2.5" fill="var(--c2)"/><rect x="${cx-st/2}" y="${T}" width="${st}" height="${ih}" fill="transparent"/></g>`;
-    if(n<=16||i%2===0||i===n-1)o+=`<text x="${cx}" y="${H-7}" text-anchor="middle" font-size="10" fill="#64708A">${+f.slice(8)}</text>`});
+  for(let i=0;i<=4;i++){const yy=T+ih*i/4;o+=`<line x1="${L}" x2="${W-Rm}" y1="${yy}" y2="${yy}" stroke="${COL.grid}" ${i<4?'stroke-dasharray="3 4"':''}/><text x="${L-8}" y="${yy+3.5}" text-anchor="end" font-size="10.5" fill="${COL.txt}">${nf(mx*(1-i/4))}</text>`}
+  serie.forEach(([f,e,p],i)=>{const cx=L+st*i+st/2,sel=f===DIA;
+    if(sel)o+=`<rect x="${cx-st/2+1}" y="${T-4}" width="${st-2}" height="${ih+4}" rx="6" fill="#EAF3FC"/>`;
+    o+=`<g><title>${fc(f)} · esperados ${nf(e)} · producidos ${nf(p)} sacos</title><rect x="${cx-bw-1}" y="${y(e)}" width="${bw}" height="${Math.max(0,T+ih-y(e))}" rx="3" fill="${COL.esp}"/><rect x="${cx+1}" y="${y(p)}" width="${bw}" height="${Math.max(0,T+ih-y(p))}" rx="3" fill="${COL.pro}"/><rect x="${cx-st/2}" y="${T}" width="${st}" height="${ih}" fill="transparent"/></g>`;
+    if(n<=16||i%2===0||i===n-1||sel)o+=`<text x="${cx}" y="${H-7}" text-anchor="middle" font-size="10.5" fill="${sel?'#0F1B2D':COL.txt}" ${sel?'font-weight="700"':''}>${+f.slice(8)}</text>`});
   return o+'</svg>';
 }
+function spark(v,{tipo='area',color=COL.pro,alto=38}={}){
+  const W=200,H=alto,n=v.length;if(!n)return '';const mx=Math.max(1,...v.filter(x=>x!=null));
+  if(tipo==='barras'){const st=W/n,bw=st*.62;return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none">${v.map((x,i)=>x==null?`<rect x="${i*st+(st-bw)/2}" y="${H-2}" width="${bw}" height="2" rx="1" fill="rgba(127,140,160,.25)"/>`:`<rect x="${i*st+(st-bw)/2}" y="${H-Math.max(2,x/mx*H)}" width="${bw}" height="${Math.max(2,x/mx*H)}" rx="2" fill="${color}" opacity="${i===v.map((q,j)=>q!=null?j:-1).reduce((a,b)=>Math.max(a,b))?1:.45}"/>`).join('')}</svg>`}
+  const pts=v.map((x,i)=>[n>1?i/(n-1)*W:W/2,H-3-(x||0)/mx*(H-8)]);const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const last=pts[pts.length-1];
+  return `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${d} L${W} ${H} L0 ${H}Z" fill="${color}" opacity=".18"/><path d="${d}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke"/><circle cx="${last[0]}" cy="${last[1]}" r="3" fill="${color}"/></svg>`;
+}
+function mini4(v,c){const p=(v||[]).map((x,i)=>x==null?null:[6+i*17.3,0,x]).filter(Boolean);if(!p.length)return '<svg></svg>';
+  const vs=p.map(q=>q[2]),mn=Math.min(...vs),mx=Math.max(...vs),r=mx-mn||1;p.forEach(q=>q[1]=21-(q[2]-mn)/r*16);
+  return `<svg viewBox="0 0 64 26"><polyline points="${p.map(q=>q[0]+','+q[1]).join(' ')}" fill="none" stroke="${c}" stroke-width="1.8" stroke-linejoin="round"/>${p.map(q=>`<circle cx="${q[0]}" cy="${q[1]}" r="2" fill="${c}"/>`).join('')}</svg>`}
 
 /* ---------- RESUMEN ---------- */
 const SOLS=[['PLS','PLS','var(--c1)'],['ILS LIX','ILS','var(--c5)'],['REF LIX','REF LIX','var(--c3)'],['REF SX 1','REF SX 1','var(--c8)'],['REF SX 2','REF SX 2','var(--c2)'],['ELECTROLITO 1','Electrolito 1','var(--c4)'],['ELECTROLITO 2','Electrolito 2','var(--c7)']];
@@ -103,14 +115,14 @@ function guardarPetBase(o){try{localStorage.setItem(PETK,JSON.stringify(o))}catc
 function resumen(){
   const p=R.prod,ex=p.extraccion,op=ex.filter(e=>e!=null),eg=op.length?op.reduce((a,b)=>a+b,0)/op.length:null,M=R.mineral,A=R.acido,B=R.bodega,Pe=R.petroleo;
   const dif=p.esperados!=null&&p.registrado?p.sacos-p.esperados:null,kgS=R.kgSaco||25;
-  const tE=R.serie.reduce((a,s)=>a+s[1],0),tP=R.serie.reduce((a,s)=>a+s[2],0),mes=MES[+DIA.slice(5,7)-1],anio=DIA.slice(0,4);
+  const tE=R.serie.reduce((a,s)=>a+s[1],0),tP=R.serie.reduce((a,s)=>a+s[2],0),mes=MES[+DIA.slice(5,7)-1],anio=DIA.slice(0,4),cump=tE?tP/tE:null;
   const diasAc=A&&A.consumoProm?A.activo/A.consumoProm:null;
-  // avisos
+  // avisos: primero lo que requiere acción
   const av=[];
-  if(A&&A.activo<ACIDO_MIN)av.push(['r','Pedir ácido','Quedan '+nf(A.activo,1)+' t en los estanques en servicio ('+A.tks.map(t=>t.n.split(' ')[0]).join(' y ')+'), bajo el mínimo de '+ACIDO_MIN+' t.']);
-  if(Pe&&Pe.stock!=null&&Pe.stock<PET_MIN)av.push(['r','Pedir petróleo','Quedan '+nf(Pe.stock)+' L en el estanque, bajo el mínimo de '+nf(PET_MIN)+' L.']);
+  if(A&&A.activo<ACIDO_MIN)av.push(['r','Pedir ácido','Quedan '+nf(A.activo,1)+' t en los estanques en servicio, bajo el mínimo de '+ACIDO_MIN+' t.','Pedir']);
+  if(Pe&&Pe.stock!=null&&Pe.stock<PET_MIN)av.push(['r','Pedir petróleo','Quedan '+nf(Math.max(0,Pe.stock))+' L en el estanque, bajo el mínimo de '+nf(PET_MIN)+' L.','Pedir']);
   ex.forEach((e,i)=>{if(e==null)av.push(['r','Tren '+(i+1)+' detenido','Sin muestras de REF SX '+(i+1)+' este día.'])});
-  if(dif!=null&&p.esperados>0&&p.sacos<p.esperados*.9)av.push(['w','Producción bajo lo esperado',nf(p.sacos)+' de '+nf(p.esperados)+' sacos esperados ('+nf(p.sacos/p.esperados*100)+'%).']);
+  if(dif!=null&&p.esperados>0&&p.sacos<p.esperados*.9)av.push(['w','Producción bajo lo esperado',nf(p.sacos)+' de '+nf(p.esperados)+' sacos esperados ('+nf(p.sacos/p.esperados*100)+' %).']);
   if(p.esperados&&!p.registrado)av.push(['w','Sin producción registrada','La planilla RECUPERACIÓN no tiene este día.']);
   const ref=R.sol['REF LIX']&&R.sol['REF LIX'].cu,baja=ref!=null?R.pilas.filter(x=>x.cu!=null&&x.cu-ref<0.4):[];
   if(baja.length)av.push(['w','Pilas con poco cobre',baja.map(x=>x.k.slice(0,6)).join(', ')+' entregan menos de 0,4 g/L sobre el refino ('+nf(ref,2)+' g/L).']);
@@ -119,46 +131,58 @@ function resumen(){
   bad.forEach(f=>av.push(['r','Planilla con error: '+f.nombre,'Se muestran sus últimos datos buenos.']));
   if(!av.length)av.push(['o','Todo en orden','Sin avisos para este día.']);
   av.sort((x,y)=>({r:0,w:1,o:2})[x[0]]-({r:0,w:1,o:2})[y[0]]);
-  const ico={r:'!',w:'!',o:'✓'};
-  const barra=(v,cap,mal)=>`<div class="bar"><i style="width:${Math.max(2,Math.min(100,cap?v/cap*100:0))}%;${mal?'background:var(--bad)':''}"></i></div>`;
+  const nr=av.filter(a=>a[0]==='r').length;
+  const ico=(id)=>`<i><svg><use href="#${id}"/></svg></i>`;
+  // mineral: composición del stock
+  const mt=M?M.disp+M.stockPile+M.rechazo:0,comp=M?[[M.disp,'#1677C9','Por chancar'],[M.stockPile,'#B9622F','Stock pile'],[M.rechazo,'#9AA6B8','Rechazo']]:[];
+  // pilas
+  const mxCu=Math.max(2,...R.pilas.map(x=>x.cu||0));
+  const tanque=(n,v,cap,u,cls)=>`<div class="tank"><div class="tv ${cls||''}"><i style="height:${Math.max(3,Math.min(100,cap?v/cap*100:0))}%"></i><em>${cap?nf(Math.max(0,v)/cap*100)+'%':''}</em></div><small>${n}<b>${nf(Math.max(0,v),u==='L'?0:1)} ${u}</b></small></div>`;
   const pb=Pe&&Pe.base;
   $('#vResumen').innerHTML=`
   <div class="k4">
-   <div class="card kpi hero"><small>Producción acumulada de ${mes}</small><b>${nf(p.kgMes/1000,1)} t</b><em>${nf(p.kgMes/kgS)} sacos · ${R.diasMes} ${R.diasMes===1?'día':'días'} con producción${R.ultProd&&R.ultProd<DIA?' · registrada hasta el '+fc(R.ultProd):''}</em></div>
-   <div class="card kpi"><small>Producción acumulada ${anio}</small><b>${nf(R.kgAnio/1000,1)} t</b><em>${nf(R.kgAnio/kgS)} sacos de ${kgS} kg</em></div>
-   <div class="card kpi"><small>Mineral disponible para chancar</small><b>${M?nf(M.disp,1)+' t':'—'}</b><em>${M?'stock pile '+nf(M.stockPile)+' t · rechazo '+nf(M.rechazo)+' t':'sin datos de mineral'}</em></div>
-   <div class="card kpi"><small>Extracción de la planta · ${fc(DIA)}</small><b>${eg!=null?nf(eg*100,1)+'%':'—'}</b><em>${ex.map((e,i)=>`<span class="tg ${e!=null?'g2':'r2'}">T${i+1} · ${e!=null?nf(e*100,1)+'%':'detenido'}</span>`).join('')}</em></div>
+   <div class="card kpi hero"><div class="kh">${ico('i-prod')}<small>Producción acumulada de ${mes}</small></div>
+    <b>${nf(p.kgMes/1000,1)}<u>t</u></b><em>${nf(p.kgMes/kgS)} sacos · ${R.diasMes} ${R.diasMes===1?'día':'días'} con producción${R.ultProd&&R.ultProd<DIA?' · registrada al '+fc(R.ultProd):''}</em>
+    <div class="spark">${spark(R.serie.map(s=>s[2]),{color:'#7CC4FF'})}</div></div>
+   <div class="card kpi cu"><div class="kh">${ico('i-pal')}<small>Producción acumulada ${anio}</small></div>
+    <b>${nf(R.kgAnio/1000,1)}<u>t</u></b><em>${nf(R.kgAnio/kgS)} sacos · promedio ${nf(R.kgAnio/1000/Math.max(1,(R.mesesAnio||[]).filter(x=>x!=null).length),1)} t por mes</em>
+    <div class="spark">${spark(R.mesesAnio||[],{tipo:'barras',color:COL.cu})}</div></div>
+   <div class="card kpi"><div class="kh">${ico('i-min')}<small>Mineral disponible para chancar</small></div>
+    <b>${M?nf(M.disp,1):'—'}<u>t</u></b><em>${M?M.camiones+' camiones en cancha':'sin datos de mineral'}</em>
+    ${M?`<div class="comp">${comp.map(c=>`<i style="width:${mt?c[0]/mt*100:0}%;background:${c[1]}"></i>`).join('')}</div><div class="compl">${comp.map(c=>`<span><i class="dot" style="background:${c[1]};margin:0"></i>${c[2]} ${nf(c[0])} t</span>`).join('')}</div>`:''}</div>
+   <div class="card kpi"><div class="kh">${ico('i-pla')}<small>Extracción de la planta · ${fc(DIA)}</small></div>
+    <b>${eg!=null?nf(eg*100,1):'—'}<u>%</u></b><em>promedio de los trenes en operación</em>
+    <div class="trenes">${ex.map((e,i)=>`<div><span>T${i+1}</span><span class="tb"><i style="width:${e!=null?e*100:0}%"></i></span>${e!=null?`<b>${nf(e*100,1)} %</b>`:'<span class="off">detenido</span>'}</div>`).join('')}</div></div>
   </div>
   <div class="g2c">
-   <div class="card"><h3>Producción de ${mes} <span>sacos esperados vs producidos, hasta el ${fc(DIA)}</span></h3>
+   <div class="card"><h3>Producción de ${mes}<span>sacos por día, hasta el ${fc(DIA)}</span></h3>
     <div class="chart">${barras(R.serie)}</div>
-    <div class="leg"><span><i class="dot" style="background:var(--c1)"></i>Esperados</span><span><i class="dot" style="background:var(--c2)"></i>Producidos</span>
-     <span style="margin-left:auto">Producidos ${nf(tP)} / esperados ${nf(tE)} · cumplimiento <b class="${tP>=tE?'up':'dn'}">${tE?nf(tP/tE*100,1)+'%':'—'}</b></span></div></div>
-   <div class="card"><h3>Atención <span>${av[0][0]==='o'?'sin avisos':av.length+(av.length>1?' avisos':' aviso')}</span></h3>
-    ${av.map(a=>`<div class="al"><div class="ic ${a[0]}">${ico[a[0]]}</div><div><b>${esc(a[1])}</b><span>${esc(a[2])}</span></div></div>`).join('')}</div>
+    <div class="leg"><span><i class="dot" style="background:${COL.esp}"></i>Esperados (control químico)</span><span><i class="dot" style="background:${COL.pro}"></i>Producidos</span>
+     <span class="prog">Cumplimiento <b class="${cump>=1?'up':'dn'}">${cump!=null?nf(cump*100,1)+' %':'—'}</b><span class="bar"><i style="width:${Math.min(100,(cump||0)*100)}%;${cump<0.9?'background:var(--bad)':''}"></i></span><span>${nf(tP)} / ${nf(tE)}</span></span></div></div>
+   <div class="card"><h3>Atención<span>${nr?nr+(nr===1?' requiere acción':' requieren acción'):av[0][0]==='o'?'sin avisos':av.length+' para revisar'}</span></h3>
+    ${av.map(a=>`<div class="al ${a[0]}"><div class="ic">${a[0]==='o'?'✓':'!'}</div><div><b>${esc(a[1])}</b><span>${esc(a[2])}</span></div>${a[3]?`<span class="act">${a[3]}</span>`:''}</div>`).join('')}</div>
   </div>
   <div class="g3c">
-   <div class="card"><h3>Pilas en riego <span>${R.pilas.length} ${R.pilas.length===1?'pila':'pilas'}</span></h3>
-    ${R.pilas.length?`<table><tr><th>Pila</th><th>Días</th><th>Cu g/L</th><th>Destino</th></tr>${R.pilas.map(x=>`<tr><td>${esc(x.k)} ${x.ripio?'<span class="tg b2">ripio</span>':''}</td><td>${x.dias}</td><td><b>${nf(x.cu,2)}</b></td><td>${esc((x.destino||'—').replace(' LIX',''))}</td></tr>`).join('')}</table>`:'<p class="empty">Sin pilas con lecturas este día.</p>'}</div>
-   <div class="card"><h3>Soluciones del día <span>promedio g/L</span></h3>
-    ${Object.keys(R.sol).length?`<table><tr><th>Solución</th><th>Cu</th><th>H+</th><th>pH</th></tr>${SOLS.filter(s=>R.sol[s[0]]&&R.sol[s[0]].cu!=null).map(s=>{const o=R.sol[s[0]];return `<tr><td><i class="dot" style="background:${s[2]}"></i>${s[1]}</td><td><b>${nf(o.cu,o.cu<10?2:1)}</b></td><td>${nf(o.h,1)}</td><td>${o.ph!=null?nf(o.ph,2):'—'}</td></tr>`}).join('')}</table>`:'<p class="empty">Sin muestras este día.</p>'}</div>
-   <div class="card"><h3>Insumos y bodega</h3>
-    <div class="ins-t">Ácido en estanques en servicio <span>${A?'registro del '+fc(A.fecha):''}</span></div>
-    ${A?A.tks.map(t=>`<div class="row"><span>${t.n}</span><b>${nf(t.t,1)} t <small>de ≈ ${nf(t.cap)} t</small></b></div>${barra(t.t,t.cap,A.activo<ACIDO_MIN)}`).join('')+`<div class="row" style="margin-top:8px"><span>Total en servicio</span><b class="${A.activo<ACIDO_MIN?'dn':''}">${nf(A.activo,1)} t${diasAc!=null?' <small>≈ '+nf(diasAc)+' días</small>':''}</b></div>`:'<p class="note">Sin datos de ácido.</p>'}
-    <div class="ins-t" style="margin-top:14px">Petróleo <span>${Pe?'planilla al '+fc(Pe.actualizado):''}</span></div>
-    ${Pe&&Pe.stock!=null?`<div class="row"><span>Stock en estanque</span><b class="${Pe.stock<PET_MIN?'dn':''}">${nf(Pe.stock)} L</b></div>${barra(Pe.stock,Math.max(PET_MIN*3,Pe.stock),Pe.stock<PET_MIN)}
-      <p class="note" style="margin-top:4px">Medido ${nf(pb.L)} L el ${fc(pb.f)} + cargas ${nf(Pe.cargas)} L − despachos ${nf(Pe.despachos)} L · <a href="#" id="petEdit">cambiar medición</a></p>`:''}
-    <form id="petForm" ${Pe&&Pe.stock!=null?'hidden':''} style="margin-top:6px"><p class="note" style="margin:0 0 6px">Ingresa el stock medido en el estanque y su fecha; desde ahí se suman las cargas y se restan los despachos de la planilla.</p>
-      <div style="display:flex;gap:6px;flex-wrap:wrap"><input id="petL" type="number" min="0" step="1" placeholder="Litros" value="${pb?pb.L:''}" style="width:96px" class="inp"><input id="petF" type="date" value="${pb?pb.f:(Pe?Pe.actualizado:DIA)}" class="inp"><button class="btn" type="submit" style="padding:6px 10px">Guardar</button></div></form>
-    <div class="row" style="margin-top:10px"><span>Petróleo entregado en ${mes}</span><b>${Pe?nf(Pe.mes)+' L':'—'}</b></div>
-    <div class="row"><span>Pallets en bodega</span><b>${B?nf(B.pallets)+' · '+nf(B.ton,1)+' t':'—'}</b></div>
+   <div class="card"><h3>Pilas en riego<span>${R.pilas.length} ${R.pilas.length===1?'pila':'pilas'} · ${fc(DIA)}</span></h3>
+    ${R.pilas.length?`<table><tr><th>Pila</th><th>Días</th><th>Cu g/L</th><th>Destino</th></tr>${R.pilas.map(x=>{const d=(x.destino||'').toUpperCase(),dp=d.includes('PLS')?'<span class="tg b2">PLS</span>':d.includes('ILS')?'<span class="tg p2">ILS</span>':'<span class="tg">'+esc(x.destino||'—')+'</span>';
+      return `<tr><td>${esc(x.k)}${x.ripio?' <span class="tg c2">ripio</span>':''}</td><td>${x.dias}</td><td><b>${nf(x.cu,2)}</b><span class="minibar"><i style="width:${Math.min(100,Math.sqrt((x.cu||0)/mxCu)*100)}%;background:${(x.cu||0)>=0.8?'var(--vit)':'#9AA6B8'}"></i></span></td><td>${dp}</td></tr>`}).join('')}</table>`:'<p class="empty">Sin pilas con lecturas este día.</p>'}</div>
+   <div class="card"><h3>Soluciones del día<span>Cu promedio del día</span></h3>
+    ${Object.keys(R.sol).length?`<div class="sols">${SOLS.filter(s=>R.sol[s[0]]&&R.sol[s[0]].cu!=null).map(s=>{const o=R.sol[s[0]];return `<div class="sol"><div class="n"><i class="dot" style="background:${s[2]}"></i>${s[1]}<small>H+ ${nf(o.h,1)} g/L${o.ph!=null?' · pH '+nf(o.ph,2):''}</small></div>${mini4(o.cu4,s[2])}<div class="v">${nf(o.cu,o.cu<10?2:1)}<small>g/L Cu</small></div></div>`}).join('')}</div>`:'<p class="empty">Sin muestras este día.</p>'}</div>
+   <div class="card"><h3>Insumos y bodega<span>${A?'ácido al '+fc(A.fecha):''}</span></h3>
+    <div class="tanks">${A?A.tks.map(t=>tanque(t.n,t.t,t.cap,'t',A.activo<ACIDO_MIN?'bajo':'')).join(''):''}${Pe&&Pe.stock!=null?tanque('Petróleo',Pe.stock,Math.max(PET_MIN*3,Pe.stock),'L',Pe.stock<PET_MIN?'bajo':'pet'):''}</div>
+    ${A?`<div class="row" style="margin-top:8px"><span>Ácido en servicio</span><b class="${A.activo<ACIDO_MIN?'dn':''}">${nf(A.activo,1)} t${diasAc!=null?' <small>≈ '+nf(diasAc)+' días de consumo</small>':''}</b></div>`:''}
+    ${Pe&&Pe.stock!=null?`<div class="row"><span>Petróleo en estanque <small>medido ${fc(pb.f)}</small></span><b class="${Pe.stock<PET_MIN?'dn':''}">${nf(Pe.stock)} L <small><a href="#" id="petEdit">cambiar</a></small></b></div>`:''}
+    <form id="petForm" ${Pe&&Pe.stock!=null?'hidden':''} style="margin:8px 0 4px"><div class="ins-t" style="margin-bottom:6px">Stock medido de petróleo</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap"><input id="petL" type="number" min="0" step="1" placeholder="Litros" value="${pb?pb.L:''}" style="width:96px" class="inp"><input id="petF" type="date" value="${pb?pb.f:(Pe?Pe.actualizado:DIA)}" class="inp"><button class="btn" type="submit" style="padding:6px 12px">Guardar</button></div>
+      <p class="note" style="margin-top:6px">Desde esa fecha se suman las cargas y se restan los despachos de la planilla.</p></form>
+    <div class="row"><span>Petróleo entregado en ${mes}</span><b>${Pe?nf(Pe.mes)+' L':'—'}</b></div>
+    <div class="row"><span>Pallets en bodega</span><b>${B?nf(B.pallets)+' <small>'+nf(B.ton,1)+' t</small>':'—'}</b></div>
     <div class="row"><span>Despachos en ${mes}</span><b>${B?nf(B.despMes)+' pallets':'—'}</b></div></div>
   </div>
-  <p class="note">Datos de las planillas de Dropbox. Control químico hasta el ${R.cqHasta?fc(R.cqHasta)+'/'+R.cqHasta.slice(0,4):'—'}. Capacidad de cada estanque de ácido = nivel máximo registrado desde el 26/02/2026. Avisos: pedir ácido bajo ${ACIDO_MIN} t en servicio; pedir petróleo bajo ${nf(PET_MIN)} L.</p>`;
-  const fm=$('#petForm');if(fm)fm.addEventListener('submit',e=>{e.preventDefault();const l=+$('#petL').value,f=$('#petF').value;if(!f||!(l>=0)){toast('Ingresa los litros y la fecha');return}guardarPetBase({L:l,f});pintar();toast('Stock de petróleo guardado')});
+  <p class="note">Control químico hasta el ${R.cqHasta?fc(R.cqHasta)+'/'+R.cqHasta.slice(0,4):'—'}. Sacos esperados = Cu PLS × ${R.flujo} L/min × 1.440 × extracción de cada tren × 3,92 × ${nf(R.humedad,2)} ÷ 25. Capacidad de cada estanque de ácido = nivel máximo registrado desde el 26/02/2026. Se avisa pedir ácido bajo ${ACIDO_MIN} t y petróleo bajo ${nf(PET_MIN)} L.</p>`;
+  const fm=$('#petForm');if(fm)fm.addEventListener('submit',e=>{e.preventDefault();const l=+$('#petL').value,f=$('#petF').value;if(!f||!(l>=0)||$('#petL').value===''){toast('Ingresa los litros y la fecha');return}guardarPetBase({L:l,f});pintar();toast('Stock de petróleo guardado')});
   const pe=$('#petEdit');if(pe)pe.addEventListener('click',e=>{e.preventDefault();$('#petForm').hidden=false});
 }
-
 /* ---------- SIMULADOR ---------- */
 let SIM=null;
 function simBase(){

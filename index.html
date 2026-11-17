@@ -9,7 +9,7 @@
 <meta name="theme-color" content="#FFFFFF">
 <title>Producción de Sulfato · Minera Anita SpA</title>
 <script>/* dentro del panel de gestión: sin encabezado propio, tema claro y vista elegida por el panel */
-if(/[?&]embed=1/.test(location.search)){document.documentElement.classList.add('embed');document.documentElement.setAttribute('data-theme','light');window.CW=600}</script>
+if(/[?&]embed=1/.test(location.search)){document.documentElement.classList.add('embed');document.documentElement.setAttribute('data-theme','light');window.CW=600;document.write('<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap">')}</script>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <link rel="icon" href="icons/icon-192.png">
@@ -288,6 +288,19 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
 @media (prefers-color-scheme:dark){.syncw{background:#3A2A12;color:#F6CE8E;border-color:#6B4A1A}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}.spin{animation-duration:2.4s}}
 /* ---------- dentro del panel de gestión (pantalla de computador) ---------- */
+html.embed{--bg:#F1F4F8;--surface:#FFFFFF;--ink:#0F1B2D;--muted:#5B6A80;--line:#E1E7EF;--cu:#1677C9;--cu-soft:#E6F1FB;--cu-2:#86BDEB;--acc:#B9622F;--ok:#13804B;--down:#C2412D;color-scheme:light}
+.embed body{font-family:"Inter",system-ui,sans-serif;font-size:14.5px}
+.embed .big,.embed .card h2,.embed .hero .big,.embed .stats b,.embed .mstats b,.embed h1,.embed h2{font-family:"Archivo","Inter",sans-serif;letter-spacing:-.2px}
+.embed .big{font-weight:800;letter-spacing:-1px}
+.embed .card,.embed .hero{border-radius:14px;border:1px solid #E1E7EF;box-shadow:0 1px 2px rgba(15,27,45,.04),0 4px 14px rgba(15,27,45,.05)}
+.embed .hero{background:#fff}
+.embed .stats div,.embed .mstats div{background:#F6F8FB;border:1px solid #EEF2F7;border-radius:11px}
+.embed .yrs button,.embed .months button{border-radius:999px;padding:7px 14px;font-size:.85rem;font-weight:600;border-color:#E1E7EF}
+.embed .yrs button[aria-pressed="true"],.embed .months button[aria-pressed="true"]{background:#0B1B33;border-color:#0B1B33;color:#fff}
+.embed .ctabs{background:#E8EDF4;border-radius:12px}.embed .ctabs button[aria-pressed="true"]{box-shadow:0 1px 3px rgba(15,27,45,.12)}
+.embed .secondary{border-radius:11px;font-weight:600}
+.embed .note{color:#6B788C}
+.embed .mtab th{text-transform:uppercase;font-size:.7rem;letter-spacing:.3px;color:#5B6A80}
 .embed body{background:#F3F6FB}
 .embed .top,.embed .sync,.embed .tabs2,.embed .credit,.embed #addBtn{display:none!important}
 .embed .wrap{max-width:1320px;padding:22px 26px 60px}
@@ -302,7 +315,8 @@ label.f{display:block;font-size:.85rem;color:var(--muted);font-weight:600;margin
   .embed .stats,.embed .mstats{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
   .embed .chart svg{max-height:440px}
   .embed .card h2{font-size:1.12rem}
-  .embed .chart text{font-size:13px}
+  .embed .chart text{font-size:12.5px}
+  .embed .chart svg{overflow:visible}
   .embed #pe_kList,.embed #salList{max-height:620px;overflow:auto;padding-right:4px}
   .embed #plSin{max-height:520px;overflow:auto}
   /* tarjetas con tablas anchas o muchas pilas: a todo el ancho */
@@ -2127,6 +2141,7 @@ function resumenDia(d,opc){
   const mes=d.slice(0,7),kg=kgOf(D[d]),kgMes=Object.keys(D).filter(k=>k.startsWith(mes)&&k<=d).reduce((a,k)=>a+kgOf(D[k]),0);
   const diasMes=Object.keys(D).filter(k=>k.startsWith(mes)&&k<=d&&kgOf(D[k])>0).length,kgAnio=Object.keys(D).filter(k=>k.startsWith(d.slice(0,4))&&k<=d).reduce((a,k)=>a+kgOf(D[k]),0);
   const ultProd=Object.keys(D).filter(k=>k<=d).sort().pop()||null;
+  const mesesAnio=Array.from({length:12},(_,i)=>{const m=d.slice(0,4)+'-'+String(i+1).padStart(2,'0');return m>mes?null:Object.keys(D).filter(k=>k.startsWith(m)&&k<=d).reduce((a,k)=>a+kgOf(D[k]),0)});
   const S=CQ&&CQ.soluciones[d]||{},sol={};Object.keys(NOMS).forEach(k=>{const o=S[k];if(o)sol[k]={cu:prom(o[0]),h:prom(o[1]),ph:prom(o[2]),cu4:o[0],h4:o[1]}});
   const dm=fc.filter(f=>f.startsWith(mes)&&f<=d),serie=dm.map(f=>[f,CQ?sacosEsp(f)||0:0,kgOf(D[f])/KG()]);
   const dd=f=>Math.round((new Date(d+'T12:00:00')-new Date(f+'T12:00:00'))/864e5)+1;
@@ -2151,7 +2166,7 @@ function resumenDia(d,opc){
       const ca=P.cargas.filter(c=>c[0]>b.f&&c[0]<=hasta).reduce((a,c)=>a+c[1],0),de=P.entregas.filter(e=>e[0]>b.f&&e[0]<=hasta&&(e[5]===0||e[5]===1)).reduce((a,e)=>a+e[3],0);
       petroleo.stock=b.L+ca-de;petroleo.cargas=ca;petroleo.despachos=de;petroleo.base=b}}
   return {dia:d,dias:fc,kgSaco:KG(),prod:{registrado:!!D[d],kg,sacos:kg/KG(),kgMes,esperados:CQ?sacosEsp(d):null,extraccion:CQ?extraccion(d):[null,null]},
-    serie,sol,pilas,mineral,acido,bodega,petroleo,kgAnio,diasMes,ultProd,cqHasta:CQ?CQ.actualizado:null,flujo:FLUJO,humedad:HUMEDAD};
+    serie,sol,pilas,mineral,acido,bodega,petroleo,kgAnio,diasMes,ultProd,mesesAnio,cqHasta:CQ?CQ.actualizado:null,flujo:FLUJO,humedad:HUMEDAD};
 }
 window.APP={
   vista:v=>{const b=document.querySelector('.tabs2 [data-v="'+v+'"]');if(b)b.click()},
