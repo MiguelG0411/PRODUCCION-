@@ -107,7 +107,7 @@ function mini4(v,c){const p=(v||[]).map((x,i)=>x==null?null:[6+i*17.3,0,x]).filt
 
 /* ---------- RESUMEN ---------- */
 const SOLS=[['PLS','PLS','var(--c1)'],['ILS LIX','ILS','var(--c5)'],['REF LIX','REF LIX','var(--c3)'],['REF SX 1','REF SX 1','var(--c8)'],['REF SX 2','REF SX 2','var(--c2)'],['ELECTROLITO 1','Electrolito 1','var(--c4)'],['ELECTROLITO 2','Electrolito 2','var(--c7)']];
-const ACIDO_MIN=30,PET_MIN=5000,PET_CAP=15000;   // PET_CAP: capacidad referencial del estanque de petróleo (por confirmar)   // bajo estos valores se avisa "pedir ácido" / "pedir petróleo"
+const ACIDO_MIN=30,PET_MIN=5000,PET_CAP=12000;   // PET_CAP: capacidad del estanque de petróleo (12.000 L, dato de Miguel)   // bajo estos valores se avisa "pedir ácido" / "pedir petróleo"
 // stock de petróleo medido (punto de partida): las cargas y despachos posteriores se suman y restan
 const PETK='panel-petroleo-base';
 function petBase(){try{const o=JSON.parse(localStorage.getItem(PETK)||'null');return o&&o.f&&o.L!=null?o:null}catch(e){return null}}
@@ -169,7 +169,7 @@ function resumen(){
    <div class="card"><h3>Soluciones del día<span>Cu promedio del día</span></h3>
     ${Object.keys(R.sol).length?`<div class="sols">${SOLS.filter(s=>R.sol[s[0]]&&R.sol[s[0]].cu!=null).map(s=>{const o=R.sol[s[0]];return `<div class="sol"><div class="n"><i class="dot" style="background:${s[2]}"></i>${s[1]}<small>H+ ${nf(o.h,1)} g/L${o.ph!=null?' · pH '+nf(o.ph,2):''}</small></div>${mini4(o.cu4,s[2])}<div class="v">${nf(o.cu,o.cu<10?2:1)}<small>g/L Cu</small></div></div>`}).join('')}</div>`:'<p class="empty">Sin muestras este día.</p>'}</div>
    <div class="card"><h3>Insumos y bodega<span>${A?'ácido al '+fc(A.fecha):''}</span></h3>
-    <div class="tanks">${A?A.tks.map(t=>tanque(t.n,t.t,t.cap,'t',A.activo<ACIDO_MIN?'bajo':'')).join(''):''}${Pe?(Pe.stock!=null?tanque('Petróleo',Pe.stock,Math.max(PET_CAP,Pe.stock),'L',Pe.stock<PET_MIN?'bajo':'pet'):`<div class="tank"><div class="tv pet"><i style="height:0"></i><em style="font-size:11px;color:var(--mut)">sin medir</em></div><small>Petróleo<b>—</b></small></div>`):''}</div>
+    <div class="tanks">${A?A.tks.map(t=>tanque(t.n,t.t,t.cap,'t',A.activo<ACIDO_MIN?'bajo':'')).join(''):''}${Pe?(Pe.stock!=null?tanque('Petróleo',Pe.stock,PET_CAP,'L',Pe.stock<PET_MIN?'bajo':'pet'):`<div class="tank"><div class="tv pet"><i style="height:0"></i><em style="font-size:11px;color:var(--mut)">sin medir</em></div><small>Petróleo<b>—</b></small></div>`):''}</div>
     ${A?`<div class="row" style="margin-top:8px"><span>Ácido en servicio</span><b class="${A.activo<ACIDO_MIN?'dn':''}">${nf(A.activo,1)} t${diasAc!=null?' <small>≈ '+nf(diasAc)+' días de consumo</small>':''}</b></div>`:''}
     ${Pe&&Pe.stock!=null?`<div class="row"><span>Petróleo en estanque <small>medido ${fc(pb.f)}</small></span><b class="${Pe.stock<PET_MIN?'dn':''}">${nf(Pe.stock)} L <small><a href="#" id="petEdit">cambiar</a></small></b></div>`:''}
     <form id="petForm" ${Pe&&Pe.stock!=null?'hidden':''} style="margin:8px 0 4px"><div class="ins-t" style="margin-bottom:6px">Stock medido de petróleo</div>
@@ -179,7 +179,7 @@ function resumen(){
     <div class="row"><span>Pallets en bodega</span><b>${B?nf(B.pallets)+' <small>'+nf(B.ton,1)+' t</small>':'—'}</b></div>
     <div class="row"><span>Despachos en ${mes}</span><b>${B?nf(B.despMes)+' pallets':'—'}</b></div></div>
   </div>
-  <p class="note">Control químico hasta el ${R.cqHasta?fc(R.cqHasta)+'/'+R.cqHasta.slice(0,4):'—'}. Sacos esperados = Cu PLS × ${R.flujo} L/min × 1.440 × extracción de cada tren × 3,92 × ${nf(R.humedad,2)} ÷ 25. Capacidad de cada estanque de ácido = nivel máximo registrado desde el 26/02/2026. Se avisa pedir ácido bajo ${ACIDO_MIN} t y petróleo bajo ${nf(PET_MIN)} L.</p>`;
+  <p class="note">Control químico hasta el ${R.cqHasta?fc(R.cqHasta)+'/'+R.cqHasta.slice(0,4):'—'}. Sacos esperados = Cu PLS × ${R.flujo} L/min × 1.440 × extracción de cada tren × 3,92 × ${nf(R.humedad,2)} ÷ 25. Capacidad de cada estanque de ácido = nivel máximo registrado desde el 26/02/2026. Estanque de petróleo de ${nf(PET_CAP)} L. Se avisa pedir ácido bajo ${ACIDO_MIN} t y petróleo bajo ${nf(PET_MIN)} L.</p>`;
   const fm=$('#petForm');if(fm)fm.addEventListener('submit',e=>{e.preventDefault();const l=+$('#petL').value,f=$('#petF').value;if(!f||!(l>=0)||$('#petL').value===''){toast('Ingresa los litros y la fecha');return}guardarPetBase({L:l,f});pintar();toast('Stock de petróleo guardado')});
   const pe=$('#petEdit');if(pe)pe.addEventListener('click',e=>{e.preventDefault();$('#petForm').hidden=false});
 }
