@@ -322,6 +322,21 @@ html.embed{--bg:#F1F4F8;--surface:#FFFFFF;--ink:#0F1B2D;--muted:#5B6A80;--line:#
   /* tarjetas con tablas anchas o muchas pilas: a todo el ancho */
   .embed #vPla>.card:has(#plPiTab),.embed #vPla>.card:has(#plMinis){grid-column:1/-1}
   .embed #plMinis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  /* Planta: orden y anchos pedidos */
+  .embed #vPla>*{order:20}
+  .embed #vPla>.daynav{order:1}.embed #vPla>#plKpis{order:2}
+  .embed #vPla>.card:has(#plSol){order:3;grid-column:1/-1}
+  .embed #vPla>.card:has(#plCu){order:4}.embed #vPla>.card:has(#plH){order:5}
+  .embed #vPla>.card:has(#plPh){order:6}.embed #vPla>.card:has(#plMes){order:7}
+  .embed #vPla>#plElCard{order:8;grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;column-gap:28px}
+  .embed #vPla>#plElCard>*{grid-column:1/-1}
+  .embed #vPla>#plElCard>p.sub:nth-of-type(1){grid-column:1;grid-row:2}.embed #plElCard>#plElCu{grid-column:1;grid-row:3}
+  .embed #vPla>#plElCard>p.sub:nth-of-type(2){grid-column:2;grid-row:2;margin-top:0!important}.embed #plElCard>#plElH{grid-column:2;grid-row:3}
+  .embed #vPla>.card:has(#plSac){order:9;grid-column:1/-1}
+  .embed #vPla>.card:has(#plPiTab){order:10}.embed #vPla>.card:has(#plPiCh){order:11;grid-column:1/-1}
+  .embed #vPla>.card:has(#plMinis){order:12}.embed #vPla>#plSinCard{order:13}.embed #vPla>#plNote{order:14}
+  .embed #plSol{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  .embed .card:has(#plSac) .mstats{grid-template-columns:repeat(2,minmax(0,220px))}
   /* detalle del mes de producción: indicadores a la izquierda y gráfico a la derecha */
   .embed #vProd>#mCard{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr);column-gap:28px;align-items:start}
   .embed #mCard>*{grid-column:1/-1}
@@ -2017,7 +2032,7 @@ function plaRender(){
     <div><small>Producidos / esperados</small><b>${D[d]?nf(sp):'—'} <span style="font-size:.8rem;color:var(--muted)">/ ${se!=null?nf(se):'—'} sacos</span></b>${D[d]&&se?`<small class="${dif>=0?'up':'dn'}">${dif>=0?'▲ +':'▼ −'}${nf(Math.abs(dif))} · ${nf(sp/se*100,0)}% de lo esperado</small>`:''}</div>
     <div><small>Extracción global</small><b>${eg!=null?nf(eg*100,1)+'%':'—'}</b><span class="tl">${ex.map((e,i)=>`<span class="tg ${e!=null?'g2':'r2'}">T${i+1} · ${e!=null?nf(e*100,1)+'%':'detenido'}</span>`).join('')}</span></div>`;
   // tarjetas de soluciones
-  $('#plSol').innerHTML=Object.keys(NOMS).map(k=>{const o=S[k];if(!o||prom(o[0])==null&&prom(o[1])==null)return `<div class="sc off"><div class="st">${NOMS[k]}</div><i>Sin operación</i></div>`;
+  $('#plSol').innerHTML=['PLS','REF SX 2','REF LIX','ILS LIX','ELECTROLITO 2','REF SX 1','ELECTROLITO 1'].map(k=>{const o=S[k];if(!o||prom(o[0])==null&&prom(o[1])==null)return `<div class="sc off"><div class="st">${NOMS[k]}</div><i>Sin operación</i></div>`;
     const ult=a=>{const v=a.filter(x=>x!=null);return v.length?v[v.length-1]:null},dc=(prom(o[0])||0)<10?2:1;
     const fila=(t,a,dd)=>`<div class="sr"><span>${t}</span><b>${nf(ult(a),dd)}</b><b class="p">${nf(prom(a),dd)}</b></div>`;
     return `<div class="sc"><div class="st">${NOMS[k]}</div><div class="sh"><span></span><small>Último</small><small>Prom.</small></div>${fila('Cobre',o[0],dc)}${fila('Ácido',o[1],1)}${prom(o[2])!=null?fila('pH',o[2],2):''}</div>`}).join('');
@@ -2042,7 +2057,7 @@ function plaRender(){
   const esp=dm.map(f=>sacosEsp(f)||0),pro=dm.map(f=>kgOf(D[f])/25),tE=esp.reduce((a,b)=>a+b,0),tP=pro.reduce((a,b)=>a+b,0);
   $('#plSacT').textContent='Sacos esperados vs producidos · '+mn;
   $('#plSacK').innerHTML=`<div><small>Cumplimiento del mes</small><b class="${tP>=tE?'up':'dn'}">${tE?nf(tP/tE*100,1)+'%':'—'}</b></div><div><small>Producidos / esperados</small><b>${nf(tP)} / ${nf(tE)}</b></div>`;
-  $('#plSac').innerHTML=barras2({labels:lab,a:esp,b:pro,na:'Esperados',nb:'Producidos',tipX:tx});
+  {const cw=window.CW;if(cw)window.CW=1180;$('#plSac').innerHTML=barras2({labels:lab,a:esp,b:pro,na:'Esperados',nb:'Producidos',tipX:tx});window.CW=cw}
   plaPilas(d);
   $('#plNote').textContent='Datos de la planilla CONTROL QUÍMICO hasta el '+fdd(CQ.actualizado)+'. Promedios calculados con las muestras disponibles de cada día. Extracción de cada tren = (Cu PLS − Cu REF SX del tren) ÷ Cu PLS; un tren sin muestras se considera detenido. Producción del día de la planilla RECUPERACION.';
 }
@@ -2063,7 +2078,9 @@ function plaPilas(d){
   const nmax=Math.max(1,...act.map(p=>dd(p.ini)));
   const serie=(p,j)=>{const v=Array(dd(p.ini)).fill(null);p.h.forEach(x=>{const a=prom([x[1+j],x[2+j]]);if(a!=null)v[dd(p.ini)-dd(x[0])]=a});return v};
   const cs=act.map(p=>({n:p.k,v:serie(p,0).concat(Array(nmax-dd(p.ini)).fill(null)),c:p.c}));
+  const cw0=window.CW;if(cw0)window.CW=1180;
   $('#plPiCh').innerHTML=act.length?lineas({labels:Array.from({length:nmax},(_,i)=>String(i+1)),series:cs,unit:'g/L',tipX:Array.from({length:nmax},(_,i)=>'Día '+(i+1))}):'';
+  window.CW=cw0;
   $('#plPiL').innerHTML=leyendaL(cs);
   $('#plMinis').innerHTML=act.map(p=>{const n=dd(p.ini),lb=Array.from({length:n},(_,i)=>String(i+1));
     return `<div class="pmini"><div class="mh"><b><i style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${p.c};margin-right:5px"></i>${p.k}</b><span>${p.k[0]==='R'?'Ripio':'Mineral'} · ${n} ${n===1?'día':'días'}</span></div>
