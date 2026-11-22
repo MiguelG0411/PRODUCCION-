@@ -243,15 +243,14 @@ function diagrama(){
   return `<svg class="flow" viewBox="0 0 820 712" width="100%" role="img" aria-label="Diagrama de la planta con los datos del día"><defs><marker id="ar" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7z" fill="#8FA2C8"/></marker>
    <linearGradient id="gb" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#F6F9FF"/><stop offset="1" stop-color="#E9F0FC"/></linearGradient><linearGradient id="gn" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0A1A5C"/><stop offset="1" stop-color="#1E73D8"/></linearGradient></defs>${o}</svg>`;
 }
-const SL=[['t','Mineral chancado','t/día',0,600,5,0],['ley','Ley del mineral','%',0.1,2,0.01,2],['pls','Cobre en PLS','g/L',0.3,6,0.01,2],['flujo','Flujo a SX por tren','L/min',80,300,5,0],['ext','Extracción SX','%',40,100,0.5,1],['trenes','Trenes en operación','',1,2,1,0]];
+const SL=[['pls','Cobre en PLS','g/L',0.3,6,0.01,2],['flujo','Flujo a SX por tren','L/min',80,300,5,0],['ext','Extracción SX','%',40,100,0.5,1],['trenes','Trenes en operación','',1,2,1,0]];
 function simulador(){
   const base=simBase();if(!SIM||SIM.dia!==DIA)SIM={dia:DIA,...base};
   $('#vSimulador').innerHTML=`<div class="sim"><div class="card" style="padding:10px 12px">${diagrama()}</div>
    <div style="display:grid;gap:16px">
     <div class="card"><h3>¿Qué pasa si…? <span><button class="btn g" id="simReset" style="padding:5px 10px;font-size:12px">Datos del día</button></span></h3>
      ${SL.map(([k,t,u,mi,ma,st])=>`<div class="sl"><label for="sl_${k}">${t}<b id="sv_${k}"></b></label><input type="range" id="sl_${k}" data-k="${k}" min="${mi}" max="${ma}" step="${st}" value="${SIM[k]}"><small id="sb_${k}"></small></div>`).join('')}
-     <div class="res"><small>Sulfato esperado de SX</small><b id="rSx"></b><small id="rSx2"></small></div>
-     <div class="res alt" style="margin-top:10px"><small>Sulfato que aporta el mineral chancado (recuperación ${REC*100}%)</small><b id="rMin"></b><small id="rMin2"></small></div></div>
+     <div class="res"><small>Sulfato esperado de SX</small><b id="rSx"></b><small id="rSx2"></small></div></div>
     <div class="card"><h3>Balance real del día</h3><div id="bal"></div></div>
    </div></div>`;
   $('#vSimulador').querySelectorAll('input[type=range]').forEach(i=>i.addEventListener('input',()=>{SIM[i.dataset.k]=+i.value;simCalc()}));
@@ -270,9 +269,6 @@ function simCalc(){
   const cuDia=S.pls*S.flujo*1440/1000*S.ext/100*S.trenes,sx=cuDia*SULF,sxB=b.pls*b.flujo*1440/1000*b.ext/100*b.trenes*SULF,d=sx-sxB;
   $('#rSx').textContent=nf(sx)+' kg/día';
   $('#rSx2').textContent=nf(sx/25)+' sacos · '+nf(sx*30/1000,1)+' t al mes'+(Math.abs(d)>.5?' · '+(d>0?'+':'−')+nf(Math.abs(d))+' kg vs el día':'');
-  const pot=S.t*S.ley/100*REC*SULF;   // t de sulfato que aportaría ese mineral en todo su ciclo de riego
-  $('#rMin').textContent=nf(pot,1)+' t de sulfato';
-  $('#rMin2').textContent=nf(S.t*S.ley/100*1000)+' kg de cobre fino'+(sx>0?' · equivale a '+nf(pot*1000/sx,1)+' días de producción al ritmo simulado':'');
 }
 
 /* ---------- MANTENCIÓN (maqueta) ----------
