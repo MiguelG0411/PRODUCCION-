@@ -293,13 +293,13 @@ function mantencion(){
     const j=eq.length;let desde=Math.round((horas*0.37+j*53)%(inter*0.85));   // ejemplo: algunos vencidos y próximos para ver cómo se ve
     if(j%7===2)desde=inter+12+j;else if(j%5===4)desde=inter-8-j;
     const estado=j===6?'taller':desde>=inter?'vencida':desde>=inter-30?'proxima':'ok';
-    eq.push({nom,cc,tipo:t[1],ico:t[3],L:o.L,n:o.n,ult:o.ult,horo:Math.round(1800+horas*1.6+eq.length*97),horas,lh:t[2]*(0.9+((eq.length*7)%5)/20),inter,desde,estado})});
+    eq.push({k:+k,nom,cc,tipo:t[1],ico:t[3],L:o.L,n:o.n,ult:o.ult,horo:Math.round(1800+horas*1.6+eq.length*97),horas,lh:t[2]*(0.9+((eq.length*7)%5)/20),inter,desde,estado})});
   const tl=n=>n.toLowerCase().replace(/(^|\s)\S/g,c=>c.toUpperCase());
   const cnt=k=>eq.filter(e=>e.estado===k).length,disp=(eq.length-cnt('taller'))/Math.max(1,eq.length);
   const EST={ok:['g2','Operativo'],proxima:['w2','Próxima mantención'],vencida:['r2','Mantención vencida'],taller:['b2','En taller']};
   const prox=eq.filter(e=>e.estado!=='ok').sort((a,b)=>(b.desde/b.inter)-(a.desde/a.inter));
   const hist=[['03/11','Cargador Clinton','Preventiva 250 h','Cambio de aceite y filtros','4 h'],['28/10','Vielco','Preventiva 250 h','Filtros de aire y combustible','3 h'],['21/10','Mack Aljibe','Correctiva','Fuga en manguera hidráulica','9 h'],['15/10','Lureye 2','Preventiva 500 h','Cambio de correas','6 h'],['09/10','Great Wall Lpcv52','Preventiva 10.000 km','Mantención de concesionario','8 h']];
-  const tot=eq.reduce((a,e)=>a+e.L,0);
+  const tot=eq.reduce((a,e)=>a+e.L,0),OTS=generarOTs(eq);
   v.innerHTML=`
   <div class="maq-banner"><b>Maqueta para revisar.</b> Los equipos y el petróleo son reales (planilla de petróleo 2026, destino planta). Los horómetros, horas desde la última mantención, estados e historial son <b>de ejemplo</b> hasta que exista la planilla de mantención.</div>
   <div class="k4">
@@ -311,7 +311,7 @@ function mantencion(){
   <div class="g2c">
    <div class="card"><h3>Equipos<span>ordenados por petróleo consumido en 2026</span></h3>
     <div class="eqgrid">${eq.map(e=>{const pc=Math.min(100,e.desde/e.inter*100),st=EST[e.estado];
-      return `<div class="eq ${e.estado}"><div class="eqh"><i><svg><use href="#${e.ico}"/></svg></i><div><b>${esc(tl(e.nom))}</b><small>${esc(e.tipo)} · ${esc(tl(cc2(e.cc)))}</small></div><span class="tg ${st[0]}">${st[1]}</span></div>
+      return `<div class="eq ${e.estado}" data-eq="${eq.indexOf(e)}" role="button" tabindex="0" title="Ver historial de mantenciones"><div class="eqh"><i><svg><use href="#${e.ico}"/></svg></i><div><b>${esc(tl(e.nom))}</b><small>${esc(e.tipo)} · ${esc(tl(cc2(e.cc)))}</small></div><span class="tg ${st[0]}">${st[1]}</span></div>
         <div class="eqd"><span>Horómetro<b>${nf(e.horo)} h</b></span><span>Petróleo<b>${nf(e.L)} L</b></span><span>Consumo<b>${nf(e.lh,1)} L/h</b></span><span>Últ. carga<b>${fc(e.ult)}</b></span></div>
         <div class="eqp"><div class="bar"><i style="width:${pc}%;background:${e.estado==='vencida'?'var(--bad)':e.estado==='proxima'?'#E0A23A':'linear-gradient(90deg,var(--vit),var(--vit-2))'}"></i></div>
         <small>${e.estado==='taller'?'En taller desde el 12/11 · repuesto pendiente':e.desde>=e.inter?'Vencida hace '+nf(e.desde-e.inter)+' h':'Faltan '+nf(e.inter-e.desde)+' h para la mantención de '+nf(e.inter)+' h'}</small></div></div>`}).join('')}</div>
@@ -323,7 +323,7 @@ function mantencion(){
      <div class="hist">${hist.map(h=>`<div class="hi"><span class="hf">${h[0]}</span><div><b>${h[1]}</b> ${h[2].startsWith('Correctiva')?'<span class="tg r2">Correctiva</span>':'<span class="tg b2">'+h[2]+'</span>'}<small>${h[3]} · ${h[4]} detenido</small></div></div>`).join('')}</div></div>
    </div>
   </div>
-  ${ordenesTrabajo(eq,tl)}
+  ${pintarOTs(OTS,tl)}
   <div class="card"><h3>Propuesta de planilla de mantención<span>4 hojas en el mismo Excel, en OneDrive</span></h3>
    <div class="g4c">
     <div class="ph"><b>1 · EQUIPOS</b><small>Una fila por equipo, se llena una vez</small><ul><li>Código y nombre (igual que en la planilla de petróleo)</li><li>Tipo y centro de costo</li><li>Marca, modelo, patente o serie</li><li>Intervalo de mantención (ej. 250 h o 10.000 km)</li><li>Horómetro u odómetro inicial</li></ul></div>
@@ -331,8 +331,11 @@ function mantencion(){
     <div class="ph"><b>3 · MANTENCIONES</b><small>Una fila por trabajo realizado</small><ul><li>Fecha de inicio y de término</li><li>Equipo y horómetro al momento</li><li>Tipo: preventiva o correctiva (falla)</li><li>Descripción y repuestos</li><li>Costo y responsable</li><li>Horas detenido</li></ul></div>
     <div class="ph"><b>4 · ÓRDENES DE TRABAJO</b><small>Una fila por trabajo pedido, antes de hacerse</small><ul><li>N° de OT y fecha</li><li>Equipo y quién la pide</li><li>Tipo y prioridad (alta, media, baja)</li><li>Descripción del problema</li><li>Asignado a y fecha comprometida</li><li>Estado: por iniciar, en curso, esperando repuesto, cerrada</li></ul><small style="margin-top:8px">Al cerrarla se copia a MANTENCIONES con lo que realmente se hizo.</small></div>
    </div></div>`;
+  const abrir=t=>{const c=t.closest('[data-eq]');if(c)detalleEquipo(eq[+c.dataset.eq],P,tl,OTS)};
+  v.onclick=ev=>abrir(ev.target);v.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();abrir(ev.target)}};
 }
-function ordenesTrabajo(eq,tl){
+function ordenesTrabajo(eq,tl){const ots=generarOTs(eq);return pintarOTs(ots,tl)}
+function generarOTs(eq){
   // ejemplo: OT armadas a partir de los equipos con mantención vencida, próxima o en taller, más algunas correctivas
   const hoy=new Date();hoy.setHours(12,0,0,0);const dia=n=>{const d=new Date(hoy);d.setDate(d.getDate()+n);return d};
   const ff=d=>String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
@@ -346,16 +349,70 @@ function ordenesTrabajo(eq,tl){
   add(por('MACK ALJIBE'),'Correctiva','media','Cambio de neumático trasero derecho','repuesto',6,4,'Conductor aljibe','Mecánico de turno',2);
   add(por('LUREYE'),'Preventiva','baja','Correas con desgaste, cambiar en próxima detención','abierta',5,7,'Mecánico de turno','Mecánico de turno',2);
   add(por('EXCAVADORA'),'Inspección','baja','Inspección de mangueras hidráulicas','abierta',2,6,'Jefe de planta','Sin asignar',1);
+  return ots;
+}
+const hoyOT=()=>{const d=new Date();d.setHours(12,0,0,0);return d};
+const ffOT=d=>String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+const PRI={alta:['r2','Alta'],media:['w2','Media'],baja:['b2','Baja']},TIP={Preventiva:'b2',Correctiva:'r2','Inspección':'g2'};
+function tarjetaOT(o,tl){const tarde=o.comp<hoyOT();
+  return `<div class="ot ${o.prio}"><div class="oth"><b>${o.n}</b><span class="tg ${PRI[o.prio][0]}">${PRI[o.prio][1]}</span></div>
+   <div class="ote">${esc(tl(o.e.nom))} <span class="tg ${TIP[o.tipo]}">${o.tipo}</span></div><p>${esc(o.desc)}</p>
+   <div class="otm"><span>Pide <b>${esc(o.sol)}</b></span><span>Asignada <b class="${o.asig==='Sin asignar'?'dn':''}">${esc(o.asig)}</b></span></div>
+   <div class="otf"><span>Abierta ${ffOT(o.ab)} · hace ${o.dias} ${o.dias===1?'día':'días'}</span><span class="${tarde?'dn':''}">${tarde?'Atrasada · ':''}compromiso ${ffOT(o.comp)} · ${o.horas} h</span></div></div>`}
+function pintarOTs(ots,tl){const hoy=hoyOT();
   const COLS=[['abierta','Por iniciar'],['curso','En curso'],['repuesto','Esperando repuesto']];
-  const atr=ots.filter(o=>o.comp<hoy),PRI={alta:['r2','Alta'],media:['w2','Media'],baja:['b2','Baja']},TIP={Preventiva:'b2',Correctiva:'r2','Inspección':'g2'};
+  const atr=ots.filter(o=>o.comp<hoy);
   return `<div class="card"><h3>Órdenes de trabajo pendientes<span>ejemplo · ${ots.length} abiertas</span></h3>
    <div class="otk">${[['Pendientes',ots.length,''],['Por iniciar',ots.filter(o=>o.est==='abierta').length,''],['En curso',ots.filter(o=>o.est==='curso').length,''],['Esperando repuesto',ots.filter(o=>o.est==='repuesto').length,''],['Atrasadas',atr.length,'bad'],['Prioridad alta',ots.filter(o=>o.prio==='alta').length,'bad']].map(x=>`<div class="${x[2]}"><b>${x[1]}</b><small>${x[0]}</small></div>`).join('')}</div>
    <div class="kanban">${COLS.map(([c,t])=>{const L=ots.filter(o=>o.est===c).sort((a,b)=>({alta:0,media:1,baja:2})[a.prio]-({alta:0,media:1,baja:2})[b.prio]||a.comp-b.comp);
-     return `<div class="kcol"><div class="kh">${t}<span>${L.length}</span></div>${L.map(o=>{const tarde=o.comp<hoy;
-       return `<div class="ot ${o.prio}"><div class="oth"><b>${o.n}</b><span class="tg ${PRI[o.prio][0]}">${PRI[o.prio][1]}</span></div>
-        <div class="ote">${esc(tl(o.e.nom))} <span class="tg ${TIP[o.tipo]}">${o.tipo}</span></div><p>${esc(o.desc)}</p>
-        <div class="otm"><span>Pide <b>${esc(o.sol)}</b></span><span>Asignada <b class="${o.asig==='Sin asignar'?'dn':''}">${esc(o.asig)}</b></span></div>
-        <div class="otf"><span>Abierta ${ff(o.ab)} · hace ${o.dias} ${o.dias===1?'día':'días'}</span><span class="${tarde?'dn':''}">${tarde?'Atrasada · ':''}compromiso ${ff(o.comp)} · ${o.horas} h</span></div></div>`}).join('')||'<p class="empty">Sin órdenes</p>'}</div>`}).join('')}</div></div>`;
+     return `<div class="kcol"><div class="kh">${t}<span>${L.length}</span></div>${L.map(o=>tarjetaOT(o,tl)).join('')||'<p class="empty">Sin órdenes</p>'}</div>`}).join('')}</div></div>`;
+}
+/* ---------- detalle de un equipo: historial de mantenciones (ejemplo) y petróleo real ---------- */
+const MES3=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const TRABAJOS={Generador:[['Cambio de aceite y filtros de aire, aceite y combustible','Aceite 15W40 (20 L) · 3 filtros'],['Falla en regulador de voltaje','Regulador AVR'],['Fuga en radiador','Abrazaderas y refrigerante'],['Cambio de baterías de partida','2 baterías 12 V']],
+  'Camión':[['Mantención preventiva: aceite, filtros y engrase','Aceite 15W40 · 4 filtros · grasa'],['Cambio de pastillas de freno','Juego de pastillas'],['Fuga en manguera hidráulica','Manguera hidráulica 1/2"'],['Cambio de neumático','Neumático 11R22.5']],
+  'Cargador frontal':[['Mantención preventiva: aceite de motor, filtros y engrase general','Aceite 15W40 · 4 filtros · grasa'],['Fuga en cilindro de levante','Kit de sellos'],['Cambio de dientes del balde','5 dientes y pasadores'],['Falla en transmisión','Solenoide de cambio']],
+  'Camioneta / bus':[['Mantención de kilometraje en concesionario','Aceite · filtros · revisión general'],['Cambio de neumáticos','4 neumáticos'],['Revisión de frenos','Pastillas delanteras']],
+  Maquinaria:[['Mantención preventiva: aceite, filtros e hidráulico','Aceite · filtros · aceite hidráulico'],['Fuga en manguera hidráulica','Manguera hidráulica'],['Cambio de cuchilla','Cuchilla y pernos']],
+  Compresor:[['Cambio de aceite y filtro de aire','Aceite de compresor · filtro'],['Cambio de válvula de admisión','Válvula de admisión']]};
+function historial(e){
+  const hoy=hoyOT(),ini=new Date(hoy.getFullYear(),0,1),hpd=Math.max(0.5,e.horas/Math.max(30,(hoy-ini)/864e5));
+  let seed=e.k*7+3;const rnd=()=>{seed=(seed*9301+49297)%233280;return seed/233280};
+  const T=TRABAJOS[e.tipo]||[['Mantención preventiva general','Aceite · filtros'],['Reparación general','Repuestos varios']],H=[];
+  for(let i=0;i<6;i++){const ha=e.desde+i*e.inter,d=ha/hpd;if(d>340)break;const f=new Date(hoy-d*864e5);
+    H.push({f,tipo:'Preventiva',horo:Math.round(e.horo-ha),desc:T[0][0]+' ('+nf(e.inter)+' h)',rep:T[0][1],resp:'Mecánico de turno',costo:Math.round((180+rnd()*200)*1000),det:Math.round(3+rnd()*3)})}
+  const nc=1+Math.floor(rnd()*2.2);
+  for(let i=0;i<nc;i++){const d=12+rnd()*300,f=new Date(hoy-d*864e5),t=T[1+Math.floor(rnd()*(T.length-1))];
+    H.push({f,tipo:'Correctiva',horo:Math.round(e.horo-d*hpd),desc:t[0],rep:t[1],resp:rnd()>.5?'Taller externo':'Mecánico de turno',costo:Math.round((250+rnd()*1100)*1000),det:Math.round(6+rnd()*26)})}
+  return H.sort((a,b)=>b.f-a.f);
+}
+function detalleEquipo(e,P,tl,OTS){
+  let d=$('#drawer');
+  if(!d){d=document.createElement('div');d.id='drawer';d.innerHTML='<div class="dr-bg"></div><aside class="dr" role="dialog" aria-modal="true" aria-label="Detalle del equipo"><div class="dr-in"></div></aside>';document.body.appendChild(d);
+    d.querySelector('.dr-bg').addEventListener('click',()=>d.classList.remove('open'));
+    document.addEventListener('keydown',ev=>{if(ev.key==='Escape')d.classList.remove('open')})}
+  const H=historial(e),prev=H.filter(h=>h.tipo==='Preventiva').length,corr=H.length-prev,costo=H.reduce((a,h)=>a+h.costo,0),det=H.reduce((a,h)=>a+h.det,0);
+  const ots=OTS.filter(o=>o.e===e),anio=hoyOT().getFullYear(),mesAct=hoyOT().getMonth();
+  const mes=Array(12).fill(0);P.entregas.forEach(x=>{if(x[1]===e.k&&x[5]===0&&x[0].startsWith(String(anio)))mes[+x[0].slice(5,7)-1]+=x[3]});
+  const mx=Math.max(1,...mes),W=480,Hh=130,bw=W/12;
+  const graf=`<svg viewBox="0 0 ${W} ${Hh+18}" class="drg">${mes.map((v,i)=>i>mesAct?'':`<g><title>${MES3[i]} ${anio}: ${nf(v)} L</title><rect x="${i*bw+bw*.18}" y="${Hh-v/mx*(Hh-14)}" width="${bw*.64}" height="${Math.max(1,v/mx*(Hh-14))}" rx="3" fill="${i===mesAct?'#B9622F':'#E3A06E'}"/>${v?`<text x="${i*bw+bw/2}" y="${Hh-v/mx*(Hh-14)-4}" text-anchor="middle" font-size="10" fill="#5B6A80">${v>=1000?nf(v/1000,1)+'k':nf(v)}</text>`:''}</g>`).join('')}${MES3.map((m,i)=>`<text x="${i*bw+bw/2}" y="${Hh+14}" text-anchor="middle" font-size="10.5" fill="#7A879B">${m}</text>`).join('')}</svg>`;
+  const pc=Math.min(100,e.desde/e.inter*100),est={ok:['g2','Operativo'],proxima:['w2','Próxima mantención'],vencida:['r2','Mantención vencida'],taller:['b2','En taller']}[e.estado];
+  const fd=f=>String(f.getDate()).padStart(2,'0')+'/'+String(f.getMonth()+1).padStart(2,'0')+'/'+f.getFullYear();
+  d.querySelector('.dr-in').innerHTML=`
+   <div class="drh"><i><svg><use href="#${e.ico}"/></svg></i><div><h2>${esc(tl(e.nom))}</h2><small>${esc(e.tipo)} · ${esc(tl(e.cc))}</small></div><span class="tg ${est[0]}">${est[1]}</span><button class="drx" aria-label="Cerrar">✕</button></div>
+   <div class="maq-banner" style="font-size:12px">Historial, horómetro y costos <b>de ejemplo</b>. El petróleo por mes es real (planilla de petróleo ${anio}, destino planta).</div>
+   <div class="drk"><div><small>Horómetro</small><b>${nf(e.horo)} h</b></div><div><small>Mantenciones · 12 meses</small><b>${H.length}</b><small>${prev} preventivas · ${corr} correctivas</small></div><div><small>Costo · 12 meses</small><b>$${nf(costo/1e6,1)} MM</b></div><div><small>Horas detenido</small><b>${nf(det)} h</b></div></div>
+   <div class="drs"><div class="ins-t">Próxima mantención preventiva<span>cada ${nf(e.inter)} h</span></div>
+    <div class="bar"><i style="width:${pc}%;background:${e.estado==='vencida'?'var(--bad)':e.estado==='proxima'?'#E0A23A':'linear-gradient(90deg,var(--vit),var(--vit-2))'}"></i></div>
+    <p class="note" style="margin-top:6px">${e.estado==='taller'?'En taller desde el 12/11 · repuesto pendiente':e.desde>=e.inter?'Vencida hace '+nf(e.desde-e.inter)+' h':'Faltan '+nf(e.inter-e.desde)+' h · '+nf(e.desde)+' h desde la última'}</p></div>
+   ${ots.length?`<div class="drs"><div class="ins-t">Órdenes de trabajo abiertas<span>${ots.length}</span></div><div style="display:grid;gap:10px">${ots.map(o=>tarjetaOT(o,tl)).join('')}</div></div>`:''}
+   <div class="drs"><div class="ins-t">Petróleo por mes ${anio}<span>${nf(e.L)} L en el año · ${nf(e.n)} cargas</span></div>${graf}</div>
+   <div class="drs"><div class="ins-t">Historial de mantenciones<span>últimos 12 meses</span></div>
+    <div class="tl">${H.map(h=>`<div class="tli ${h.tipo==='Correctiva'?'c':'p'}"><div class="tld"></div><div class="tlc">
+      <div class="tlh"><b>${fd(h.f)}</b><span class="tg ${h.tipo==='Correctiva'?'r2':'b2'}">${h.tipo}</span><span class="tlo">${nf(h.horo)} h</span></div>
+      <p>${esc(h.desc)}</p><div class="tlm"><span>Repuestos <b>${esc(h.rep)}</b></span><span>Responsable <b>${esc(h.resp)}</b></span><span>Costo <b>$${nf(h.costo)}</b></span><span>Detenido <b>${h.det} h</b></span></div></div></div>`).join('')}</div></div>`;
+  d.querySelector('.drx').addEventListener('click',()=>d.classList.remove('open'));
+  d.querySelector('.dr').scrollTop=0;requestAnimationFrame(()=>d.classList.add('open'));
 }
 function cc2(x){return x||'—'}
 
